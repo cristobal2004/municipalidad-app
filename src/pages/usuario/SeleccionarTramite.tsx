@@ -1,52 +1,83 @@
 import React from "react";
 import {
-  IonButton,
   IonContent,
-  IonHeader,
-  IonItem,
-  IonLabel,
-  IonList,
+  IonIcon,
   IonPage,
-  IonTitle,
-  IonToolbar,
 } from "@ionic/react";
+import {
+  businessOutline,
+  cardOutline,
+  constructOutline,
+  arrowBackOutline,
+} from "ionicons/icons";
 import { useHistory } from "react-router-dom";
+import "./SeleccionarTramite.css";
 
 const SeleccionarTramite: React.FC = () => {
   const history = useHistory();
 
   return (
     <IonPage>
-      <IonHeader>
-        <IonToolbar>
-          <IonTitle>Seleccionar trámite</IonTitle>
-        </IonToolbar>
-      </IonHeader>
+      <IonContent fullscreen className="seleccionar-content">
+        <div className="seleccionar-wrapper">
+          <header className="seleccionar-header">
+            <h1>Municipalidad de Santo Domingo</h1>
 
-      <IonContent className="ion-padding">
-        <h2>Seleccione el trámite a realizar</h2>
+            <div className="seleccionar-user-actions">
+              <span>Bienvenido, Cristóbal Rubilar</span>
+              <button onClick={() => history.push("/")}>Cerrar Sesión</button>
+            </div>
+          </header>
 
-        <IonList>
-          <IonItem button onClick={() => history.push("/usuario/nueva-solicitud/patente")}>
-            <IonLabel>Solicitar patente comercial</IonLabel>
-          </IonItem>
+          <main className="seleccionar-main">
+            <aside className="seleccionar-logo-area">
+              <img
+                src="/assets/Estandar-Muni.png"
+                alt="Logo Municipalidad de Santo Domingo"
+                className="seleccionar-logo"
+              />
+            </aside>
 
-          <IonItem>
-            <IonLabel>Solicitud de licencia de conducir</IonLabel>
-          </IonItem>
+            <section className="seleccionar-card">
+              <h2>Seleccione el Trámite a realizar</h2>
 
-          <IonItem>
-            <IonLabel>Solicitud de permiso de construcción</IonLabel>
-          </IonItem>
-        </IonList>
+              <div className="tramite-list">
+                <button
+                  className="tramite-option"
+                  onClick={() =>
+                    history.push("/usuario/nueva-solicitud/patente")
+                  }
+                >
+                  <IonIcon icon={businessOutline} />
+                  <span>Solicitar Patente Comercial</span>
+                </button>
 
-        <IonButton
-          expand="block"
-          fill="outline"
-          onClick={() => history.push("/usuario/inicio")}
-        >
-          Volver al inicio
-        </IonButton>
+                <button className="tramite-option">
+                  <IonIcon icon={cardOutline} />
+                  <span>Solicitud de Licencia de Conducir</span>
+                </button>
+
+                <button className="tramite-option">
+                  <IonIcon icon={constructOutline} />
+                  <span>Solicitud de Permiso de Construcción</span>
+                </button>
+              </div>
+
+              <button
+                className="seleccionar-volver-button"
+                onClick={() => history.push("/usuario/inicio")}
+              >
+                <IonIcon icon={arrowBackOutline} />
+                Volver al Inicio
+              </button>
+            </section>
+          </main>
+
+          <footer className="seleccionar-footer">
+            <span>Copyright © 2026 I. Municipalidad de Santo Domingo</span>
+            <span>I. Municipalidad de Santo Domingo</span>
+          </footer>
+        </div>
       </IonContent>
     </IonPage>
   );
