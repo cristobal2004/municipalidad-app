@@ -12,21 +12,38 @@ import {
   Solicitud,
   solicitudesService,
 } from "../../services/solicitudesService";
+import { usuariosService } from "../../services/usuariosService";
 import "./MisTramites.css";
 
 const MisTramites: React.FC = () => {
   const history = useHistory();
+
+  const usuarioActual = usuariosService.obtenerUsuarioActual();
+
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
 
   useEffect(() => {
-    const solicitudesGuardadas = solicitudesService.obtenerSolicitudes();
-    setSolicitudes(solicitudesGuardadas);
+    if (!usuarioActual) {
+      setSolicitudes([]);
+      return;
+    }
+
+    const solicitudesUsuario = solicitudesService.obtenerSolicitudesPorUsuario(
+      usuarioActual.correo
+    );
+
+    setSolicitudes(solicitudesUsuario);
   }, []);
 
   const obtenerClaseEstado = (estado: string) => {
     if (estado === "Aprobado") return "estado estado-aprobado";
     if (estado === "Falta Documentación") return "estado estado-falta";
     return "estado estado-proceso";
+  };
+
+  const cerrarSesion = () => {
+    usuariosService.cerrarSesionUsuario();
+    history.push("/");
   };
 
   return (
@@ -37,8 +54,10 @@ const MisTramites: React.FC = () => {
             <h1>Municipalidad de Santo Domingo</h1>
 
             <div className="tramites-user-actions">
-              <span>Bienvenido, Cristóbal Rubilar</span>
-              <button onClick={() => history.push("/")}>Cerrar Sesión</button>
+              <span>
+                Bienvenido, {usuarioActual?.nombre || "Usuario"}
+              </span>
+              <button onClick={cerrarSesion}>Cerrar Sesión</button>
             </div>
           </header>
 
@@ -55,10 +74,10 @@ const MisTramites: React.FC = () => {
               <h2>Resumen de mis trámites</h2>
 
               <p className="tramites-description">
-                Hola, Cristóbal Rubilar. Aquí puedes realizar el seguimiento en
-                tiempo real de tus solicitudes, revisar documentos pendientes y
-                descargar resoluciones oficiales de la Municipalidad de Santo
-                Domingo, entre otras cosas.
+                Hola, {usuarioActual?.nombre || "usuario"}. Aquí puedes realizar
+                el seguimiento en tiempo real de tus solicitudes, revisar
+                documentos pendientes y descargar resoluciones oficiales de la
+                Municipalidad de Santo Domingo, entre otras cosas.
               </p>
 
               <div className="tramites-title-row">
@@ -73,73 +92,86 @@ const MisTramites: React.FC = () => {
                 </IonButton>
               </div>
 
-              <div className="tramites-table-container">
-                <table className="tramites-table">
-                  <thead>
-                    <tr>
-                      <th>ID Trámite</th>
-                      <th>Fecha Recibo</th>
-                      <th>Estado</th>
-                      <th>Encargado</th>
-                      <th>Área</th>
-                      <th>Observaciones</th>
-                      <th>Agendar con funcionario</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {solicitudes.map((solicitud) => (
-                      <tr key={solicitud.id}>
-                        <td>{solicitud.id}</td>
-                        <td>{solicitud.fechaRecibo}</td>
-                        <td>
-                          <span className={obtenerClaseEstado(solicitud.estado)}>
-                            {solicitud.estado}
-                          </span>
-                        </td>
-                        <td>{solicitud.encargado}</td>
-                        <td>{solicitud.area}</td>
-                        <td
-                          className={
-                            solicitud.estado === "Falta Documentación"
-                              ? "observacion-alerta"
-                              : "observacion-normal"
-                          }
-                        >
-                          {solicitud.observacion}
-                        </td>
-                        <td>
-                          <button
-                            className="calendar-button"
-                            onClick={() =>
-                              history.push(`/usuario/agendar/${solicitud.id}`)
-                            }
-                          >
-                            <IonIcon icon={calendarOutline} />
-                          </button>
-                        </td>
-                        <td>
-                          <button
-                            className="accion-button"
-                            onClick={() =>
-                              history.push(`/usuario/solicitud/${solicitud.id}`)
-                            }
-                          >
-                            <IonIcon
-                              icon={
-                                solicitud.estado === "Aprobado"
-                                  ? cloudDownloadOutline
-                                  : eyeOutline
-                              }
-                            />
-                          </button>
-                        </td>
+              {solicitudes.length === 0 ? (
+                <div className="tramites-empty-box">
+                  <p>No tienes trámites registrados todavía.</p>
+                  <IonButton
+                    className="nuevo-tramite-button"
+                    onClick={() => history.push("/usuario/seleccionar-tramite")}
+                  >
+                    <IonIcon icon={addOutline} slot="start" />
+                    Crear primer trámite
+                  </IonButton>
+                </div>
+              ) : (
+                <div className="tramites-table-container">
+                  <table className="tramites-table">
+                    <thead>
+                      <tr>
+                        <th>ID Trámite</th>
+                        <th>Fecha Recibo</th>
+                        <th>Estado</th>
+                        <th>Encargado</th>
+                        <th>Área</th>
+                        <th>Observaciones</th>
+                        <th>Agendar con funcionario</th>
+                        <th>Acciones</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+
+                    <tbody>
+                      {solicitudes.map((solicitud) => (
+                        <tr key={solicitud.id}>
+                          <td>{solicitud.id}</td>
+                          <td>{solicitud.fechaRecibo}</td>
+                          <td>
+                            <span className={obtenerClaseEstado(solicitud.estado)}>
+                              {solicitud.estado}
+                            </span>
+                          </td>
+                          <td>{solicitud.encargado}</td>
+                          <td>{solicitud.area}</td>
+                          <td
+                            className={
+                              solicitud.estado === "Falta Documentación"
+                                ? "observacion-alerta"
+                                : "observacion-normal"
+                            }
+                          >
+                            {solicitud.observacion}
+                          </td>
+                          <td>
+                            <button
+                              className="calendar-button"
+                              onClick={() =>
+                                history.push(`/usuario/agendar/${solicitud.id}`)
+                              }
+                            >
+                              <IonIcon icon={calendarOutline} />
+                            </button>
+                          </td>
+                          <td>
+                            <button
+                              className="accion-button"
+                              onClick={() =>
+                                history.push(`/usuario/solicitud/${solicitud.id}`)
+                              }
+                            >
+                              <IonIcon
+                                icon={
+                                  solicitud.estado === "Aprobado"
+                                    ? cloudDownloadOutline
+                                    : eyeOutline
+                                }
+                              />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
 
               <div className="tramites-actions-bottom">
                 <IonButton

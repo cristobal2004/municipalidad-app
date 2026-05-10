@@ -94,6 +94,17 @@
   text-decoration: underline;
 }
 
+.solicitud-error-box {
+  background: #ffe5e5;
+  border: 1px solid #e32222;
+  color: #a40000;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 10px 12px;
+  border-radius: 4px;
+  margin-bottom: 18px;
+}
+
 .solicitud-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -141,6 +152,10 @@
   color: #333333;
   font-weight: 700;
   margin: 0 0 8px;
+}
+
+.pyme-section p b {
+  color: #e32222;
 }
 
 .radio-row {

@@ -269,4 +269,20 @@
     gap: 4px;
     text-align: center;
   }
+
+  .tramites-empty-box {
+  background: #f7fbff;
+  border: 1px solid #d9e1ea;
+  border-radius: 6px;
+  padding: 24px;
+  text-align: center;
+  margin-top: 18px;
+  }
+
+  .tramites-empty-box p {
+    color: #555555;
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0 0 14px;
+   }
 }

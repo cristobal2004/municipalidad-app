@@ -19,12 +19,15 @@ import {
 } from "ionicons/icons";
 import { useHistory } from "react-router-dom";
 import { solicitudesService } from "../../services/solicitudesService";
+import { usuariosService } from "../../services/usuariosService";
 import "./SolicitudPatente.css";
 
 const SolicitudPatente: React.FC = () => {
   const history = useHistory();
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const usuarioActual = usuariosService.obtenerUsuarioActual();
 
   const [razonSocial, setRazonSocial] = useState("");
   const [rut, setRut] = useState("");
@@ -33,6 +36,8 @@ const SolicitudPatente: React.FC = () => {
   const [rolAvaluo, setRolAvaluo] = useState("");
   const [pyme, setPyme] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+
+  const [errorFormulario, setErrorFormulario] = useState("");
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -43,7 +48,40 @@ const SolicitudPatente: React.FC = () => {
     setSelectedFiles(fileNames);
   };
 
+  const validarFormulario = () => {
+    if (!usuarioActual) {
+      setErrorFormulario(
+        "Debe iniciar sesión antes de ingresar una solicitud."
+      );
+      return false;
+    }
+
+    if (
+      !razonSocial.trim() ||
+      !rut.trim() ||
+      !direccion.trim() ||
+      !tipoPatente.trim() ||
+      !rolAvaluo.trim() ||
+      !pyme.trim() ||
+      selectedFiles.length === 0
+    ) {
+      setErrorFormulario(
+        "Debe completar todos los campos obligatorios y adjuntar al menos un documento antes de enviar la solicitud."
+      );
+      return false;
+    }
+
+    setErrorFormulario("");
+    return true;
+  };
+
   const handleEnviarSolicitud = () => {
+    const formularioValido = validarFormulario();
+
+    if (!formularioValido || !usuarioActual) {
+      return;
+    }
+
     solicitudesService.crearSolicitud({
       razonSocial,
       rut,
@@ -52,9 +90,18 @@ const SolicitudPatente: React.FC = () => {
       rolAvaluo,
       pyme,
       documentos: selectedFiles,
+
+      usuarioNombre: usuarioActual.nombre,
+      usuarioRut: usuarioActual.rut,
+      usuarioCorreo: usuarioActual.correo,
     });
 
     history.push("/usuario/confirmacion");
+  };
+
+  const cerrarSesion = () => {
+    usuariosService.cerrarSesionUsuario();
+    history.push("/");
   };
 
   return (
@@ -65,8 +112,10 @@ const SolicitudPatente: React.FC = () => {
             <h1>Municipalidad de Santo Domingo</h1>
 
             <div className="solicitud-user-actions">
-              <span>Bienvenido, Cristóbal Rubilar</span>
-              <button onClick={() => history.push("/")}>Cerrar Sesión</button>
+              <span>
+                Bienvenido, {usuarioActual?.nombre || "Usuario"}
+              </span>
+              <button onClick={cerrarSesion}>Cerrar Sesión</button>
             </div>
           </header>
 
@@ -86,6 +135,12 @@ const SolicitudPatente: React.FC = () => {
                 Complete los campos a continuación para procesar su trámite.
                 <span> Los campos con * son obligatorios.</span>
               </p>
+
+              {errorFormulario && (
+                <div className="solicitud-error-box">
+                  {errorFormulario}
+                </div>
+              )}
 
               <div className="solicitud-form-grid">
                 <div className="solicitud-column">
@@ -127,7 +182,9 @@ const SolicitudPatente: React.FC = () => {
                   </IonItem>
 
                   <div className="pyme-section">
-                    <p>Pyme</p>
+                    <p>
+                      Pyme <b>*</b>
+                    </p>
 
                     <IonRadioGroup
                       value={pyme}
@@ -161,12 +218,15 @@ const SolicitudPatente: React.FC = () => {
                       <IonSelectOption value="Comercial definitiva">
                         Comercial definitiva
                       </IonSelectOption>
+
                       <IonSelectOption value="Comercial provisoria">
                         Comercial provisoria
                       </IonSelectOption>
+
                       <IonSelectOption value="Patente profesional">
                         Patente profesional
                       </IonSelectOption>
+
                       <IonSelectOption value="Patente de alcoholes">
                         Patente de alcoholes
                       </IonSelectOption>

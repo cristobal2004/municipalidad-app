@@ -1,24 +1,41 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   IonButton,
   IonCheckbox,
   IonContent,
-  IonIcon,
   IonInput,
   IonItem,
   IonLabel,
   IonPage,
 } from "@ionic/react";
-import { keyOutline } from "ionicons/icons";
 import { useHistory } from "react-router-dom";
 import { authService } from "../../services/authService";
+import { usuariosService } from "../../services/usuariosService";
 import "./LoginUsuario.css";
-
 
 const LoginUsuario: React.FC = () => {
   const history = useHistory();
 
+  const [correo, setCorreo] = useState("");
+  const [password, setPassword] = useState("");
+  const [recordarDatos, setRecordarDatos] = useState(false);
+  const [mensajeError, setMensajeError] = useState("");
+
   const handleLogin = () => {
+    setMensajeError("");
+
+    if (!correo.trim() || !password.trim()) {
+      setMensajeError("Debe ingresar correo electrónico y contraseña.");
+      return;
+    }
+
+    const resultado = usuariosService.loginUsuario(correo, password);
+
+    if (!resultado.ok) {
+      setMensajeError(resultado.mensaje);
+      return;
+    }
+
     authService.login("usuario");
     history.push("/usuario/inicio");
   };
@@ -46,19 +63,36 @@ const LoginUsuario: React.FC = () => {
                 Ingresa para revisar el estado de tus solicitudes y documentos.
               </p>
 
+              {mensajeError && (
+                <div className="login-error-box">{mensajeError}</div>
+              )}
+
               <IonItem className="login-input">
                 <IonLabel position="stacked">Correo electrónico</IonLabel>
-                <IonInput type="email" placeholder="nombre@ejemplo.cl" />
+                <IonInput
+                  value={correo}
+                  type="email"
+                  placeholder="nombre@ejemplo.cl"
+                  onIonInput={(e) => setCorreo(e.detail.value ?? "")}
+                />
               </IonItem>
 
               <IonItem className="login-input">
                 <IonLabel position="stacked">Contraseña</IonLabel>
-                <IonInput type="password" placeholder="Ingresa tu contraseña" />
+                <IonInput
+                  value={password}
+                  type="password"
+                  placeholder="Ingresa tu contraseña"
+                  onIonInput={(e) => setPassword(e.detail.value ?? "")}
+                />
               </IonItem>
 
               <div className="login-options">
                 <label className="remember-option">
-                  <IonCheckbox />
+                  <IonCheckbox
+                    checked={recordarDatos}
+                    onIonChange={(e) => setRecordarDatos(e.detail.checked)}
+                  />
                   <span>Recordar mis datos</span>
                 </label>
 
@@ -86,7 +120,6 @@ const LoginUsuario: React.FC = () => {
                 className="clave-button"
                 onClick={handleLogin}
               >
-                <IonIcon icon={keyOutline} slot="start" />
                 Iniciar sesión con ClaveÚnica
               </IonButton>
 

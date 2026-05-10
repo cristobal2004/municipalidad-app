@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  IonButton,
-  IonContent,
-  IonIcon,
-  IonPage,
-} from "@ionic/react";
+import { IonContent, IonIcon, IonPage, IonButton } from "@ionic/react";
 import {
   carOutline,
   businessOutline,
@@ -14,12 +9,20 @@ import {
 } from "ionicons/icons";
 import { useHistory } from "react-router-dom";
 import { authService } from "../../services/authService";
+import { usuariosService } from "../../services/usuariosService";
 import "./InicioUsuario.css";
 
 const InicioUsuario: React.FC = () => {
   const history = useHistory();
 
+  const usuarioActual = usuariosService.obtenerUsuarioActual();
+
+  const nombreUsuario = usuarioActual?.nombre || "Usuario";
+  const rutUsuario = usuarioActual?.rut || "No informado";
+  const tipoUsuario = usuarioActual?.tipoUsuario || "Ciudadano";
+
   const cerrarSesion = () => {
+    usuariosService.cerrarSesionUsuario();
     authService.logout();
     history.push("/");
   };
@@ -41,7 +44,9 @@ const InicioUsuario: React.FC = () => {
                 <span className="notification-dot">3</span>
               </button>
 
-              <span className="usuario-welcome">Bienvenido, Cristóbal Rubilar</span>
+              <span className="usuario-welcome">
+                Bienvenido, {nombreUsuario}
+              </span>
 
               <button className="logout-small-button" onClick={cerrarSesion}>
                 Cerrar Sesión
@@ -54,7 +59,9 @@ const InicioUsuario: React.FC = () => {
               <div className="usuario-hero-text">
                 <h2>Bienvenidos a Santo Domingo</h2>
                 <p>Transformación digital al servicio de la comunidad</p>
-                <button className="usuario-office-button">Oficina Virtual</button>
+                <button className="usuario-office-button">
+                  Oficina Virtual
+                </button>
               </div>
 
               <div className="usuario-services-section">
@@ -66,7 +73,12 @@ const InicioUsuario: React.FC = () => {
                     <span>Permisos de Circulación</span>
                   </button>
 
-                  <button className="usuario-service-card">
+                  <button
+                    className="usuario-service-card"
+                    onClick={() =>
+                      history.push("/usuario/nueva-solicitud/patente")
+                    }
+                  >
                     <IonIcon icon={businessOutline} />
                     <span>Patentes Comerciales</span>
                   </button>
@@ -84,19 +96,26 @@ const InicioUsuario: React.FC = () => {
                 <IonIcon icon={personCircleOutline} className="usuario-avatar" />
 
                 <div className="usuario-profile-data">
-                  <p><strong>Nombre:</strong> Cristóbal Rubilar</p>
-                  <p><strong>Tipo de Usuario:</strong> Ciudadano</p>
-                  <p><strong>Rut:</strong> 69.671.308-k</p>
-                  <p><strong>Usuario Verificado</strong></p>
+                  <p>
+                    <strong>Nombre:</strong> {nombreUsuario}
+                  </p>
+                  <p>
+                    <strong>Tipo de Usuario:</strong> {tipoUsuario}
+                  </p>
+                  <p>
+                    <strong>Rut:</strong> {rutUsuario}
+                  </p>
+                  <p>
+                    <strong>Usuario Verificado</strong>
+                  </p>
                 </div>
               </div>
 
-              <div className="usuario-role-label">CIUDADANO</div>
+              <div className="usuario-role-label">
+                {tipoUsuario.toUpperCase()}
+              </div>
 
-              <IonButton
-                expand="block"
-                className="usuario-sidebar-button"
-              >
+              <IonButton expand="block" className="usuario-sidebar-button">
                 &gt; Actualizar Datos
               </IonButton>
 

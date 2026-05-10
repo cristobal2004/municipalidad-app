@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   IonButton,
   IonCheckbox,
@@ -11,10 +11,74 @@ import {
   IonSelectOption,
 } from "@ionic/react";
 import { useHistory } from "react-router-dom";
+import { usuariosService } from "../../services/usuariosService";
 import "./RegistroUsuario.css";
 
 const RegistroUsuario: React.FC = () => {
   const history = useHistory();
+
+  const [nombre, setNombre] = useState("");
+  const [rut, setRut] = useState("");
+  const [correo, setCorreo] = useState("");
+  const [region, setRegion] = useState("");
+  const [comuna, setComuna] = useState("");
+  const [tipoUsuario, setTipoUsuario] = useState("ciudadano");
+  const [password, setPassword] = useState("");
+  const [confirmarPassword, setConfirmarPassword] = useState("");
+  const [aceptaTerminos, setAceptaTerminos] = useState(false);
+
+  const [mensajeError, setMensajeError] = useState("");
+  const [mensajeExito, setMensajeExito] = useState("");
+
+  const registrarCuenta = () => {
+    setMensajeError("");
+    setMensajeExito("");
+
+    if (
+      !nombre.trim() ||
+      !rut.trim() ||
+      !correo.trim() ||
+      !region.trim() ||
+      !comuna.trim() ||
+      !tipoUsuario.trim() ||
+      !password.trim() ||
+      !confirmarPassword.trim()
+    ) {
+      setMensajeError("Debe completar todos los campos obligatorios.");
+      return;
+    }
+
+    if (password !== confirmarPassword) {
+      setMensajeError("Las contraseñas no coinciden.");
+      return;
+    }
+
+    if (!aceptaTerminos) {
+      setMensajeError("Debe aceptar los términos y condiciones para registrarse.");
+      return;
+    }
+
+    const resultado = usuariosService.registrarUsuario({
+      nombre,
+      rut,
+      correo,
+      region,
+      comuna,
+      tipoUsuario,
+      password,
+    });
+
+    if (!resultado.ok) {
+      setMensajeError(resultado.mensaje);
+      return;
+    }
+
+    setMensajeExito("Cuenta registrada correctamente. Redirigiendo al inicio de sesión...");
+
+    setTimeout(() => {
+      history.push("/login-usuario");
+    }, 1200);
+  };
 
   return (
     <IonPage>
@@ -32,34 +96,59 @@ const RegistroUsuario: React.FC = () => {
                 Regístrate para recibir notificaciones sobre tus solicitudes
               </p>
 
+              {mensajeError && (
+                <div className="registro-error-box">{mensajeError}</div>
+              )}
+
+              {mensajeExito && (
+                <div className="registro-success-box">{mensajeExito}</div>
+              )}
+
               <div className="registro-row">
                 <IonItem className="registro-input">
                   <IonLabel position="stacked">Nombre de Usuario</IonLabel>
-                  <IonInput placeholder="Ej: Juan Pérez" />
+                  <IonInput
+                    value={nombre}
+                    placeholder="Ej: Juan Pérez"
+                    onIonInput={(e) => setNombre(e.detail.value ?? "")}
+                  />
                 </IonItem>
 
                 <IonItem className="registro-input">
                   <IonLabel position="stacked">RUT</IonLabel>
-                  <IonInput placeholder="12.345.678-k" />
+                  <IonInput
+                    value={rut}
+                    placeholder="12.345.678-k"
+                    onIonInput={(e) => setRut(e.detail.value ?? "")}
+                  />
                 </IonItem>
               </div>
 
               <IonItem className="registro-input">
                 <IonLabel position="stacked">Correo Electrónico</IonLabel>
-                <IonInput type="email" placeholder="nombre@ejemplo.cl" />
+                <IonInput
+                  value={correo}
+                  type="email"
+                  placeholder="nombre@ejemplo.cl"
+                  onIonInput={(e) => setCorreo(e.detail.value ?? "")}
+                />
               </IonItem>
 
               <div className="registro-row">
                 <IonItem className="registro-input">
                   <IonLabel position="stacked">Región</IonLabel>
-                  <IonSelect placeholder="Seleccione Región">
-                    <IonSelectOption value="valparaiso">
+                  <IonSelect
+                    value={region}
+                    placeholder="Seleccione Región"
+                    onIonChange={(e) => setRegion(e.detail.value)}
+                  >
+                    <IonSelectOption value="Valparaíso">
                       Valparaíso
                     </IonSelectOption>
-                    <IonSelectOption value="metropolitana">
+                    <IonSelectOption value="Metropolitana">
                       Metropolitana
                     </IonSelectOption>
-                    <IonSelectOption value="ohiggins">
+                    <IonSelectOption value="O'Higgins">
                       O'Higgins
                     </IonSelectOption>
                   </IonSelect>
@@ -67,52 +156,72 @@ const RegistroUsuario: React.FC = () => {
 
                 <IonItem className="registro-input">
                   <IonLabel position="stacked">Comuna</IonLabel>
-                  <IonSelect placeholder="Seleccione Comuna">
-                    <IonSelectOption value="Olmué">
-                      Olmué
+                  <IonSelect
+                    value={comuna}
+                    placeholder="Seleccione Comuna"
+                    onIonChange={(e) => setComuna(e.detail.value)}
+                  >
+                    <IonSelectOption value="Santo Domingo">
+                      Santo Domingo
                     </IonSelectOption>
-                    <IonSelectOption value="Quilpué">
-                      Quilpué
+                    <IonSelectOption value="San Antonio">
+                      San Antonio
                     </IonSelectOption>
-                    <IonSelectOption value="Limache">
-                      Limache
+                    <IonSelectOption value="Cartagena">
+                      Cartagena
                     </IonSelectOption>
                   </IonSelect>
                 </IonItem>
               </div>
 
               <IonItem className="registro-input">
-                  <IonLabel position="stacked">Tipo de Usuario</IonLabel>
-
-                  <IonSelect placeholder="Seleccione tipo de usuario">
-                    <IonSelectOption value="ciudadano">
-                      Ciudadano (Solicitante)
-                    </IonSelectOption>
-
-                    <IonSelectOption value="empresa">
-                      Empresa (Representante legal)
-                    </IonSelectOption>
-
-                    <IonSelectOption value="organizacion">
-                      Organización comunitaria
-                    </IonSelectOption>
-                  </IonSelect>
-                </IonItem>
+                <IonLabel position="stacked">Tipo de Usuario</IonLabel>
+                <IonSelect
+                  value={tipoUsuario}
+                  placeholder="Seleccione tipo de usuario"
+                  onIonChange={(e) => setTipoUsuario(e.detail.value)}
+                >
+                  <IonSelectOption value="ciudadano">
+                    Ciudadano (Solicitante)
+                  </IonSelectOption>
+                  <IonSelectOption value="empresa">
+                    Empresa (Representante legal)
+                  </IonSelectOption>
+                  <IonSelectOption value="organizacion">
+                    Organización comunitaria
+                  </IonSelectOption>
+                </IonSelect>
+              </IonItem>
 
               <div className="registro-row">
                 <IonItem className="registro-input">
                   <IonLabel position="stacked">Contraseña</IonLabel>
-                  <IonInput type="password" placeholder="********" />
+                  <IonInput
+                    value={password}
+                    type="password"
+                    placeholder="********"
+                    onIonInput={(e) => setPassword(e.detail.value ?? "")}
+                  />
                 </IonItem>
 
                 <IonItem className="registro-input">
                   <IonLabel position="stacked">Confirmar Contraseña</IonLabel>
-                  <IonInput type="password" placeholder="********" />
+                  <IonInput
+                    value={confirmarPassword}
+                    type="password"
+                    placeholder="********"
+                    onIonInput={(e) =>
+                      setConfirmarPassword(e.detail.value ?? "")
+                    }
+                  />
                 </IonItem>
               </div>
 
               <label className="registro-terms">
-                <IonCheckbox />
+                <IonCheckbox
+                  checked={aceptaTerminos}
+                  onIonChange={(e) => setAceptaTerminos(e.detail.checked)}
+                />
                 <span>
                   Acepto los términos y condiciones de uso y autorizo recibir
                   notificaciones sobre el estado de mis solicitudes.
@@ -122,7 +231,7 @@ const RegistroUsuario: React.FC = () => {
               <IonButton
                 expand="block"
                 className="registro-main-button"
-                onClick={() => history.push("/login-usuario")}
+                onClick={registrarCuenta}
               >
                 Registrar cuenta
               </IonButton>

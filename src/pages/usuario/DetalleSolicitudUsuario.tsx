@@ -17,6 +17,7 @@ import {
   Solicitud,
   solicitudesService,
 } from "../../services/solicitudesService";
+import { usuariosService } from "../../services/usuariosService";
 import "./DetalleSolicitudUsuario.css";
 
 interface RouteParams {
@@ -27,12 +28,19 @@ const DetalleSolicitudUsuario: React.FC = () => {
   const history = useHistory();
   const { id } = useParams<RouteParams>();
 
+  const usuarioActual = usuariosService.obtenerUsuarioActual();
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [extraFiles, setExtraFiles] = useState<string[]>([]);
 
   const [solicitud, setSolicitud] = useState<Solicitud | undefined>(() =>
     solicitudesService.obtenerSolicitudPorId(id)
   );
+
+  const cerrarSesion = () => {
+    usuariosService.cerrarSesionUsuario();
+    history.push("/");
+  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -42,7 +50,6 @@ const DetalleSolicitudUsuario: React.FC = () => {
     const fileNames = Array.from(files).map((file) => file.name);
 
     solicitudesService.agregarDocumentoExtra(solicitud.id, fileNames);
-
     setExtraFiles(fileNames);
 
     const solicitudActualizada = solicitudesService.obtenerSolicitudPorId(
@@ -79,6 +86,11 @@ const DetalleSolicitudUsuario: React.FC = () => {
                 </div>
               </section>
             </main>
+
+            <footer className="detalle-footer">
+              <span>Copyright © 2026 I. Municipalidad de Santo Domingo</span>
+              <span>I. Municipalidad de Santo Domingo</span>
+            </footer>
           </div>
         </IonContent>
       </IonPage>
@@ -93,8 +105,10 @@ const DetalleSolicitudUsuario: React.FC = () => {
             <h1>Municipalidad de Santo Domingo</h1>
 
             <div className="detalle-user-actions">
-              <span>Bienvenido, Cristóbal Rubilar</span>
-              <button onClick={() => history.push("/")}>Cerrar Sesión</button>
+              <span>
+                Bienvenido, {usuarioActual?.nombre || solicitud.usuarioNombre || "Usuario"}
+              </span>
+              <button onClick={cerrarSesion}>Cerrar Sesión</button>
             </div>
           </header>
 
@@ -132,35 +146,67 @@ const DetalleSolicitudUsuario: React.FC = () => {
               </div>
 
               <div className="detalle-card">
+                <h3>Datos del Solicitante</h3>
+
+                <p>
+                  <strong>Nombre:</strong>{" "}
+                  {solicitud.usuarioNombre || usuarioActual?.nombre || "No informado"}
+                </p>
+
+                <p>
+                  <strong>RUT:</strong>{" "}
+                  {solicitud.usuarioRut || usuarioActual?.rut || "No informado"}
+                </p>
+
+                <p>
+                  <strong>Correo:</strong>{" "}
+                  {solicitud.usuarioCorreo || usuarioActual?.correo || "No informado"}
+                </p>
+              </div>
+
+              <div className="detalle-card">
                 <h3>Datos del Formulario</h3>
 
                 <p>
-                  <strong>Razón Social:</strong> {solicitud.razonSocial || "No informado"}
+                  <strong>Razón Social:</strong>{" "}
+                  {solicitud.razonSocial || "No informado"}
                 </p>
+
                 <p>
-                  <strong>RUT:</strong> {solicitud.rut || "No informado"}
+                  <strong>RUT Solicitante / Empresa:</strong>{" "}
+                  {solicitud.rut || "No informado"}
                 </p>
+
                 <p>
-                  <strong>Dirección:</strong> {solicitud.direccion || "No informado"}
+                  <strong>Dirección:</strong>{" "}
+                  {solicitud.direccion || "No informado"}
                 </p>
+
                 <p>
                   <strong>Tipo Patente:</strong>{" "}
                   {solicitud.tipoPatente || "No informado"}
                 </p>
+
                 <p>
                   <strong>Rol de Avalúo:</strong>{" "}
                   {solicitud.rolAvaluo || "No informado"}
                 </p>
+
                 <p>
-                  <strong>Pyme:</strong> {solicitud.pyme || "No informado"}
+                  <strong>Pyme:</strong>{" "}
+                  {solicitud.pyme || "No informado"}
                 </p>
 
                 <div className="detalle-documents">
                   <strong>Documentos Adjuntos:</strong>
 
                   {solicitud.documentos.length > 0 ? (
-                    solicitud.documentos.map((documento) => (
-                      <button className="document-link" key={documento}>
+                    solicitud.documentos.map((documento, index) => (
+                      <button
+                        className="document-link"
+                        key={`${documento}-${index}`}
+                        type="button"
+                      >
                         <IonIcon icon={documentTextOutline} />
                         {documento}
                       </button>
@@ -173,7 +219,6 @@ const DetalleSolicitudUsuario: React.FC = () => {
 
               <div className="detalle-card">
                 <h3>Observaciones</h3>
-
                 <p>{solicitud.observacion}</p>
               </div>
 
@@ -258,7 +303,7 @@ const DetalleSolicitudUsuario: React.FC = () => {
                 Subir documento extra
               </IonButton>
 
-              <button className="detalle-download-link">
+              <button className="detalle-download-link" type="button">
                 <IonIcon icon={cloudDownloadOutline} />
                 Descargar comprobante
               </button>
