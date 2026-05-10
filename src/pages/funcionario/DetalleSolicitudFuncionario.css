@@ -1,0 +1,380 @@
+.ver-funcionario-content {
+  --background: #cfe8f8;
+}
+
+.ver-funcionario-wrapper {
+  width: 100%;
+  max-width: 1120px;
+  min-height: 720px;
+  margin: 40px auto;
+  background: #f4f4f4;
+  display: flex;
+  flex-direction: column;
+}
+
+.ver-funcionario-header {
+  height: 45px;
+  background: #ffffff;
+  border-bottom: 4px solid #e32222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.ver-funcionario-header h1 {
+  color: #0070bc;
+  font-size: 15px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.ver-funcionario-actions {
+  position: absolute;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ver-funcionario-actions span {
+  color: #333333;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.ver-funcionario-actions button {
+  width: 24px;
+  height: 20px;
+  border: 1px solid #cfcfcf;
+  background: #ffffff;
+  color: #555555;
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ver-funcionario-actions ion-icon {
+  font-size: 12px;
+}
+
+.ver-funcionario-main {
+  flex: 1;
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 205px;
+  gap: 18px;
+  padding: 18px 250px 70px 260px;
+}
+
+.ver-funcionario-main-simple {
+  flex: 1;
+  padding: 40px;
+}
+
+.ver-main-column {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ver-summary-card,
+.ver-card {
+  background: #ffffff;
+  border-radius: 7px;
+  padding: 16px 18px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.ver-summary-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border: 2px solid #0d8cff;
+}
+
+.small-label {
+  color: #777777;
+  font-size: 9px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.ver-summary-card h2 {
+  color: #0057b8;
+  font-size: 18px;
+  font-weight: 900;
+  margin: 3px 0 12px;
+}
+
+.ver-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 34px;
+}
+
+.ver-summary-grid span {
+  display: block;
+  color: #555555;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.ver-summary-grid strong {
+  display: block;
+  color: #222222;
+  font-size: 10px;
+  margin-top: 2px;
+}
+
+.estado-pill {
+  display: inline-block;
+  min-width: 90px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.estado-proceso {
+  background: #fff3cd;
+  border: 1px solid #f2b600;
+  color: #9a6900;
+}
+
+.estado-falta {
+  background: #ffe5e5;
+  border: 1px solid #e32222;
+  color: #a40000;
+}
+
+.estado-aprobado {
+  background: #e6f7ec;
+  border: 1px solid #159447;
+  color: #159447;
+}
+
+.success-box {
+  background: #e6f7ec;
+  border: 1px solid #159447;
+  color: #0f6b32;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 9px 11px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.success-box ion-icon {
+  font-size: 16px;
+}
+
+.ver-card h2,
+.ver-card h3 {
+  color: #0057b8;
+  font-size: 13px;
+  font-weight: 900;
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #d9e1ea;
+}
+
+.ver-card p {
+  color: #333333;
+  font-size: 10.5px;
+  margin: 0 0 8px;
+  line-height: 1.35;
+}
+
+.documentos-lista {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.documentos-lista strong {
+  color: #333333;
+  font-size: 10.5px;
+  margin-bottom: 4px;
+}
+
+.documento-link {
+  width: fit-content;
+  background: transparent;
+  border: none;
+  color: #0874bb;
+  font-size: 10.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.documento-link ion-icon {
+  font-size: 14px;
+}
+
+.historial-linea {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.historial-linea p {
+  margin: 0;
+}
+
+.historial-dot {
+  width: 7px;
+  height: 7px;
+  background: #bbbbbb;
+  border-radius: 50%;
+  margin-top: 4px;
+}
+
+.historial-dot.active {
+  background: #159447;
+}
+
+.panel-gestion {
+  background: #cfe4ff;
+  border-radius: 7px;
+  padding: 18px 14px;
+  height: fit-content;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.panel-gestion h3 {
+  color: #0057b8;
+  font-size: 12px;
+  font-weight: 900;
+  margin: 0 0 14px;
+}
+
+.panel-input {
+  --background: #ffffff;
+  --border-color: transparent;
+  --border-radius: 4px;
+  --padding-start: 8px;
+  --inner-padding-end: 8px;
+  margin-bottom: 9px;
+}
+
+.panel-input ion-label {
+  color: #333333 !important;
+  font-size: 10px !important;
+  font-weight: 800;
+}
+
+.panel-input ion-select,
+.panel-input ion-textarea {
+  color: #222222;
+  font-size: 11px;
+}
+
+.panel-textarea {
+  min-height: 78px;
+}
+
+.panel-button {
+  width: 100%;
+  border: none;
+  border-radius: 4px;
+  height: 32px;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+.panel-button.aprobar {
+  background: #159447;
+}
+
+.panel-button.rechazar {
+  background: #e32222;
+}
+
+.panel-button.derivar {
+  background: #34495e;
+}
+
+.panel-button.guardar {
+  background: #0874bb;
+}
+
+.panel-button:hover {
+  filter: brightness(0.92);
+}
+
+.volver-solicitudes-button {
+  position: absolute;
+  right: 250px;
+  bottom: 28px;
+  --background: #0874bb;
+  --background-hover: #075e99;
+  --border-radius: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: none;
+}
+
+.volver-button {
+  --background: #0874bb;
+  --background-hover: #075e99;
+  --border-radius: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: none;
+}
+
+.ver-funcionario-footer {
+  height: 45px;
+  background: #0874bb;
+  color: #ffffff;
+  padding: 0 24px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+}
+
+@media (max-width: 1000px) {
+  .ver-funcionario-wrapper {
+    margin: 0;
+    min-height: 100vh;
+  }
+
+  .ver-funcionario-main {
+    grid-template-columns: 1fr;
+    padding: 18px 14px 80px;
+  }
+
+  .volver-solicitudes-button {
+    position: static;
+    width: fit-content;
+    margin-top: 10px;
+  }
+
+  .ver-funcionario-actions span {
+    display: none;
+  }
+
+  .ver-funcionario-footer {
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    text-align: center;
+  }
+}

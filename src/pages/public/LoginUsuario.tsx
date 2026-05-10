@@ -40,6 +40,12 @@ const LoginUsuario: React.FC = () => {
     history.push("/usuario/inicio");
   };
 
+  const handleClaveUnica = () => {
+    usuariosService.loginConClaveUnica();
+    authService.login("usuario");
+    history.push("/usuario/inicio");
+  };
+
   return (
     <IonPage>
       <IonContent fullscreen className="login-user-content">
@@ -96,7 +102,7 @@ const LoginUsuario: React.FC = () => {
                   <span>Recordar mis datos</span>
                 </label>
 
-                <button className="forgot-button">
+                <button className="forgot-button" type="button">
                   ¿Olvidaste tu contraseña?
                 </button>
               </div>
@@ -118,12 +124,16 @@ const LoginUsuario: React.FC = () => {
               <IonButton
                 expand="block"
                 className="clave-button"
-                onClick={handleLogin}
+                onClick={handleClaveUnica}
               >
                 Iniciar sesión con ClaveÚnica
               </IonButton>
 
-              <button className="guest-link" onClick={() => history.push("/")}>
+              <button
+                className="guest-link"
+                type="button"
+                onClick={() => history.push("/")}
+              >
                 Entrar como invitado
               </button>
             </section>

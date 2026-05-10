@@ -26,7 +26,7 @@
 .reporte-header h1 {
   color: #0070bc;
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 700;
   margin: 0;
 }
 
@@ -78,7 +78,7 @@
 }
 
 .reporte-center {
-  width: 760px;
+  width: 820px;
 }
 
 .reporte-title-row {
@@ -92,13 +92,14 @@
 .reporte-title-row h2 {
   color: #1f2937;
   font-size: 24px;
-  font-weight: 900;
+  font-weight: 700;
   margin: 0 0 4px;
 }
 
 .reporte-title-row p {
   color: #6b7280;
   font-size: 12px;
+  font-weight: 400;
   margin: 0;
 }
 
@@ -110,12 +111,12 @@
 
 .filter-date-button,
 .export-report-button {
-  height: 30px;
+  height: 32px;
   border: none;
   border-radius: 5px;
-  padding: 0 12px;
+  padding: 0 13px;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -133,6 +134,14 @@
   color: #ffffff;
 }
 
+.filter-date-button:hover {
+  background: #f8fafc;
+}
+
+.export-report-button:hover {
+  background: #075e99;
+}
+
 .filter-date-button ion-icon,
 .export-report-button ion-icon {
   font-size: 14px;
@@ -147,33 +156,33 @@
 
 .reporte-stat-card {
   background: #ffffff;
-  border: 1px solid #eeeeee;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
-  padding: 18px 18px;
-  min-height: 90px;
-  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.04);
+  padding: 18px 20px;
+  min-height: 105px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.045);
 }
 
 .reporte-stat-card span {
   display: block;
   color: #6b7280;
   font-size: 11px;
-  font-weight: 800;
-  margin-bottom: 6px;
+  font-weight: 600;
+  margin-bottom: 8px;
 }
 
 .reporte-stat-card strong {
   display: block;
   color: #1f2937;
   font-size: 28px;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
   margin-bottom: 9px;
 }
 
 .reporte-stat-card strong small {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 400;
   color: #6b7280;
 }
 
@@ -181,7 +190,7 @@
   display: block;
   color: #9ca3af;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .blue-number {
@@ -211,21 +220,22 @@
 .area-name {
   color: #1f2937 !important;
   font-size: 20px !important;
+  font-weight: 700 !important;
   line-height: 1.1 !important;
 }
 
 .reporte-table-card {
   background: #ffffff;
-  border: 1px solid #eeeeee;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 18px 18px;
-  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.045);
 }
 
 .reporte-table-card h3 {
   color: #1f2937;
-  font-size: 13px;
-  font-weight: 900;
+  font-size: 14px;
+  font-weight: 700;
   margin: 0 0 14px;
 }
 
@@ -238,7 +248,7 @@
 .reporte-table th {
   text-align: left;
   color: #6b7280;
-  font-weight: 900;
+  font-weight: 700;
   padding: 12px 8px;
   border-bottom: 1px solid #eeeeee;
 }
@@ -247,7 +257,11 @@
   color: #1f2937;
   padding: 13px 8px;
   border-bottom: 1px solid #f0f0f0;
-  font-weight: 600;
+  font-weight: 400;
+}
+
+.reporte-table tr:last-child td {
+  border-bottom: none;
 }
 
 .pending-badge {
@@ -257,7 +271,7 @@
   padding: 4px 7px;
   border-radius: 7px;
   font-size: 10px;
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .pending-badge.yellow {
@@ -275,7 +289,7 @@
   --background-hover: #075e99;
   --border-radius: 5px;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: none;
   display: block;
   width: fit-content;
@@ -307,6 +321,12 @@
 
   .reporte-title-row {
     flex-direction: column;
+  }
+
+  .reporte-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 
   .reporte-cards-grid {

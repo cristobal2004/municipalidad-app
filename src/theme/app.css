@@ -80,6 +80,8 @@
   font-weight: 700;
   color: #123c69;
 }
+
+/* Home municipal */
 .muni-home-content {
   --background: #cfe8f8;
 }
@@ -289,8 +291,37 @@
     gap: 4px;
     text-align: center;
   }
-  ion-button {
-  text-transform: none;
-  }
+}
 
+/* Configuración global de fuente */
+:root {
+  --ion-font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+body,
+ion-app,
+ion-content,
+ion-button,
+ion-input,
+ion-select,
+ion-label,
+button,
+input,
+textarea,
+select,
+p,
+span,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+td,
+th {
+  font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+ion-button {
+  text-transform: none;
 }

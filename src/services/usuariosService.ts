@@ -120,6 +120,44 @@ export const usuariosService = {
     };
   },
 
+  loginConClaveUnica(): {
+    ok: boolean;
+    mensaje: string;
+    usuario: Usuario;
+  } {
+    const usuarios = obtenerUsuariosGuardados();
+
+    const correoClaveUnica = "claveunica@registrocivil.cl";
+
+    let usuarioClaveUnica = usuarios.find(
+      (usuario) => usuario.correo === correoClaveUnica
+    );
+
+    if (!usuarioClaveUnica) {
+      usuarioClaveUnica = {
+        id: generarNuevoId(usuarios),
+        nombre: "Usuario ClaveÚnica",
+        rut: "12.345.678-9",
+        correo: correoClaveUnica,
+        region: "Valparaíso",
+        comuna: "Santo Domingo",
+        tipoUsuario: "ciudadano",
+        password: "claveunica",
+      };
+
+      const nuevosUsuarios = [...usuarios, usuarioClaveUnica];
+      guardarUsuarios(nuevosUsuarios);
+    }
+
+    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(usuarioClaveUnica));
+
+    return {
+      ok: true,
+      mensaje: "Inicio de sesión con ClaveÚnica correcto.",
+      usuario: usuarioClaveUnica,
+    };
+  },
+
   obtenerUsuarioActual(): Usuario | null {
     const data = localStorage.getItem(CURRENT_USER_KEY);
 

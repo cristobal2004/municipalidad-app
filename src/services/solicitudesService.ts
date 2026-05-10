@@ -138,10 +138,7 @@ function obtenerSolicitudesGuardadas(): Solicitud[] {
     const solicitudes = JSON.parse(data);
     const solicitudesNormalizadas = normalizarSolicitudes(solicitudes);
 
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(solicitudesNormalizadas)
-    );
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(solicitudesNormalizadas));
 
     return solicitudesNormalizadas;
   } catch (error) {
@@ -264,6 +261,34 @@ export const solicitudesService = {
       return {
         ...solicitud,
         documentos: [...solicitud.documentos, ...documentosExtra],
+      };
+    });
+
+    guardarSolicitudes(solicitudesActualizadas);
+  },
+
+  actualizarSolicitudFuncionario(
+    id: string,
+    data: {
+      estado: string;
+      observacion: string;
+      encargado: string;
+      area: string;
+    }
+  ) {
+    const solicitudes = obtenerSolicitudesGuardadas();
+
+    const solicitudesActualizadas = solicitudes.map((solicitud) => {
+      if (solicitud.id !== id) {
+        return solicitud;
+      }
+
+      return {
+        ...solicitud,
+        estado: data.estado,
+        observacion: data.observacion,
+        encargado: data.encargado,
+        area: data.area,
       };
     });
 
