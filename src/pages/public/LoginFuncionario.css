@@ -1,0 +1,200 @@
+.login-funcionario-content {
+  --background: #cfe8f8;
+}
+
+.login-funcionario-wrapper {
+  width: 100%;
+  max-width: 1120px;
+  min-height: 720px;
+  margin: 40px auto;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+.login-funcionario-header {
+  height: 45px;
+  background: #ffffff;
+  border-bottom: 4px solid #e32222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-funcionario-header h1 {
+  color: #0070bc;
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.login-funcionario-background {
+  flex: 1;
+  position: relative;
+  min-height: 600px;
+  background-image:
+    linear-gradient(rgba(0, 127, 190, 0.12), rgba(0, 127, 190, 0.12)),
+    url("/assets/logo-muni.jpeg");
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 105px;
+}
+
+.login-funcionario-logo {
+  position: absolute;
+  top: 24px;
+  left: 26px;
+  width: 78px;
+  height: auto;
+  object-fit: contain;
+}
+
+.login-funcionario-card {
+  width: 390px;
+  background: #ffffff;
+  border-radius: 5px;
+  padding: 32px 32px 28px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+  text-align: center;
+}
+
+.login-funcionario-card h2 {
+  color: #006eb8;
+  font-size: 21px;
+  font-weight: 800;
+  margin: 0 0 18px;
+}
+
+.login-funcionario-description {
+  color: #6b7280;
+  font-size: 12px;
+  margin-bottom: 22px;
+}
+
+.login-funcionario-input {
+  --background: #ffffff;
+  --border-color: #d9e1ea;
+  --border-radius: 5px;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.login-funcionario-input ion-label {
+  color: #333333 !important;
+  font-size: 12px !important;
+  font-weight: 700;
+}
+
+.login-funcionario-input ion-input {
+  font-size: 13px;
+}
+
+.login-funcionario-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 8px 0 16px;
+}
+
+.funcionario-remember-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #555;
+  font-size: 11px;
+}
+
+.funcionario-remember-option ion-checkbox {
+  --size: 14px;
+}
+
+.funcionario-forgot-button {
+  background: transparent;
+  border: none;
+  color: #006eb8;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.funcionario-main-button {
+  --background: #0874bb;
+  --background-hover: #075e99;
+  --border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: none;
+  margin-top: 8px;
+}
+
+.funcionario-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #999;
+  font-size: 11px;
+  margin: 14px 0;
+}
+
+.funcionario-divider span {
+  flex: 1;
+  height: 1px;
+  background: #d9e1ea;
+}
+
+.funcionario-divider p {
+  margin: 0;
+}
+
+.webauthn-button {
+  --background: #0874bb;
+  --background-hover: #075e99;
+  --border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.login-funcionario-footer {
+  height: 45px;
+  background: #0874bb;
+  color: white;
+  padding: 0 24px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@media (max-width: 768px) {
+  .login-funcionario-wrapper {
+    margin: 0;
+    min-height: 100vh;
+  }
+
+  .login-funcionario-background {
+    min-height: calc(100vh - 90px);
+    padding: 90px 16px 40px;
+  }
+
+  .login-funcionario-logo {
+    width: 62px;
+    top: 18px;
+    left: 18px;
+  }
+
+  .login-funcionario-card {
+    width: 100%;
+    max-width: 390px;
+    padding: 24px 20px;
+  }
+
+  .login-funcionario-footer {
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    text-align: center;
+  }
+}

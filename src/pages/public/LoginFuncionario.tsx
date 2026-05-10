@@ -1,17 +1,18 @@
 import React from "react";
 import {
   IonButton,
+  IonCheckbox,
   IonContent,
-  IonHeader,
+  IonIcon,
   IonInput,
   IonItem,
   IonLabel,
   IonPage,
-  IonTitle,
-  IonToolbar,
 } from "@ionic/react";
+import { fingerPrintOutline } from "ionicons/icons";
 import { useHistory } from "react-router-dom";
 import { authService } from "../../services/authService";
+import "./LoginFuncionario.css";
 
 const LoginFuncionario: React.FC = () => {
   const history = useHistory();
@@ -23,32 +24,73 @@ const LoginFuncionario: React.FC = () => {
 
   return (
     <IonPage>
-      <IonHeader>
-        <IonToolbar>
-          <IonTitle>Inicio de sesión funcionario</IonTitle>
-        </IonToolbar>
-      </IonHeader>
+      <IonContent fullscreen className="login-funcionario-content">
+        <div className="login-funcionario-wrapper">
+          <header className="login-funcionario-header">
+            <h1>Municipalidad de Santo Domingo</h1>
+          </header>
 
-      <IonContent className="ion-padding">
-        <h2>Acceso funcionario municipal</h2>
+          <main className="login-funcionario-background">
+            
 
-        <IonItem>
-          <IonLabel position="stacked">Número de funcionario</IonLabel>
-          <IonInput placeholder="Ej: FUN-001" />
-        </IonItem>
+            <section className="login-funcionario-card">
+              <h2>Iniciar Sesión</h2>
 
-        <IonItem>
-          <IonLabel position="stacked">Contraseña</IonLabel>
-          <IonInput type="password" placeholder="Ingrese su contraseña" />
-        </IonItem>
+              <p className="login-funcionario-description">
+                Ingresa para gestionar solicitudes y actualizar estados de trámites
+              </p>
 
-        <IonButton expand="block" onClick={handleLogin}>
-          Ingresar como funcionario
-        </IonButton>
+              <IonItem className="login-funcionario-input">
+                <IonLabel position="stacked">Número de empleado</IonLabel>
+                <IonInput placeholder="Ej: 12345678" />
+              </IonItem>
 
-        <IonButton expand="block" fill="outline" onClick={() => history.push("/")}>
-          Volver al inicio
-        </IonButton>
+              <IonItem className="login-funcionario-input">
+                <IonLabel position="stacked">Contraseña</IonLabel>
+                <IonInput type="password" placeholder="Ingresa tu contraseña" />
+              </IonItem>
+
+              <div className="login-funcionario-options">
+                <label className="funcionario-remember-option">
+                  <IonCheckbox />
+                  <span>Recordar mis datos</span>
+                </label>
+
+                <button className="funcionario-forgot-button">
+                  ¿Olvidaste tu contraseña?
+                </button>
+              </div>
+
+              <IonButton
+                expand="block"
+                className="funcionario-main-button"
+                onClick={handleLogin}
+              >
+                Ingresar
+              </IonButton>
+
+              <div className="funcionario-divider">
+                <span></span>
+                <p>O</p>
+                <span></span>
+              </div>
+
+              <IonButton
+              expand="block"
+              className="webauthn-button"
+              onClick={handleLogin}
+            >
+              <IonIcon icon={fingerPrintOutline} slot="start" />
+              Iniciar con WebAuthn
+            </IonButton>
+            </section>
+          </main>
+
+          <footer className="login-funcionario-footer">
+            <span>Copyright © 2026 I. Municipalidad de Santo Domingo</span>
+            <span>I. Municipalidad de Santo Domingo</span>
+          </footer>
+        </div>
       </IonContent>
     </IonPage>
   );

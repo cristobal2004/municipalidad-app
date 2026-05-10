@@ -1,0 +1,171 @@
+.registro-content {
+  --background: #cfe8f8;
+}
+
+.registro-wrapper {
+  width: 100%;
+  max-width: 1120px;
+  min-height: 720px;
+  margin: 40px auto;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+.registro-header {
+  height: 45px;
+  background: #ffffff;
+  border-bottom: 4px solid #e32222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.registro-header h1 {
+  color: #0070bc;
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.registro-background {
+  flex: 1;
+  position: relative;
+  min-height: 600px;
+  background-image:
+    linear-gradient(rgba(0, 127, 190, 0.08), rgba(0, 127, 190, 0.08)),
+    url("/assets/logo-muni.jpeg");
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 70px;
+}
+
+.registro-card {
+  width: 380px;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 24px 28px 20px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+  text-align: center;
+}
+
+.registro-card h2 {
+  color: #006eb8;
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0 0 8px;
+}
+
+.registro-description {
+  color: #6b7280;
+  font-size: 11px;
+  margin-bottom: 14px;
+}
+
+.registro-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.registro-input {
+  --background: #ffffff;
+  --border-color: #d9e1ea;
+  --border-radius: 5px;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.registro-input ion-label {
+  color: #333333 !important;
+  font-size: 11px !important;
+  font-weight: 700;
+}
+
+.registro-input ion-input,
+.registro-input ion-select {
+  font-size: 12px;
+}
+
+.registro-terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  color: #555;
+  font-size: 10px;
+  line-height: 1.3;
+  text-align: left;
+  margin: 4px 0 14px;
+}
+
+.registro-terms ion-checkbox {
+  --size: 14px;
+  margin-top: 1px;
+}
+
+.registro-main-button {
+  --background: #0874bb;
+  --background-hover: #075e99;
+  --border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.registro-login-link {
+  margin-top: 12px;
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.registro-login-link span {
+  color: #006eb8;
+  font-weight: 700;
+}
+
+.registro-footer {
+  height: 45px;
+  background: #0874bb;
+  color: white;
+  padding: 0 24px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@media (max-width: 768px) {
+  .registro-wrapper {
+    margin: 0;
+    min-height: 100vh;
+  }
+
+  .registro-background {
+    min-height: calc(100vh - 90px);
+    padding: 50px 16px 40px;
+  }
+
+  .registro-card {
+    width: 100%;
+    max-width: 390px;
+    padding: 22px 18px;
+  }
+
+  .registro-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .registro-footer {
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    text-align: center;
+  }
+}

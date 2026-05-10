@@ -3,91 +3,144 @@ import {
   IonButton,
   IonCheckbox,
   IonContent,
-  IonHeader,
   IonInput,
   IonItem,
   IonLabel,
   IonPage,
   IonSelect,
   IonSelectOption,
-  IonTitle,
-  IonToolbar,
 } from "@ionic/react";
 import { useHistory } from "react-router-dom";
+import "./RegistroUsuario.css";
 
 const RegistroUsuario: React.FC = () => {
   const history = useHistory();
 
   return (
     <IonPage>
-      <IonHeader>
-        <IonToolbar>
-          <IonTitle>Registro de usuario</IonTitle>
-        </IonToolbar>
-      </IonHeader>
+      <IonContent fullscreen className="registro-content">
+        <div className="registro-wrapper">
+          <header className="registro-header">
+            <h1>Municipalidad de Santo Domingo</h1>
+          </header>
 
-      <IonContent className="ion-padding">
-        <h2>Crear cuenta ciudadana</h2>
+          <main className="registro-background">
+            <section className="registro-card">
+              <h2>Crear Cuenta</h2>
 
-        <IonItem>
-          <IonLabel position="stacked">Nombre de usuario</IonLabel>
-          <IonInput placeholder="Ej: Cristóbal Rubilar" />
-        </IonItem>
+              <p className="registro-description">
+                Regístrate para recibir notificaciones sobre tus solicitudes
+              </p>
 
-        <IonItem>
-          <IonLabel position="stacked">RUT</IonLabel>
-          <IonInput placeholder="12.345.678-9" />
-        </IonItem>
+              <div className="registro-row">
+                <IonItem className="registro-input">
+                  <IonLabel position="stacked">Nombre de Usuario</IonLabel>
+                  <IonInput placeholder="Ej: Juan Pérez" />
+                </IonItem>
 
-        <IonItem>
-          <IonLabel position="stacked">Correo electrónico</IonLabel>
-          <IonInput type="email" placeholder="nombre@ejemplo.cl" />
-        </IonItem>
+                <IonItem className="registro-input">
+                  <IonLabel position="stacked">RUT</IonLabel>
+                  <IonInput placeholder="12.345.678-k" />
+                </IonItem>
+              </div>
 
-        <IonItem>
-          <IonLabel position="stacked">Región</IonLabel>
-          <IonSelect placeholder="Seleccione una región">
-            <IonSelectOption value="valparaiso">Valparaíso</IonSelectOption>
-            <IonSelectOption value="metropolitana">Metropolitana</IonSelectOption>
-            <IonSelectOption value="ohiggins">O'Higgins</IonSelectOption>
-          </IonSelect>
-        </IonItem>
+              <IonItem className="registro-input">
+                <IonLabel position="stacked">Correo Electrónico</IonLabel>
+                <IonInput type="email" placeholder="nombre@ejemplo.cl" />
+              </IonItem>
 
-        <IonItem>
-          <IonLabel position="stacked">Comuna</IonLabel>
-          <IonSelect placeholder="Seleccione una comuna">
-            <IonSelectOption value="santo-domingo">Santo Domingo</IonSelectOption>
-            <IonSelectOption value="san-antonio">San Antonio</IonSelectOption>
-            <IonSelectOption value="cartagena">Cartagena</IonSelectOption>
-          </IonSelect>
-        </IonItem>
+              <div className="registro-row">
+                <IonItem className="registro-input">
+                  <IonLabel position="stacked">Región</IonLabel>
+                  <IonSelect placeholder="Seleccione Región">
+                    <IonSelectOption value="valparaiso">
+                      Valparaíso
+                    </IonSelectOption>
+                    <IonSelectOption value="metropolitana">
+                      Metropolitana
+                    </IonSelectOption>
+                    <IonSelectOption value="ohiggins">
+                      O'Higgins
+                    </IonSelectOption>
+                  </IonSelect>
+                </IonItem>
 
-        <IonItem>
-          <IonLabel position="stacked">Contraseña</IonLabel>
-          <IonInput type="password" placeholder="Ingrese contraseña" />
-        </IonItem>
+                <IonItem className="registro-input">
+                  <IonLabel position="stacked">Comuna</IonLabel>
+                  <IonSelect placeholder="Seleccione Comuna">
+                    <IonSelectOption value="Olmué">
+                      Olmué
+                    </IonSelectOption>
+                    <IonSelectOption value="Quilpué">
+                      Quilpué
+                    </IonSelectOption>
+                    <IonSelectOption value="Limache">
+                      Limache
+                    </IonSelectOption>
+                  </IonSelect>
+                </IonItem>
+              </div>
 
-        <IonItem>
-          <IonLabel position="stacked">Confirmación de contraseña</IonLabel>
-          <IonInput type="password" placeholder="Repita contraseña" />
-        </IonItem>
+              <IonItem className="registro-input">
+                  <IonLabel position="stacked">Tipo de Usuario</IonLabel>
 
-        <IonItem>
-          <IonCheckbox slot="start" />
-          <IonLabel>Acepto términos y condiciones</IonLabel>
-        </IonItem>
+                  <IonSelect placeholder="Seleccione tipo de usuario">
+                    <IonSelectOption value="ciudadano">
+                      Ciudadano (Solicitante)
+                    </IonSelectOption>
 
-        <IonButton expand="block" onClick={() => history.push("/login-usuario")}>
-          Registrar cuenta
-        </IonButton>
+                    <IonSelectOption value="empresa">
+                      Empresa (Representante legal)
+                    </IonSelectOption>
 
-        <IonButton
-          expand="block"
-          fill="outline"
-          onClick={() => history.push("/login-usuario")}
-        >
-          Volver al login
-        </IonButton>
+                    <IonSelectOption value="organizacion">
+                      Organización comunitaria
+                    </IonSelectOption>
+                  </IonSelect>
+                </IonItem>
+
+              <div className="registro-row">
+                <IonItem className="registro-input">
+                  <IonLabel position="stacked">Contraseña</IonLabel>
+                  <IonInput type="password" placeholder="********" />
+                </IonItem>
+
+                <IonItem className="registro-input">
+                  <IonLabel position="stacked">Confirmar Contraseña</IonLabel>
+                  <IonInput type="password" placeholder="********" />
+                </IonItem>
+              </div>
+
+              <label className="registro-terms">
+                <IonCheckbox />
+                <span>
+                  Acepto los términos y condiciones de uso y autorizo recibir
+                  notificaciones sobre el estado de mis solicitudes.
+                </span>
+              </label>
+
+              <IonButton
+                expand="block"
+                className="registro-main-button"
+                onClick={() => history.push("/login-usuario")}
+              >
+                Registrar cuenta
+              </IonButton>
+
+              <button
+                className="registro-login-link"
+                onClick={() => history.push("/login-usuario")}
+              >
+                ¿Ya tienes cuenta? <span>Inicia sesión aquí</span>
+              </button>
+            </section>
+          </main>
+
+          <footer className="registro-footer">
+            <span>Copyright © 2026 I. Municipalidad de Santo Domingo</span>
+            <span>I. Municipalidad de Santo Domingo</span>
+          </footer>
+        </div>
       </IonContent>
     </IonPage>
   );
