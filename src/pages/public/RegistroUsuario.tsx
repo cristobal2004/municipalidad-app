@@ -12,9 +12,9 @@ import {
 } from "@ionic/react";
 import { useHistory } from "react-router-dom";
 import { usuariosService } from "../../services/usuariosService";
-import "./RegistroUsuario.css";
+import "./CrearCuentaUsuario.css";
 
-const RegistroUsuario: React.FC = () => {
+const CrearCuentaUsuario: React.FC = () => {
   const history = useHistory();
 
   const [nombre, setNombre] = useState("");
@@ -54,7 +54,7 @@ const RegistroUsuario: React.FC = () => {
     }
 
     if (!aceptaTerminos) {
-      setMensajeError("Debe aceptar los términos y condiciones para registrarse.");
+      setMensajeError("Debe aceptar los términos y condiciones.");
       return;
     }
 
@@ -104,7 +104,7 @@ const RegistroUsuario: React.FC = () => {
                 <div className="registro-success-box">{mensajeExito}</div>
               )}
 
-              <div className="registro-row">
+              <div className="registro-grid">
                 <IonItem className="registro-input">
                   <IonLabel position="stacked">Nombre de Usuario</IonLabel>
                   <IonInput
@@ -134,7 +134,7 @@ const RegistroUsuario: React.FC = () => {
                 />
               </IonItem>
 
-              <div className="registro-row">
+              <div className="registro-grid">
                 <IonItem className="registro-input">
                   <IonLabel position="stacked">Región</IonLabel>
                   <IonSelect
@@ -151,6 +151,7 @@ const RegistroUsuario: React.FC = () => {
                     <IonSelectOption value="O'Higgins">
                       O'Higgins
                     </IonSelectOption>
+                    <IonSelectOption value="Maule">Maule</IonSelectOption>
                   </IonSelect>
                 </IonItem>
 
@@ -170,6 +171,7 @@ const RegistroUsuario: React.FC = () => {
                     <IonSelectOption value="Cartagena">
                       Cartagena
                     </IonSelectOption>
+                    <IonSelectOption value="El Tabo">El Tabo</IonSelectOption>
                   </IonSelect>
                 </IonItem>
               </div>
@@ -190,10 +192,13 @@ const RegistroUsuario: React.FC = () => {
                   <IonSelectOption value="organizacion">
                     Organización comunitaria
                   </IonSelectOption>
+                  <IonSelectOption value="profesional">
+                    Profesional independiente
+                  </IonSelectOption>
                 </IonSelect>
               </IonItem>
 
-              <div className="registro-row">
+              <div className="registro-grid">
                 <IonItem className="registro-input">
                   <IonLabel position="stacked">Contraseña</IonLabel>
                   <IonInput
@@ -230,18 +235,18 @@ const RegistroUsuario: React.FC = () => {
 
               <IonButton
                 expand="block"
-                className="registro-main-button"
+                className="registro-button"
                 onClick={registrarCuenta}
               >
                 Registrar cuenta
               </IonButton>
 
-              <button
-                className="registro-login-link"
-                onClick={() => history.push("/login-usuario")}
-              >
-                ¿Ya tienes cuenta? <span>Inicia sesión aquí</span>
-              </button>
+              <p className="registro-login-link">
+                ¿Ya tienes cuenta?{" "}
+                <button type="button" onClick={() => history.push("/login-usuario")}>
+                  Inicia sesión aquí
+                </button>
+              </p>
             </section>
           </main>
 
@@ -255,4 +260,4 @@ const RegistroUsuario: React.FC = () => {
   );
 };
 
-export default RegistroUsuario;
+export default CrearCuentaUsuario;

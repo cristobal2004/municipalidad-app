@@ -1,288 +1,185 @@
-.reporte-content {
+.registro-content {
   --background: #cfe8f8;
 }
 
-.reporte-wrapper {
+.registro-wrapper {
   width: 100%;
-  max-width: 1280px;
-  min-height: 760px;
-  margin: 36px auto;
-  background: #f4f4f4;
+  max-width: 1120px;
+  min-height: 720px;
+  margin: 40px auto;
+  background: #ffffff;
   display: flex;
   flex-direction: column;
 }
 
-.reporte-header {
-  height: 52px;
+.registro-header {
+  height: 45px;
   background: #ffffff;
   border-bottom: 4px solid #e32222;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  padding: 0 18px;
-  position: relative;
+  justify-content: center;
 }
 
-.reporte-header h1 {
+.registro-header h1 {
   color: #0070bc;
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 17px;
+  font-weight: 700;
   margin: 0;
 }
 
-.reporte-header-actions {
-  position: absolute;
-  right: 18px;
+.registro-background {
+  flex: 1;
+  position: relative;
+  min-height: 600px;
+  background-image:
+    linear-gradient(rgba(0, 127, 190, 0.12), rgba(0, 127, 190, 0.12)),
+    url("/assets/logo-muni.jpeg");
+  background-size: cover;
+  background-position: center;
   display: flex;
-  align-items: center;
-  gap: 10px;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 68px;
 }
 
-.panel-funcionario-label {
-  background: #0874bb;
-  color: #ffffff;
-  border-radius: 3px;
-  padding: 5px 10px;
-  font-size: 10px;
+.registro-card {
+  width: 420px;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 26px 32px 22px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+  text-align: center;
+}
+
+.registro-card h2 {
+  color: #006eb8;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+.registro-description {
+  color: #6b7280;
+  font-size: 11px;
+  margin: 0 0 18px;
+}
+
+.registro-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.registro-input {
+  --background: #ffffff;
+  --border-color: #d9e1ea;
+  --border-radius: 5px;
+  --highlight-color-focused: #0874bb;
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.registro-input ion-label {
+  color: #333333 !important;
+  font-size: 10px !important;
   font-weight: 700;
 }
 
-.funcionario-name {
-  color: #333333;
-  font-size: 11px;
-  font-weight: 600;
+.registro-input ion-input,
+.registro-input ion-select {
+  color: #222222;
+  font-size: 12px;
 }
 
-.logout-mini-button {
-  width: 28px;
-  height: 22px;
-  border: 1px solid #cfcfcf;
-  background: #ffffff;
-  color: #555555;
-  border-radius: 3px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+.registro-input input:-webkit-autofill,
+.registro-input input:-webkit-autofill:hover,
+.registro-input input:-webkit-autofill:focus,
+.registro-input input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #222222 !important;
+  caret-color: #222222;
 }
 
-.logout-mini-button ion-icon {
-  font-size: 13px;
+.registro-input input {
+  background: transparent !important;
 }
 
-.reporte-main {
-  flex: 1;
-  padding: 22px 0 70px;
-  display: flex;
-  justify-content: center;
-}
-
-.reporte-center {
-  width: 760px;
-}
-
-.reporte-title-row {
+.registro-terms {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
-  margin-bottom: 22px;
-}
-
-.reporte-title-row h2 {
-  color: #1f2937;
-  font-size: 24px;
-  font-weight: 900;
-  margin: 0 0 4px;
-}
-
-.reporte-title-row p {
-  color: #6b7280;
-  font-size: 12px;
-  margin: 0;
-}
-
-.reporte-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.filter-date-button,
-.export-report-button {
-  height: 30px;
-  border: none;
-  border-radius: 5px;
-  padding: 0 12px;
-  font-size: 11px;
-  font-weight: 800;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.filter-date-button {
-  background: #ffffff;
-  color: #333333;
-  border: 1px solid #d9e1ea;
-}
-
-.export-report-button {
-  background: #0874bb;
-  color: #ffffff;
-}
-
-.filter-date-button ion-icon,
-.export-report-button ion-icon {
-  font-size: 14px;
-}
-
-.reporte-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin-bottom: 24px;
-}
-
-.reporte-stat-card {
-  background: #ffffff;
-  border: 1px solid #eeeeee;
-  border-radius: 8px;
-  padding: 18px 18px;
-  min-height: 90px;
-  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.04);
-}
-
-.reporte-stat-card span {
-  display: block;
-  color: #6b7280;
-  font-size: 11px;
-  font-weight: 800;
-  margin-bottom: 6px;
-}
-
-.reporte-stat-card strong {
-  display: block;
-  color: #1f2937;
-  font-size: 28px;
-  font-weight: 900;
-  line-height: 1;
-  margin-bottom: 9px;
-}
-
-.reporte-stat-card strong small {
-  font-size: 14px;
-  font-weight: 500;
-  color: #6b7280;
-}
-
-.reporte-stat-card small {
-  display: block;
-  color: #9ca3af;
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.blue-number {
-  color: #0874bb !important;
-}
-
-.green-number {
-  color: #159447 !important;
-}
-
-.red-number {
-  color: #e32222 !important;
-}
-
-.green-text {
-  color: #159447 !important;
-}
-
-.orange-text {
-  color: #d97706 !important;
-}
-
-.blue-text {
-  color: #0874bb !important;
-}
-
-.area-name {
-  color: #1f2937 !important;
-  font-size: 20px !important;
-  line-height: 1.1 !important;
-}
-
-.reporte-table-card {
-  background: #ffffff;
-  border: 1px solid #eeeeee;
-  border-radius: 8px;
-  padding: 18px 18px;
-  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.04);
-}
-
-.reporte-table-card h3 {
-  color: #1f2937;
-  font-size: 13px;
-  font-weight: 900;
-  margin: 0 0 14px;
-}
-
-.reporte-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 11px;
-}
-
-.reporte-table th {
+  gap: 7px;
   text-align: left;
-  color: #6b7280;
-  font-weight: 900;
-  padding: 12px 8px;
-  border-bottom: 1px solid #eeeeee;
-}
-
-.reporte-table td {
-  color: #1f2937;
-  padding: 13px 8px;
-  border-bottom: 1px solid #f0f0f0;
-  font-weight: 600;
-}
-
-.pending-badge {
-  display: inline-block;
-  min-width: 22px;
-  text-align: center;
-  padding: 4px 7px;
-  border-radius: 7px;
+  color: #555555;
   font-size: 10px;
-  font-weight: 900;
+  line-height: 1.3;
+  margin: 8px 0 14px;
 }
 
-.pending-badge.yellow {
-  background: #fff3cd;
-  color: #9a6900;
+.registro-terms ion-checkbox {
+  --size: 14px;
+  margin-top: 1px;
 }
 
-.pending-badge.green {
-  background: #e6f7ec;
-  color: #159447;
-}
-
-.volver-reporte-button {
+.registro-button {
   --background: #0874bb;
   --background-hover: #075e99;
-  --border-radius: 5px;
+  --border-radius: 4px;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: none;
-  display: block;
-  width: fit-content;
-  margin: 24px auto 0;
+  margin-top: 8px;
 }
 
-.reporte-footer {
+.registro-login-link {
+  color: #555555;
+  font-size: 11px;
+  margin: 13px 0 0;
+}
+
+.registro-login-link button {
+  background: transparent;
+  border: none;
+  color: #006eb8;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
+.registro-error-box {
+  width: 100%;
+  background: #ffe5e5;
+  border: 1px solid #e32222;
+  color: #a40000;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 9px 11px;
+  border-radius: 4px;
+  margin: 0 0 12px 0;
+  text-align: center;
+  line-height: 1.3;
+  box-sizing: border-box;
+}
+
+.registro-success-box {
+  width: 100%;
+  background: #e6f7ec;
+  border: 1px solid #159447;
+  color: #0f6b32;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 9px 11px;
+  border-radius: 4px;
+  margin: 0 0 12px 0;
+  text-align: center;
+  line-height: 1.3;
+  box-sizing: border-box;
+}
+
+.registro-footer {
   height: 45px;
   background: #0874bb;
   color: #ffffff;
@@ -291,33 +188,31 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: auto;
 }
 
-@media (max-width: 900px) {
-  .reporte-wrapper {
+@media (max-width: 768px) {
+  .registro-wrapper {
     margin: 0;
     min-height: 100vh;
   }
 
-  .reporte-center {
+  .registro-background {
+    min-height: calc(100vh - 90px);
+    padding: 50px 16px 40px;
+  }
+
+  .registro-card {
     width: 100%;
-    padding: 0 14px;
+    max-width: 420px;
+    padding: 24px 20px;
   }
 
-  .reporte-title-row {
-    flex-direction: column;
-  }
-
-  .reporte-cards-grid {
+  .registro-grid {
     grid-template-columns: 1fr;
+    gap: 0;
   }
 
-  .funcionario-name {
-    display: none;
-  }
-
-  .reporte-footer {
+  .registro-footer {
     flex-direction: column;
     justify-content: center;
     gap: 4px;
