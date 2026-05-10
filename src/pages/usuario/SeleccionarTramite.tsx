@@ -27,7 +27,7 @@ const SeleccionarTramite: React.FC = () => {
         <h2>Seleccione el trámite a realizar</h2>
 
         <IonList>
-          <IonItem button onClick={() => history.push("/usuario/solicitud/patente")}>
+          <IonItem button onClick={() => history.push("/usuario/nueva-solicitud/patente")}>
             <IonLabel>Solicitar patente comercial</IonLabel>
           </IonItem>
 

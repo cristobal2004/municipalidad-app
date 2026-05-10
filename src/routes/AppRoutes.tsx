@@ -51,7 +51,7 @@ const AppRoutes: React.FC = () => {
 
       <ProtectedRoute
         exact
-        path="/usuario/solicitud/patente"
+        path="/usuario/nueva-solicitud/patente"
         component={SolicitudPatente}
         allowedRole="usuario"
       />
