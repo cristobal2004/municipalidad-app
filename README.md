@@ -48,17 +48,15 @@ El proyecto está siendo desarrollado utilizando:
 
 ### 🔗 Código Fuente
 
-```text
-https://github.com/cristobal2004/municipalidad-app
-```
+[Ver repositorio en GitHub](https://github.com/cristobal2004/municipalidad-app)
 
 ### 📄 Documentación Técnica
 
-Para revisar la información técnica detallada de la entrega, acceder al siguiente documento:
+[Ver documentación técnica](https://github.com/cristobal2004/municipalidad-app/tree/main/otros/ProyectoWebN9.pdf)
 
-```text
-https://github.com/cristobal2004/municipalidad-app/tree/main/otros/ProyectoWebN9.pdf
-```
+### 🎨 Mockup Figma
+
+[Ver mockup en Figma](https://www.figma.com/design/GJqfNMIMlvvIzsJgPM5LM4/Mockups?node-id=26-127&t=Ns8eQsElSKqaJrLI-1)
 
 ## 🚀 Cargar y Ejecutar el Proyecto
 
