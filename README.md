@@ -57,7 +57,7 @@ https://github.com/cristobal2004/municipalidad-app
 Para revisar la información técnica detallada de la entrega, acceder al siguiente documento:
 
 ```text
-https://github.com/cristobal2004/municipalidad-app/blob/main/README-TECNICO.md
+https://github.com/cristobal2004/municipalidad-app/tree/main/otros/Documentacion.md
 ```
 
 ## 🚀 Cargar y Ejecutar el Proyecto
