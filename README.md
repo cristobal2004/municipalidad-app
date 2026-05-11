@@ -91,7 +91,7 @@ npm install
 ### 5️⃣ Ejecutar la Aplicación
 
 ```bash
-ionic serve
+npm run dev
 ```
 
 🌐 Esto abrirá automáticamente la aplicación en el navegador.
