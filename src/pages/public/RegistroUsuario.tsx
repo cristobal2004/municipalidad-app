@@ -12,7 +12,7 @@ import {
 } from "@ionic/react";
 import { useHistory } from "react-router-dom";
 import { usuariosService } from "../../services/usuariosService";
-import "./CrearCuentaUsuario.css";
+import "./RegistroUsuario.css";
 
 const CrearCuentaUsuario: React.FC = () => {
   const history = useHistory();

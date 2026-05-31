@@ -1,236 +1,656 @@
-.tramites-content {
+.mis-tramites-content {
   --background: #cfe8f8;
 }
 
-.tramites-wrapper {
+.mis-tramites-wrapper {
   width: 100%;
   max-width: 1280px;
-  min-height: 760px;
-  margin: 36px auto;
-  background: #f4f4f4;
+  min-height: 100vh;
+  margin: 32px auto;
+  background: #ffffff;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
-.tramites-header {
-  height: 48px;
+.mis-tramites-header {
+  min-height: 58px;
   background: #ffffff;
   border-bottom: 4px solid #e32222;
   display: flex;
   align-items: center;
-  justify-content: center;
-  position: relative;
+  justify-content: space-between;
+  padding: 0 28px;
+  gap: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
 }
 
-.tramites-header h1 {
+.mis-tramites-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mis-tramites-brand img {
+  width: 34px;
+  height: auto;
+}
+
+.mis-tramites-brand h1 {
   color: #0070bc;
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 800;
   margin: 0;
 }
 
-.tramites-user-actions {
+.mis-tramites-user-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mis-tramites-notification-button {
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  color: #222222;
+  position: relative;
+  cursor: pointer;
+}
+
+.mis-tramites-notification-button ion-icon {
+  font-size: 23px;
+}
+
+.mis-tramites-notification-button span {
   position: absolute;
-  right: 18px;
+  top: 0;
+  right: 0;
+  background: #e32222;
+  color: #ffffff;
+  border-radius: 999px;
+  min-width: 17px;
+  height: 17px;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mis-tramites-user-chip {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.tramites-user-actions span {
-  font-size: 11px;
-  color: #333333;
-  font-weight: 600;
+.mis-tramites-user-chip ion-icon {
+  color: #0b5cad;
+  font-size: 32px;
 }
 
-.tramites-user-actions button {
-  background: #ffffff;
-  color: #555555;
-  border: 1px solid #cfcfcf;
-  border-radius: 3px;
+.mis-tramites-user-chip strong {
+  display: block;
+  color: #1f2937;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.mis-tramites-user-chip small {
+  display: block;
+  color: #0057b8;
   font-size: 10px;
-  padding: 4px 8px;
+  font-weight: 700;
+}
+
+.mis-tramites-logout {
+  border: 1px solid #d9e1ea;
+  background: #ffffff;
+  color: #e32222;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   cursor: pointer;
 }
 
-.tramites-main {
+.mis-tramites-main {
   flex: 1;
-  display: grid;
-  grid-template-columns: 110px 1fr;
-  padding: 24px 46px 80px 22px;
-  gap: 20px;
+  padding: 32px 34px 28px;
 }
 
-.tramites-logo-area {
-  min-height: 120px;
-}
-
-.tramites-card {
+.mis-tramites-title-card {
   background: #ffffff;
-  border-radius: 4px;
-  padding: 24px 26px 34px;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-  align-self: start;
+  border: 1px solid #e5e7eb;
+  border-radius: 9px;
+  padding: 22px 24px;
+  display: grid;
+  grid-template-columns: 58px 1fr auto;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.045);
+  margin-bottom: 18px;
 }
 
-.tramites-card h2 {
-  color: #0070bc;
-  font-size: 22px;
+.mis-tramites-title-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  background: #edf4ff;
+  color: #0874bb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mis-tramites-title-icon ion-icon {
+  font-size: 28px;
+}
+
+.mis-tramites-title-card h2 {
+  color: #0f172a;
+  font-size: 28px;
   font-weight: 800;
-  margin: 0 0 14px;
+  margin: 0 0 6px;
 }
 
-.tramites-description {
-  color: #333333;
+.mis-tramites-title-card p {
+  color: #4b5563;
   font-size: 13px;
-  line-height: 1.35;
-  max-width: 980px;
-  margin-bottom: 28px;
+  margin: 0;
 }
 
-.tramites-title-row {
+.new-tramite-button,
+.bottom-new-button {
+  height: 42px;
+  border: none;
+  background: #0057b8;
+  color: #ffffff;
+  border-radius: 6px;
+  padding: 0 18px;
+  font-size: 12px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+}
+
+.mis-tramites-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.mis-tramites-stat-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 18px 18px 14px;
+  min-height: 126px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.045);
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  column-gap: 12px;
+}
+
+.stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-icon ion-icon {
+  font-size: 23px;
+}
+
+.stat-icon.blue {
+  background: #e8f2ff;
+  color: #0874bb;
+}
+
+.stat-icon.yellow {
+  background: #fff3cd;
+  color: #9a6900;
+}
+
+.stat-icon.orange {
+  background: #fff3cd;
+  color: #d97706;
+}
+
+.stat-icon.green {
+  background: #e6f7ec;
+  color: #159447;
+}
+
+.mis-tramites-stat-card span {
+  color: #4b5563;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.mis-tramites-stat-card strong {
+  display: block;
+  color: #0b5cad;
+  font-size: 27px;
+  font-weight: 800;
+  margin: 4px 0;
+}
+
+.mis-tramites-stat-card p {
+  color: #6b7280;
+  font-size: 11px;
+  margin: 0;
+}
+
+.mis-tramites-stat-card button {
+  grid-column: 1 / 3;
+  width: fit-content;
+  background: transparent;
+  border: none;
+  color: #0057b8;
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  margin-top: 12px;
+  cursor: pointer;
+}
+
+.tramites-table-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 9px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.045);
+  margin-bottom: 14px;
+}
+
+.table-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  gap: 16px;
+  margin-bottom: 14px;
 }
 
-.tramites-title-row h3 {
-  color: #0070bc;
-  font-size: 20px;
+.table-card-header h3 {
+  color: #0f172a;
+  font-size: 15px;
   font-weight: 800;
   margin: 0;
 }
 
-.nuevo-tramite-button {
-  --background: #159447;
-  --background-hover: #107739;
-  --border-radius: 3px;
-  height: 32px;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: none;
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.tramites-table-container {
+.table-actions button {
+  height: 34px;
+  border: 1px solid #0057b8;
+  background: #ffffff;
+  color: #0057b8;
+  border-radius: 5px;
+  padding: 0 14px;
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.table-actions button.active,
+.table-actions button:hover {
+  background: #edf4ff;
+}
+
+.table-tools-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.search-box {
+  width: 360px;
+  height: 38px;
+  border: 1px solid #d9e1ea;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  background: #ffffff;
+}
+
+.search-box ion-icon {
+  color: #4b5563;
+  font-size: 18px;
+}
+
+.search-box input {
+  width: 100%;
+  border: none;
+  outline: none;
+  color: #1f2937;
+  font-size: 12px;
+  background: transparent;
+}
+
+.floating-control {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.floating-control label {
+  font-size: 11px;
+  color: #4b5563;
+  font-weight: 700;
+}
+
+.floating-control select {
+  height: 38px;
+  border: 1px solid #d9e1ea;
+  border-radius: 5px;
+  padding: 0 10px;
+  color: #1f2937;
+  background: #ffffff;
+  font-size: 12px;
+  outline: none;
+}
+
+.table-scroll-area {
   width: 100%;
   overflow-x: auto;
+  max-height: 360px;
+  overflow-y: auto;
 }
 
 .tramites-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  min-width: 980px;
+}
+
+.tramites-table thead {
   background: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 4;
 }
 
 .tramites-table th {
-  background: #0874bb;
-  color: #ffffff;
-  padding: 10px 8px;
-  text-align: center;
-  font-weight: 700;
-  border: 1px solid #0b68a3;
+  text-align: left;
+  color: #0f172a;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 12px 10px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .tramites-table td {
-  padding: 10px 8px;
-  border: 1px solid #d9e1ea;
-  text-align: center;
-  color: #222222;
+  color: #1f2937;
+  font-size: 12px;
+  padding: 13px 10px;
+  border-bottom: 1px solid #eef2f7;
+  vertical-align: middle;
 }
 
-.tramites-table td:nth-child(6) {
-  text-align: left;
+.solicitud-id {
+  color: #0057b8;
+  font-weight: 800;
 }
 
-.tramites-table tbody tr:nth-child(even) {
-  background: #fbfbfb;
-}
-
-.estado {
-  display: inline-block;
-  padding: 5px 10px;
-  border-radius: 4px;
+.badge-estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 999px;
   font-size: 10px;
   font-weight: 800;
-  color: #ffffff;
+  white-space: nowrap;
 }
 
-.estado-proceso {
-  background: #f4b400;
-  color: #111111;
+.badge-estado::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
 }
 
-.estado-falta {
-  background: #e5364f;
+.estado-ingresada {
+  background: #e6f7ec;
+  color: #147a3b;
 }
 
-.estado-aprobado {
+.estado-ingresada::before {
   background: #159447;
 }
 
-.observacion-normal {
-  font-style: italic;
-  color: #444444 !important;
+.estado-revision {
+  background: #e8f2ff;
+  color: #0057b8;
 }
 
-.observacion-alerta {
-  color: #e5364f !important;
+.estado-revision::before {
+  background: #0874bb;
 }
 
-.calendar-button,
-.accion-button,
-.accion-download {
+.estado-pendiente {
+  background: #fff3cd;
+  color: #9a6900;
+}
+
+.estado-pendiente::before {
+  background: #d97706;
+}
+
+.estado-aprobada {
+  background: #e6f7ec;
+  color: #159447;
+}
+
+.estado-aprobada::before {
+  background: #159447;
+}
+
+.estado-rechazada {
+  background: #ffe5e5;
+  color: #a40000;
+}
+
+.estado-rechazada::before {
+  background: #e32222;
+}
+
+.ver-seguimiento-button {
   background: transparent;
   border: none;
-  color: #0d6efd;
-  font-size: 17px;
+  color: #0057b8;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.empty-table-state {
+  text-align: center;
+  padding: 32px 10px;
+}
+
+.empty-table-state ion-icon {
+  color: #0874bb;
+  font-size: 34px;
+}
+
+.empty-table-state h4 {
+  color: #1f2937;
+  margin: 8px 0 5px;
+  font-size: 15px;
+}
+
+.empty-table-state p {
+  color: #6b7280;
+  margin: 0;
+  font-size: 12px;
+}
+
+.table-footer {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 14px;
+  padding-top: 14px;
+}
+
+.table-footer p {
+  color: #4b5563;
+  font-size: 11px;
+  margin: 0;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.pagination button {
+  min-width: 30px;
+  height: 30px;
+  border: 1px solid #d9e1ea;
+  background: #ffffff;
+  color: #1f2937;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
 }
 
-.accion-button {
-  background: #0d6efd;
+.pagination button.active {
+  background: #0057b8;
   color: #ffffff;
-  width: 28px;
-  height: 26px;
+  border-color: #0057b8;
+}
+
+.pagination button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.page-size-box {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  color: #4b5563;
+  font-size: 11px;
+}
+
+.page-size-box strong {
+  min-width: 42px;
+  height: 30px;
+  border: 1px solid #d9e1ea;
   border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #1f2937;
 }
 
-.accion-download {
-  color: #8d8d8d;
+.mis-tramites-advice {
+  background: #f8fbff;
+  border: 1px solid #d9e9ff;
+  border-radius: 9px;
+  padding: 18px 22px;
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
 }
 
-.tramites-actions-bottom {
+.advice-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: #edf4ff;
+  color: #0874bb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.advice-icon ion-icon {
+  font-size: 24px;
+}
+
+.mis-tramites-advice h3 {
+  color: #0057b8;
+  font-size: 14px;
+  font-weight: 800;
+  margin: 0 0 6px;
+}
+
+.mis-tramites-advice p {
+  color: #4b5563;
+  font-size: 12px;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.mis-tramites-bottom-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 32px;
+  gap: 16px;
 }
 
-.volver-button {
-  --background: #0874bb;
-  --background-hover: #075e99;
-  --border-radius: 4px;
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: none;
+.back-home-button {
+  height: 38px;
+  border: 1px solid #d9e1ea;
+  background: #ffffff;
+  color: #1f2937;
+  border-radius: 6px;
+  padding: 0 18px;
+  font-size: 12px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
 }
 
-.agendar-button {
-  --background: #0874bb;
-  --background-hover: #075e99;
-  --border-radius: 4px;
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: none;
-}
-
-.tramites-footer {
-  height: 45px;
-  background: #0874bb;
+.mis-tramites-footer {
+  background: #005a9f;
   color: #ffffff;
-  padding: 0 24px;
+  min-height: 46px;
+  padding: 0 34px;
   font-size: 11px;
   display: flex;
   align-items: center;
@@ -238,51 +658,88 @@
   margin-top: auto;
 }
 
-@media (max-width: 900px) {
-  .tramites-wrapper {
+@media (max-width: 1050px) {
+  .mis-tramites-wrapper {
     margin: 0;
     min-height: 100vh;
   }
 
-  .tramites-main {
-    grid-template-columns: 1fr;
-    padding: 20px 14px 60px;
-  }
-
-  .tramites-logo-area {
-    display: none;
-  }
-
-  .tramites-user-actions span {
-    display: none;
-  }
-
-  .tramites-actions-bottom {
+  .mis-tramites-header {
+    position: static;
     flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
+    align-items: flex-start;
+    padding: 14px 18px;
   }
 
-  .tramites-footer {
+  .mis-tramites-user-area {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .mis-tramites-main {
+    padding: 20px 16px 24px;
+  }
+
+  .mis-tramites-title-card {
+    grid-template-columns: 52px 1fr;
+  }
+
+  .new-tramite-button {
+    grid-column: 1 / 3;
+    width: fit-content;
+  }
+
+  .mis-tramites-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .table-card-header,
+  .table-tools-row,
+  .mis-tramites-bottom-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .table-actions {
+    flex-wrap: wrap;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .table-footer {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .page-size-box {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .mis-tramites-brand h1 {
+    font-size: 15px;
+  }
+
+  .mis-tramites-title-card {
+    grid-template-columns: 1fr;
+  }
+
+  .mis-tramites-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .mis-tramites-advice {
+    grid-template-columns: 1fr;
+  }
+
+  .mis-tramites-footer {
     flex-direction: column;
     justify-content: center;
     gap: 4px;
     text-align: center;
+    padding: 10px 16px;
   }
-
-  .tramites-empty-box {
-  background: #f7fbff;
-  border: 1px solid #d9e1ea;
-  border-radius: 6px;
-  padding: 24px;
-  text-align: center;
-  margin-top: 18px;
-  }
-
-  .tramites-empty-box p {
-    color: #555555;
-    font-size: 13px;
-    font-weight: 600;
-    margin: 0 0 14px;
-   }
 }

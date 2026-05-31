@@ -321,6 +321,24 @@ td,
 th {
   font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
 }
+html,
+body,
+ion-app {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+  background: #ffffff;
+  font-family: 'Inter', sans-serif;
+}
+
+ion-content {
+  --background: #ffffff;
+}
+
+ion-content::part(background) {
+  background: #ffffff;
+}
 
 ion-button {
   text-transform: none;
