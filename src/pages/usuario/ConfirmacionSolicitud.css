@@ -1,171 +1,496 @@
 .confirmacion-content {
-  --background: #cfe8f8;
+  --background: #ffffff;
 }
 
 .confirmacion-wrapper {
   width: 100%;
   max-width: 1280px;
-  min-height: 760px;
-  margin: 36px auto;
-  background: #f4f4f4;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: #ffffff;
   display: flex;
   flex-direction: column;
 }
 
 .confirmacion-header {
-  height: 48px;
+  min-height: 72px;
   background: #ffffff;
   border-bottom: 4px solid #e32222;
   display: flex;
   align-items: center;
-  justify-content: center;
-  position: relative;
+  justify-content: space-between;
+  padding: 0 34px;
+  gap: 20px;
 }
 
-.confirmacion-header h1 {
-  color: #0070bc;
-  font-size: 18px;
+.confirmacion-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.confirmacion-brand img {
+  width: 46px;
+  height: auto;
+}
+
+.confirmacion-brand span {
+  color: #1f2937;
+  font-size: 12px;
   font-weight: 700;
-  margin: 0;
+  display: block;
+  line-height: 1;
 }
 
-.confirmacion-user-actions {
-  position: absolute;
-  right: 18px;
+.confirmacion-brand h1 {
+  color: #0b3b75;
+  font-size: 22px;
+  font-weight: 900;
+  margin: 2px 0 0;
+  line-height: 1;
 }
 
-.confirmacion-user-actions span {
-  background: #5f6368;
+.confirmacion-user-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.confirmacion-user-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: #6d35b8;
   color: #ffffff;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 5px 10px;
-  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.confirmacion-user-area strong {
+  display: block;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.confirmacion-user-area small {
+  display: block;
+  color: #4b5563;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.confirmacion-user-area button {
+  height: 36px;
+  border: 1px solid #d9e1ea;
+  background: #ffffff;
+  color: #e32222;
+  border-radius: 6px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
 }
 
 .confirmacion-main {
   flex: 1;
-  display: grid;
-  grid-template-columns: 110px 1fr;
-  padding: 24px 46px 80px 22px;
-  gap: 20px;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 40px 24px 34px;
 }
 
-.confirmacion-logo {
-  width: 82px;
-  height: auto;
-  object-fit: contain;
-  display: block;
+.confirmacion-hero {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.confirmacion-success-icon {
+  width: 78px;
+  height: 78px;
+  border-radius: 999px;
+  background: #e6f7ec;
+  border: 1px solid #a7dfb8;
+  color: #159447;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 18px;
+}
+
+.confirmacion-success-icon ion-icon {
+  font-size: 46px;
+}
+
+.confirmacion-hero h2 {
+  color: #147a3b;
+  font-size: 28px;
+  font-weight: 900;
+  margin: 0 0 10px;
+}
+
+.confirmacion-hero p {
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 1.55;
+  max-width: 560px;
   margin: 0 auto;
 }
 
 .confirmacion-card {
   background: #ffffff;
-  border-radius: 4px;
-  padding: 24px 26px 26px;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-  align-self: start;
-  min-height: 470px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.045);
+  padding: 22px;
+  margin-bottom: 18px;
 }
 
-.confirmacion-card h2 {
-  color: #0070bc;
-  font-size: 22px;
-  font-weight: 800;
-  margin: 0 0 10px;
+.confirmacion-card h3 {
+  color: #0057b8;
+  font-size: 16px;
+  font-weight: 900;
+  margin: 0 0 18px;
 }
 
-.confirmacion-description {
-  color: #555555;
-  font-size: 12px;
-  margin-bottom: 58px;
+.resumen-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 22px;
 }
 
-.confirmacion-description span {
-  text-decoration: underline;
+.resumen-grid article {
+  min-height: 68px;
+  border-bottom: 1px solid #eef2f7;
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  align-items: center;
+  gap: 12px;
 }
 
-.confirmacion-message-box {
-  width: 82%;
-  min-height: 150px;
-  margin: 0 auto;
-  background: #ffffff;
-  border: 1px solid #555555;
-  box-shadow: -14px 14px 0 rgba(0, 0, 0, 0.22);
+.resumen-grid article:nth-last-child(-n + 2) {
+  border-bottom: none;
+}
+
+.resumen-icon,
+.paso-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  text-align: center;
-  padding: 24px;
 }
 
-.confirmacion-check-icon {
-  color: #159447;
-  font-size: 34px;
+.resumen-icon ion-icon,
+.paso-icon ion-icon {
+  font-size: 22px;
 }
 
-.confirmacion-message-box h3 {
-  color: #0070bc;
-  font-size: 20px;
-  font-weight: 800;
-  margin: 0;
-}
-
-.confirmacion-message-box p {
-  color: #555555;
-  font-size: 14px;
-  margin: 0;
-}
-
-.confirmacion-link {
-  background: transparent;
-  border: none;
+.resumen-icon.blue,
+.paso-icon.blue {
+  background: #edf4ff;
   color: #0874bb;
-  text-decoration: underline;
-  cursor: pointer;
+}
+
+.resumen-icon.green {
+  background: #e6f7ec;
+  color: #159447;
+}
+
+.resumen-icon.purple,
+.paso-icon.purple {
+  background: #f0e8ff;
+  color: #7c3aed;
+}
+
+.resumen-icon.orange,
+.paso-icon.orange {
+  background: #fff0df;
+  color: #f97316;
+}
+
+.resumen-grid span {
+  display: block;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.resumen-grid strong {
+  display: block;
+  color: #0f172a;
   font-size: 14px;
-  padding: 0;
+  font-weight: 900;
+}
+
+.estado-ingresada {
+  width: fit-content;
+  color: #147a3b !important;
+  background: #e6f7ec;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 12px !important;
+}
+
+.pasos-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+}
+
+.pasos-grid article {
+  position: relative;
+  display: grid;
+  grid-template-columns: 24px 42px 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.pasos-grid article > span {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid #0057b8;
+  color: #0057b8;
+  font-size: 12px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 9px;
+}
+
+.pasos-grid strong {
+  display: block;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 900;
+  margin-bottom: 5px;
+}
+
+.pasos-grid p {
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.paso-arrow {
+  position: absolute;
+  right: -8px;
+  top: 20px;
+  color: #111827;
+  font-size: 18px;
+}
+
+.seguimiento-card {
+  padding-bottom: 20px;
+}
+
+.seguimiento-linea {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 12px 24px 4px;
+}
+
+.seguimiento-linea::before {
+  content: "";
+  position: absolute;
+  top: 28px;
+  left: 76px;
+  right: 76px;
+  height: 4px;
+  background: #d9e1ea;
+  border-radius: 999px;
+}
+
+.seguimiento-linea::after {
+  content: "";
+  position: absolute;
+  top: 28px;
+  left: 76px;
+  width: 34%;
+  height: 4px;
+  background: #159447;
+  border-radius: 999px;
+}
+
+.seguimiento-step {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.seguimiento-step > div {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: #cbd5e1;
+  border: 4px solid #ffffff;
+  box-shadow: 0 0 0 2px #cbd5e1;
+  margin: 0 auto 10px;
+}
+
+.seguimiento-step.completado > div {
+  background: #159447;
+  box-shadow: 0 0 0 2px #159447;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.seguimiento-step.completado ion-icon {
+  font-size: 16px;
+}
+
+.seguimiento-step.activo > div {
+  background: #ffffff;
+  box-shadow: 0 0 0 3px #0057b8;
+}
+
+.seguimiento-step strong {
+  display: block;
+  color: #111827;
+  font-size: 12px;
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+
+.seguimiento-step.activo strong {
+  color: #0057b8;
+}
+
+.seguimiento-step span {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.confirmacion-sync {
+  width: fit-content;
+  margin: 18px auto 0;
+  color: #147a3b;
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.confirmacion-sync span {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #159447;
+  box-shadow: 0 0 0 4px rgba(21, 148, 71, 0.13);
 }
 
 .confirmacion-actions {
-  margin-top: 110px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 18px;
 }
 
-.confirmacion-right-actions {
-  display: flex;
+.confirmacion-actions button {
+  height: 46px;
+  border: 1px solid #0057b8;
+  background: #ffffff;
+  color: #0057b8;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 900;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.confirmacion-actions button.primary {
+  border: none;
+  background: #0057b8;
+  color: #ffffff;
+}
+
+.confirmacion-email-box {
+  background: #f8fbff;
+  border: 1px solid #cfe0f6;
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: 40px 1fr;
   gap: 12px;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
-.confirmacion-back-button,
-.confirmacion-continue-button {
-  --background: #0874bb;
-  --background-hover: #075e99;
-  --border-radius: 4px;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: none;
+.confirmacion-email-box > ion-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #edf4ff;
+  color: #0057b8;
+  padding: 9px;
+  box-sizing: border-box;
 }
 
-.confirmacion-new-button {
-  --background: #159447;
-  --background-hover: #107739;
-  --border-radius: 4px;
+.confirmacion-email-box p {
+  color: #4b5563;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.confirmacion-email-box strong {
+  color: #0057b8;
+  font-weight: 900;
+}
+
+.confirmacion-email-box button {
+  border: none;
+  background: transparent;
+  color: #0057b8;
+  font-size: inherit;
+  font-weight: 900;
+  padding: 0;
+  cursor: pointer;
+}
+
+.confirmacion-bottom-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.confirmacion-bottom-actions button {
+  border: none;
+  background: transparent;
+  color: #0057b8;
   font-size: 12px;
-  font-weight: 700;
-  text-transform: none;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
 }
 
 .confirmacion-footer {
-  height: 45px;
-  background: #0874bb;
+  background: #005a9f;
   color: #ffffff;
-  padding: 0 24px;
+  min-height: 46px;
+  padding: 0 34px;
   font-size: 11px;
   display: flex;
   align-items: center;
@@ -174,41 +499,61 @@
 }
 
 @media (max-width: 900px) {
-  .confirmacion-wrapper {
-    margin: 0;
-    min-height: 100vh;
+  .confirmacion-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 14px 18px;
+  }
+
+  .confirmacion-user-area {
+    width: 100%;
+    flex-wrap: wrap;
   }
 
   .confirmacion-main {
-    grid-template-columns: 1fr;
-    padding: 20px 14px 60px;
+    padding: 28px 16px;
   }
 
-  .confirmacion-logo-area {
+  .resumen-grid,
+  .pasos-grid,
+  .confirmacion-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .resumen-grid article {
+    border-bottom: 1px solid #eef2f7 !important;
+  }
+
+  .resumen-grid article:last-child {
+    border-bottom: none !important;
+  }
+
+  .paso-arrow {
     display: none;
   }
 
-  .confirmacion-message-box {
-    width: 100%;
-    box-shadow: -8px 8px 0 rgba(0, 0, 0, 0.22);
+  .seguimiento-linea {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 4px 0;
   }
 
-  .confirmacion-actions {
-    margin-top: 50px;
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
+  .seguimiento-linea::before,
+  .seguimiento-linea::after {
+    display: none;
   }
 
-  .confirmacion-right-actions {
-    flex-direction: column;
-    align-items: stretch;
+  .confirmacion-email-box {
+    grid-template-columns: 1fr;
+    text-align: center;
+    justify-items: center;
   }
 
   .confirmacion-footer {
     flex-direction: column;
     justify-content: center;
-    gap: 4px;
     text-align: center;
+    gap: 4px;
+    padding: 10px 16px;
   }
 }

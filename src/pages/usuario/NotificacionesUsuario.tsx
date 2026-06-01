@@ -21,10 +21,7 @@ import {
   warningOutline,
 } from "ionicons/icons";
 
-import {
-  Solicitud,
-  solicitudesService,
-} from "../../services/solicitudesService";
+import api from "../../services/api";
 import { authService } from "../../services/authService";
 import "./NotificacionesUsuario.css";
 
@@ -60,6 +57,9 @@ interface NotificacionUsuario {
   accionTexto: string;
 }
 
+const STORAGE_ESTADO_NOTIFICACIONES = "notificaciones_usuario_estado";
+const STORAGE_NOTIFICACIONES_COMPAT = "notificaciones_usuario";
+
 const NotificacionesUsuario: React.FC = () => {
   const history = useHistory();
 
@@ -77,226 +77,352 @@ const NotificacionesUsuario: React.FC = () => {
 
   const [cantidadVisible, setCantidadVisible] = useState(6);
   const [mostrarConfiguracion, setMostrarConfiguracion] = useState(false);
+  const [cargando, setCargando] = useState(false);
+  const [mensajeError, setMensajeError] = useState("");
 
-  const obtenerValor = (objeto: any, campo: string, respaldo = "") => {
-    return objeto?.[campo] || respaldo;
+  const obtenerValor = (objeto: any, campo: string, respaldo: any = ""): any => {
+    const valor = objeto?.[campo];
+
+    if (valor === undefined || valor === null || valor === "") {
+      return respaldo;
+    }
+
+    return valor;
   };
 
-  const obtenerIdSolicitud = (solicitud: Solicitud | null) => {
-    if (!solicitud) return "SOL-2026-0001";
+  const normalizarTexto = (texto: string) => {
+    return String(texto || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+  };
 
+  const formatearFecha = (fecha: string) => {
+    if (!fecha || fecha === "Sin fecha") {
+      return "Sin fecha";
+    }
+
+    const fechaDate = new Date(fecha);
+
+    if (Number.isNaN(fechaDate.getTime())) {
+      return fecha;
+    }
+
+    return fechaDate.toLocaleString("es-CL", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const obtenerUsuarioActual = (): UsuarioActual | null => {
+    const usuario = authService.getUsuarioActual();
+
+    if (!usuario) {
+      return null;
+    }
+
+    return {
+      nombre: usuario.nombre || "Usuario",
+      correo: usuario.correo || "",
+      rut: usuario.rut || "",
+    };
+  };
+
+  const obtenerIdSolicitud = (solicitud: any) => {
     return (
-      obtenerValor(solicitud, "id") ||
       obtenerValor(solicitud, "codigo") ||
-      "SOL-2026-0001"
+      obtenerValor(solicitud, "solicitudId") ||
+      obtenerValor(solicitud, "id") ||
+      "SIN-ID"
     );
   };
 
-  const obtenerTramiteSolicitud = (solicitud: Solicitud | null) => {
-    if (!solicitud) return "Patente Comercial";
-
+  const obtenerTramiteSolicitud = (solicitud: any) => {
     return (
       obtenerValor(solicitud, "tipoTramite") ||
-      obtenerValor(solicitud, "tipoPatente") ||
       obtenerValor(solicitud, "tramite") ||
+      obtenerValor(solicitud, "tipoPatente") ||
       "Trámite municipal"
     );
   };
 
-  const obtenerEstadoSolicitud = (solicitud: Solicitud | null) => {
-    if (!solicitud) return "En revisión";
-    return obtenerValor(solicitud, "estado", "En revisión");
+  const obtenerEstadoSolicitud = (solicitud: any) => {
+    return obtenerValor(solicitud, "estado", "Ingresada");
   };
 
-  const obtenerFechaSolicitud = (solicitud: Solicitud | null) => {
-    if (!solicitud) return "18/04/2026 10:24";
-
+  const obtenerFechaSolicitud = (solicitud: any) => {
     return (
       obtenerValor(solicitud, "ultimaActualizacion") ||
       obtenerValor(solicitud, "fechaActualizacion") ||
       obtenerValor(solicitud, "fechaRecibo") ||
       obtenerValor(solicitud, "fechaIngreso") ||
-      "18/04/2026 10:24"
+      "Sin fecha"
     );
   };
 
-  const normalizarTipo = (tipo: string): TipoNotificacion => {
-    const tipoLower = String(tipo || "").toLowerCase();
-
-    if (tipoLower.includes("document")) return "documento";
-    if (tipoLower.includes("cita")) return "cita";
-    if (tipoLower.includes("mensaje")) return "mensaje";
-    if (tipoLower.includes("sistema")) return "sistema";
-    if (tipoLower.includes("estado")) return "tramite";
-    if (tipoLower.includes("tramite")) return "tramite";
-
-    return "tramite";
+  const obtenerFechaIngreso = (solicitud: any) => {
+    return (
+      obtenerValor(solicitud, "fechaIngreso") ||
+      obtenerValor(solicitud, "fechaRecibo") ||
+      obtenerValor(solicitud, "fecha") ||
+      "Sin fecha"
+    );
   };
 
-  const normalizarNotificacionGuardada = (
-    notificacion: any,
-    index: number
-  ): NotificacionUsuario => {
-    const tipo = normalizarTipo(notificacion.tipo);
+  const obtenerDocumentosFaltantes = (solicitud: any): string[] => {
+    const documentos = obtenerValor(solicitud, "documentosFaltantes", []);
 
-    return {
-      id: notificacion.id || `LOCAL-${index}-${Date.now()}`,
-      titulo: notificacion.titulo || "Nueva notificación",
-      mensaje:
-        notificacion.mensaje ||
-        "Se registró una nueva actualización en tu solicitud.",
-      fecha: notificacion.fecha || new Date().toLocaleString("es-CL"),
-      leida: Boolean(notificacion.leida),
-      tipo,
-      solicitudId: notificacion.solicitudId,
-      accionTexto:
-        notificacion.accionTexto ||
-        (tipo === "documento"
-          ? "Ver detalle"
-          : tipo === "cita"
-          ? "Ver cita"
-          : tipo === "mensaje"
-          ? "Ver mensaje"
-          : "Ver solicitud"),
-    };
+    if (Array.isArray(documentos)) {
+      return documentos
+        .map((documento) => String(documento).trim())
+        .filter((documento) => documento !== "");
+    }
+
+    if (typeof documentos === "string" && documentos.trim() !== "") {
+      try {
+        const parseado = JSON.parse(documentos);
+
+        if (Array.isArray(parseado)) {
+          return parseado
+            .map((documento) => String(documento).trim())
+            .filter((documento) => documento !== "");
+        }
+      } catch {
+        return documentos
+          .split(",")
+          .map((documento) => documento.trim())
+          .filter((documento) => documento !== "");
+      }
+    }
+
+    return [];
   };
 
-  const generarNotificacionesBase = (
-    solicitudes: Solicitud[]
+  const obtenerFechaLimiteDocumentos = (solicitud: any) => {
+    return (
+      obtenerValor(solicitud, "fechaLimiteDocumentos") ||
+      obtenerValor(solicitud, "fecha_limite_documentos") ||
+      ""
+    );
+  };
+
+  const obtenerComentarioFuncionario = (solicitud: any) => {
+    return (
+      obtenerValor(solicitud, "comentarioFuncionario") ||
+      obtenerValor(solicitud, "observacionFuncionario") ||
+      obtenerValor(solicitud, "respuestaFuncionario") ||
+      ""
+    );
+  };
+
+  const obtenerFechaComentario = (solicitud: any) => {
+    return (
+      obtenerValor(solicitud, "fechaComentario") ||
+      obtenerValor(solicitud, "fechaObservacion") ||
+      obtenerFechaSolicitud(solicitud)
+    );
+  };
+
+  const normalizarEstado = (estado: string) => {
+    const texto = normalizarTexto(estado);
+
+    if (texto.includes("aprob")) return "aprobada";
+    if (texto.includes("rechaz")) return "rechazada";
+
+    if (
+      texto.includes("pendiente") ||
+      texto.includes("document") ||
+      texto.includes("falta")
+    ) {
+      return "documentos";
+    }
+
+    if (
+      texto.includes("revision") ||
+      texto.includes("revisión") ||
+      texto.includes("proceso")
+    ) {
+      return "revision";
+    }
+
+    return "ingresada";
+  };
+
+  const cargarEstadoLectura = (): Record<string, boolean> => {
+    const raw = localStorage.getItem(STORAGE_ESTADO_NOTIFICACIONES);
+
+    if (!raw) {
+      return {};
+    }
+
+    try {
+      const data = JSON.parse(raw);
+      return data && typeof data === "object" ? data : {};
+    } catch {
+      return {};
+    }
+  };
+
+  const guardarEstadoLectura = (estadoLectura: Record<string, boolean>) => {
+    localStorage.setItem(
+      STORAGE_ESTADO_NOTIFICACIONES,
+      JSON.stringify(estadoLectura)
+    );
+  };
+
+  const crearNotificacionesDesdeSolicitudes = (
+    solicitudes: any[],
+    estadoLectura: Record<string, boolean>
   ): NotificacionUsuario[] => {
-    const solicitudPrincipal = solicitudes[0] || null;
-    const segundaSolicitud = solicitudes[1] || solicitudPrincipal;
-    const terceraSolicitud = solicitudes[2] || solicitudPrincipal;
+    const generadas: NotificacionUsuario[] = [];
 
-    const idPrincipal = obtenerIdSolicitud(solicitudPrincipal);
-    const idSegunda = obtenerIdSolicitud(segundaSolicitud);
-    const idTercera = obtenerIdSolicitud(terceraSolicitud);
+    solicitudes.forEach((solicitud) => {
+      const idSolicitud = obtenerIdSolicitud(solicitud);
+      const tramite = obtenerTramiteSolicitud(solicitud);
+      const estado = obtenerEstadoSolicitud(solicitud);
+      const estadoNormalizado = normalizarEstado(estado);
+      const fechaActualizacion = obtenerFechaSolicitud(solicitud);
+      const fechaIngreso = obtenerFechaIngreso(solicitud);
+      const documentosFaltantes = obtenerDocumentosFaltantes(solicitud);
+      const fechaLimite = obtenerFechaLimiteDocumentos(solicitud);
+      const comentarioFuncionario = obtenerComentarioFuncionario(solicitud);
 
-    const tramitePrincipal = obtenerTramiteSolicitud(solicitudPrincipal);
-    const tramiteSegunda = obtenerTramiteSolicitud(segundaSolicitud);
-    const tramiteTercera = obtenerTramiteSolicitud(terceraSolicitud);
+      if (documentosFaltantes.length > 0 || estadoNormalizado === "documentos") {
+        const id = `DOC-${idSolicitud}-${fechaActualizacion}`;
+        const listaDocumentos =
+          documentosFaltantes.length > 0
+            ? documentosFaltantes.join(", ")
+            : "documentos adicionales";
 
-    return [
-      {
-        id: "BASE-ESTADO-001",
-        titulo: `Estado actualizado a ${obtenerEstadoSolicitud(
-          solicitudPrincipal
-        )}`,
-        mensaje: `Tu trámite ${tramitePrincipal} (${idPrincipal}) cambió de estado.`,
-        fecha: obtenerFechaSolicitud(solicitudPrincipal),
-        leida: false,
-        tipo: "tramite",
-        solicitudId: idPrincipal,
-        accionTexto: "Ver solicitud",
-      },
-      {
-        id: "BASE-APROBADA-002",
-        titulo: "Solicitud aprobada",
-        mensaje: `Tu solicitud de ${tramiteSegunda} (${idSegunda}) fue aprobada.`,
-        fecha: "17/04/2026 16:45",
-        leida: true,
-        tipo: "tramite",
-        solicitudId: idSegunda,
-        accionTexto: "Ver solicitud",
-      },
-      {
-        id: "BASE-DOCUMENTOS-003",
-        titulo: "Documentos solicitados",
-        mensaje: `Se requieren documentos adicionales para tu trámite ${tramiteTercera}.`,
-        fecha: "17/04/2026 11:03",
-        leida: false,
-        tipo: "documento",
-        solicitudId: idTercera,
-        accionTexto: "Ver detalle",
-      },
-      {
-        id: "BASE-CITA-004",
-        titulo: "Cita programada",
-        mensaje: "Tienes una cita agendada para el 24/04/2026 a las 09:30.",
-        fecha: "16/04/2026 09:15",
-        leida: false,
-        tipo: "cita",
-        accionTexto: "Ver cita",
-      },
-      {
-        id: "BASE-RECORDATORIO-005",
-        titulo: "Recordatorio: revisa tu solicitud",
-        mensaje: `Tu trámite ${tramitePrincipal} (${idPrincipal}) lleva más de 5 días en revisión.`,
-        fecha: "15/04/2026 14:20",
-        leida: true,
-        tipo: "tramite",
-        solicitudId: idPrincipal,
-        accionTexto: "Ver solicitud",
-      },
-      {
-        id: "BASE-MENSAJE-006",
-        titulo: "Nuevo mensaje de la Municipalidad",
-        mensaje: `Tienes un nuevo mensaje relacionado con tu trámite ${idPrincipal}.`,
-        fecha: "14/04/2026 10:05",
-        leida: true,
-        tipo: "mensaje",
-        solicitudId: idPrincipal,
-        accionTexto: "Ver mensaje",
-      },
-    ];
-  };
+        const fechaLimiteTexto = fechaLimite
+          ? ` Fecha límite: ${formatearFecha(fechaLimite)}.`
+          : "";
 
-  const cargarDatos = () => {
-    const usuarioGuardado =
-      localStorage.getItem("usuario_actual") ||
-      localStorage.getItem("usuarioActual") ||
-      localStorage.getItem("current_user");
-
-    let usuario: UsuarioActual = {
-      nombre: "Usuario",
-      correo: "",
-    };
-
-    if (usuarioGuardado) {
-      try {
-        usuario = JSON.parse(usuarioGuardado);
-      } catch {
-        usuario = {
-          nombre: "Usuario",
-          correo: "",
-        };
+        generadas.push({
+          id,
+          titulo: "Documentos solicitados",
+          mensaje: `Para continuar con tu trámite ${tramite} (${idSolicitud}), debes adjuntar: ${listaDocumentos}.${fechaLimiteTexto}`,
+          fecha: formatearFecha(fechaActualizacion),
+          leida: estadoLectura[id] === true,
+          tipo: "documento",
+          solicitudId: idSolicitud,
+          accionTexto: "Ver seguimiento",
+        });
       }
-    }
 
-    setUsuarioActual(usuario);
+      if (comentarioFuncionario.trim() !== "") {
+        const id = `MSG-${idSolicitud}-${obtenerFechaComentario(solicitud)}`;
 
-    const correo = usuario.correo || "";
-
-    const solicitudes = correo
-      ? solicitudesService.obtenerSolicitudesPorUsuario(correo)
-      : solicitudesService.obtenerSolicitudes();
-
-    const notificacionesGuardadas = localStorage.getItem(
-      "notificaciones_usuario"
-    );
-
-    let notificacionesLocales: NotificacionUsuario[] = [];
-
-    if (notificacionesGuardadas) {
-      try {
-        const parseadas = JSON.parse(notificacionesGuardadas);
-        notificacionesLocales = Array.isArray(parseadas)
-          ? parseadas.map(normalizarNotificacionGuardada)
-          : [];
-      } catch {
-        notificacionesLocales = [];
+        generadas.push({
+          id,
+          titulo: "Comentario del funcionario",
+          mensaje: `${comentarioFuncionario} (${idSolicitud})`,
+          fecha: formatearFecha(obtenerFechaComentario(solicitud)),
+          leida: estadoLectura[id] === true,
+          tipo: "mensaje",
+          solicitudId: idSolicitud,
+          accionTexto: "Ver seguimiento",
+        });
       }
-    }
 
-    const notificacionesBase = generarNotificacionesBase(solicitudes);
-    const todas = [...notificacionesLocales, ...notificacionesBase];
+      const idEstado = `EST-${idSolicitud}-${fechaActualizacion}`;
 
-    const unicas = todas.filter(
+      generadas.push({
+        id: idEstado,
+        titulo: `Estado actualizado: ${estado}`,
+        mensaje: `Tu trámite ${tramite} (${idSolicitud}) se encuentra en estado "${estado}".`,
+        fecha: formatearFecha(fechaActualizacion),
+        leida: estadoLectura[idEstado] === true,
+        tipo: "tramite",
+        solicitudId: idSolicitud,
+        accionTexto: "Ver seguimiento",
+      });
+
+      const idIngreso = `ING-${idSolicitud}-${fechaIngreso}`;
+
+      generadas.push({
+        id: idIngreso,
+        titulo: "Solicitud ingresada correctamente",
+        mensaje: `Tu solicitud ${idSolicitud} fue registrada en el sistema municipal.`,
+        fecha: formatearFecha(fechaIngreso),
+        leida: estadoLectura[idIngreso] === true,
+        tipo: "tramite",
+        solicitudId: idSolicitud,
+        accionTexto: "Ver seguimiento",
+      });
+    });
+
+    const unicas = generadas.filter(
       (notificacion, index, arreglo) =>
         index === arreglo.findIndex((item) => item.id === notificacion.id)
     );
 
-    setNotificaciones(unicas);
+    return unicas.sort((a, b) => {
+      const fechaA = new Date(a.fecha).getTime();
+      const fechaB = new Date(b.fecha).getTime();
+
+      if (Number.isNaN(fechaA) || Number.isNaN(fechaB)) {
+        return 0;
+      }
+
+      return fechaB - fechaA;
+    });
+  };
+
+  const sincronizarCompatibilidadLocalStorage = (
+    nuevasNotificaciones: NotificacionUsuario[]
+  ) => {
+    localStorage.setItem(
+      STORAGE_NOTIFICACIONES_COMPAT,
+      JSON.stringify(nuevasNotificaciones)
+    );
+
+    window.dispatchEvent(new Event("notificacionesActualizadas"));
+  };
+
+  const cargarDatos = async () => {
+    try {
+      setCargando(true);
+      setMensajeError("");
+
+      const usuario = obtenerUsuarioActual();
+
+      if (!usuario) {
+        history.push("/login-usuario");
+        return;
+      }
+
+      setUsuarioActual(usuario);
+
+      const respuesta = await api.get("/solicitudes/mis-solicitudes");
+      const solicitudesBackend = respuesta.data?.solicitudes || [];
+
+      const estadoLectura = cargarEstadoLectura();
+
+      const nuevasNotificaciones = crearNotificacionesDesdeSolicitudes(
+        Array.isArray(solicitudesBackend) ? solicitudesBackend : [],
+        estadoLectura
+      );
+
+      setNotificaciones(nuevasNotificaciones);
+      sincronizarCompatibilidadLocalStorage(nuevasNotificaciones);
+    } catch (error: any) {
+      console.error("Error al cargar notificaciones del usuario:", error);
+
+      const mensajeBackend =
+        error.response?.data?.mensaje ||
+        error.response?.data?.error ||
+        "No se pudieron cargar las notificaciones desde el backend.";
+
+      setMensajeError(mensajeBackend);
+      setNotificaciones([]);
+    } finally {
+      setCargando(false);
+    }
   };
 
   useEffect(() => {
@@ -306,18 +432,21 @@ const NotificacionesUsuario: React.FC = () => {
       cargarDatos();
     };
 
-    window.addEventListener("storage", escucharActualizaciones);
     window.addEventListener("focus", escucharActualizaciones);
     window.addEventListener(
       "notificacionesActualizadas",
       escucharActualizaciones
     );
+    window.addEventListener("solicitudesActualizadas", escucharActualizaciones);
 
     return () => {
-      window.removeEventListener("storage", escucharActualizaciones);
       window.removeEventListener("focus", escucharActualizaciones);
       window.removeEventListener(
         "notificacionesActualizadas",
+        escucharActualizaciones
+      );
+      window.removeEventListener(
+        "solicitudesActualizadas",
         escucharActualizaciones
       );
     };
@@ -330,7 +459,9 @@ const NotificacionesUsuario: React.FC = () => {
 
   const obtenerIniciales = () => {
     const nombre = usuarioActual.nombre || "Usuario";
-    const partes = nombre.trim().split(" ");
+    const partes = nombre.trim().split(" ").filter(Boolean);
+
+    if (partes.length === 0) return "US";
 
     if (partes.length === 1) {
       return partes[0].slice(0, 2).toUpperCase();
@@ -416,16 +547,18 @@ const NotificacionesUsuario: React.FC = () => {
     nuevasNotificaciones: NotificacionUsuario[]
   ) => {
     setNotificaciones(nuevasNotificaciones);
-
-    localStorage.setItem(
-      "notificaciones_usuario",
-      JSON.stringify(nuevasNotificaciones)
-    );
-
-    window.dispatchEvent(new Event("notificacionesActualizadas"));
+    sincronizarCompatibilidadLocalStorage(nuevasNotificaciones);
   };
 
   const marcarTodasComoLeidas = () => {
+    const estadoLectura = cargarEstadoLectura();
+
+    notificaciones.forEach((notificacion) => {
+      estadoLectura[notificacion.id] = true;
+    });
+
+    guardarEstadoLectura(estadoLectura);
+
     const actualizadas = notificaciones.map((notificacion) => ({
       ...notificacion,
       leida: true,
@@ -435,6 +568,10 @@ const NotificacionesUsuario: React.FC = () => {
   };
 
   const marcarComoLeida = (id: string) => {
+    const estadoLectura = cargarEstadoLectura();
+    estadoLectura[id] = true;
+    guardarEstadoLectura(estadoLectura);
+
     const actualizadas = notificaciones.map((notificacion) =>
       notificacion.id === id ? { ...notificacion, leida: true } : notificacion
     );
@@ -572,8 +709,8 @@ const NotificacionesUsuario: React.FC = () => {
                 <div>
                   <h3>Preferencias de notificación</h3>
                   <p>
-                    En la entrega 2 estas opciones se conectarán al backend para
-                    administrar alertas reales por usuario.
+                    Estas opciones permitirán configurar qué alertas desea
+                    recibir el ciudadano.
                   </p>
                 </div>
 
@@ -594,6 +731,15 @@ const NotificacionesUsuario: React.FC = () => {
               </section>
             )}
 
+            {mensajeError && (
+              <section className="notificaciones-config-card">
+                <div>
+                  <h3>No se pudieron cargar las notificaciones</h3>
+                  <p>{mensajeError}</p>
+                </div>
+              </section>
+            )}
+
             <section className="notificaciones-stats-grid">
               <article className="notificaciones-stat-card">
                 <div className="notificaciones-stat-icon purple">
@@ -602,7 +748,7 @@ const NotificacionesUsuario: React.FC = () => {
 
                 <div>
                   <span>Nuevas</span>
-                  <strong>{totalNoLeidas}</strong>
+                  <strong>{cargando ? "..." : totalNoLeidas}</strong>
                   <p>No leídas</p>
                 </div>
               </article>
@@ -614,7 +760,7 @@ const NotificacionesUsuario: React.FC = () => {
 
                 <div>
                   <span>Leídas</span>
-                  <strong>{totalLeidas}</strong>
+                  <strong>{cargando ? "..." : totalLeidas}</strong>
                   <p>Notificaciones vistas</p>
                 </div>
               </article>
@@ -626,7 +772,7 @@ const NotificacionesUsuario: React.FC = () => {
 
                 <div>
                   <span>Acciones pendientes</span>
-                  <strong>{accionesPendientes}</strong>
+                  <strong>{cargando ? "..." : accionesPendientes}</strong>
                   <p>Requieren tu atención</p>
                 </div>
               </article>
@@ -650,7 +796,7 @@ const NotificacionesUsuario: React.FC = () => {
 
                 <div className="notificaciones-sync-status">
                   <span></span>
-                  <p>Sincronizado en tiempo real</p>
+                  <p>Sincronizado con backend</p>
                   <IonIcon icon={refreshOutline} />
                 </div>
               </div>
@@ -753,4 +899,4 @@ const NotificacionesUsuario: React.FC = () => {
   );
 };
 
-export default NotificacionesUsuario;
+export default NotificacionesUsuario; 

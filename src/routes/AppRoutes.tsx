@@ -24,6 +24,8 @@ import InicioFuncionario from "../pages/funcionario/InicioFuncionario";
 import SolicitudesAsignadas from "../pages/funcionario/SolicitudesAsignadas";
 import DetalleSolicitudFuncionario from "../pages/funcionario/DetalleSolicitudFuncionario";
 import ReportesMunicipales from "../pages/funcionario/ReportesMunicipales";
+import NotificacionesFuncionario from "../pages/funcionario/NotificacionesFuncionario";
+import AgendaFuncionario from "../pages/funcionario/AgendaFuncionario";
 
 const AppRoutes: React.FC = () => {
   return (
@@ -84,6 +86,15 @@ const AppRoutes: React.FC = () => {
         allowedRole="usuario"
       />
 
+      {/* Ruta nueva usada por DetalleSolicitudUsuario */}
+      <ProtectedRoute
+        exact
+        path="/usuario/agendar-funcionario"
+        component={AgendarFuncionario}
+        allowedRole="usuario"
+      />
+
+      {/* Ruta antigua mantenida por compatibilidad */}
       <ProtectedRoute
         exact
         path="/usuario/agendar/:id"
@@ -108,6 +119,13 @@ const AppRoutes: React.FC = () => {
 
       <ProtectedRoute
         exact
+        path="/funcionario/agenda"
+        component={AgendaFuncionario}
+        allowedRole="funcionario"
+      />
+
+      <ProtectedRoute
+        exact
         path="/funcionario/solicitud/:id"
         component={DetalleSolicitudFuncionario}
         allowedRole="funcionario"
@@ -117,6 +135,13 @@ const AppRoutes: React.FC = () => {
         exact
         path="/funcionario/reportes"
         component={ReportesMunicipales}
+        allowedRole="funcionario"
+      />
+
+      <ProtectedRoute
+        exact
+        path="/funcionario/notificaciones"
+        component={NotificacionesFuncionario}
         allowedRole="funcionario"
       />
 

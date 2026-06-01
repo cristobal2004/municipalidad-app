@@ -12,43 +12,65 @@ import {
 import { fingerPrintOutline } from "ionicons/icons";
 import { useHistory } from "react-router-dom";
 import { authService } from "../../services/authService";
-import { funcionariosService } from "../../services/funcionariosService";
 import "./LoginFuncionario.css";
 
 const LoginFuncionario: React.FC = () => {
   const history = useHistory();
 
-  const [numeroEmpleado, setNumeroEmpleado] = useState("");
+  const [correo, setCorreo] = useState("");
   const [password, setPassword] = useState("");
   const [recordarDatos, setRecordarDatos] = useState(false);
   const [mensajeError, setMensajeError] = useState("");
+  const [cargando, setCargando] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setMensajeError("");
 
-    if (!numeroEmpleado.trim() || !password.trim()) {
-      setMensajeError("Debe ingresar número de empleado y contraseña.");
+    if (!correo.trim() || !password.trim()) {
+      setMensajeError("Debe ingresar correo institucional y contraseña.");
       return;
     }
 
-    const resultado = funcionariosService.loginFuncionario(
-      numeroEmpleado,
-      password
-    );
+    try {
+      setCargando(true);
 
-    if (!resultado.ok) {
-      setMensajeError(resultado.mensaje);
-      return;
+      const usuario = await authService.login({
+        correo: correo.trim(),
+        password,
+      });
+
+      const rolUsuario = String(usuario.rol || "")
+        .trim()
+        .toLowerCase();
+
+      console.log("Usuario recibido en login funcionario:", usuario);
+      console.log("Rol recibido:", rolUsuario);
+
+      if (rolUsuario !== "funcionario") {
+        authService.logout();
+        setMensajeError("Esta cuenta no corresponde a un funcionario municipal.");
+        return;
+      }
+
+      history.push("/funcionario/inicio");
+    } catch (error: any) {
+      console.error("Error login funcionario:", error);
+
+      const mensajeBackend =
+        error.response?.data?.mensaje ||
+        error.response?.data?.error ||
+        "No se pudo iniciar sesión. Verifica tus credenciales.";
+
+      setMensajeError(mensajeBackend);
+    } finally {
+      setCargando(false);
     }
-
-    authService.login("funcionario");
-    history.push("/funcionario/inicio");
   };
 
   const handleWebAuthn = () => {
-    funcionariosService.loginConWebAuthn();
-    authService.login("funcionario");
-    history.push("/funcionario/inicio");
+    setMensajeError(
+      "La autenticación con WebAuthn quedará disponible en una integración futura. Para EP2 se usará inicio de sesión con correo institucional y contraseña."
+    );
   };
 
   return (
@@ -75,13 +97,12 @@ const LoginFuncionario: React.FC = () => {
               )}
 
               <IonItem className="login-funcionario-input">
-                <IonLabel position="stacked">Número de empleado</IonLabel>
+                <IonLabel position="stacked">Correo institucional</IonLabel>
                 <IonInput
-                  value={numeroEmpleado}
-                  placeholder="Ej: 12345678"
-                  onIonInput={(e) =>
-                    setNumeroEmpleado(e.detail.value ?? "")
-                  }
+                  value={correo}
+                  type="email"
+                  placeholder="funcionario@santodomingo.cl"
+                  onIonInput={(e) => setCorreo(e.detail.value ?? "")}
                 />
               </IonItem>
 
@@ -92,6 +113,11 @@ const LoginFuncionario: React.FC = () => {
                   type="password"
                   placeholder="Ingresa tu contraseña"
                   onIonInput={(e) => setPassword(e.detail.value ?? "")}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleLogin();
+                    }
+                  }}
                 />
               </IonItem>
 
@@ -104,7 +130,7 @@ const LoginFuncionario: React.FC = () => {
                   <span>Recordar mis datos</span>
                 </label>
 
-                <button className="login-funcionario-forgot">
+                <button className="login-funcionario-forgot" type="button">
                   ¿Olvidaste tu contraseña?
                 </button>
               </div>
@@ -113,8 +139,9 @@ const LoginFuncionario: React.FC = () => {
                 expand="block"
                 className="login-funcionario-main-button"
                 onClick={handleLogin}
+                disabled={cargando}
               >
-                Ingresar
+                {cargando ? "Ingresando..." : "Ingresar"}
               </IonButton>
 
               <div className="login-funcionario-divider">

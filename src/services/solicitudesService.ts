@@ -1,297 +1,408 @@
+import { funcionariosService } from "./funcionariosService";
+
 export interface Solicitud {
-  id: string;
-  fechaRecibo: string;
-  estado: string;
-  encargado: string;
-  area: string;
-  observacion: string;
-
-  razonSocial: string;
-  rut: string;
-  direccion: string;
-  tipoPatente: string;
-  rolAvaluo: string;
-  pyme: string;
-
-  documentos: string[];
-
-  usuarioNombre: string;
-  usuarioRut: string;
-  usuarioCorreo: string;
+  id?: string;
+  codigo?: string;
+  solicitudId?: string;
+  tramite?: string;
+  tipoTramite?: string;
+  tipoPatente?: string;
+  estado?: string;
+  area?: string;
+  departamento?: string;
+  areaResponsable?: string;
+  encargado?: string;
+  funcionario?: string;
+  asignadoA?: string;
+  funcionarioAsignado?: string;
+  funcionarioId?: string;
+  cargoFuncionario?: string;
+  numeroEmpleadoFuncionario?: string;
+  fechaIngreso?: string;
+  ultimaActualizacion?: string;
+  solicitante?: string;
+  nombreSolicitante?: string;
+  razonSocial?: string;
+  rut?: string;
+  correo?: string;
+  email?: string;
+  telefono?: string;
+  contacto?: string;
+  direccion?: string;
+  giro?: string;
+  superficie?: string;
+  observacion?: string;
+  observaciones?: string;
+  comentarioFuncionario?: string;
+  documentosFaltantes?: string[] | string;
+  fechaLimiteDocumentos?: string;
+  [key: string]: any;
 }
 
-const STORAGE_KEY = "solicitudes_usuario";
+const STORAGE_KEY = "solicitudes";
 
-const funcionariosMunicipales = [
-  {
-    nombre: "Cristian Mejías",
-    area: "Atención Gral.",
-  },
-  {
-    nombre: "Benjamin Gomez",
-    area: "Serv. Ciudadano",
-  },
-  {
-    nombre: "Oscar Ruiz",
-    area: "Finanzas",
-  },
-  {
-    nombre: "Pablo Aguilera",
-    area: "Obras Municipales",
-  },
-  {
-    nombre: "Martina Ponce",
-    area: "Patentes Comerciales",
-  },
-];
-
-const solicitudesIniciales: Solicitud[] = [
-  {
-    id: "SOL-2026-0001",
-    fechaRecibo: "18/04/26",
-    estado: "En Proceso",
-    encargado: "Cristian Mejías",
-    area: "Atención Gral.",
-    observacion: "En revisión de antecedentes.",
-    razonSocial: "Almacén El Parque",
-    rut: "76.123.456-7",
-    direccion: "Av. Litoral 450, Santo Domingo",
-    tipoPatente: "Comercial Definitiva",
-    rolAvaluo: "1234-56",
-    pyme: "Sí",
-    documentos: ["Escritura_Sociedad.pdf", "Cert_Residencia.pdf"],
-    usuarioNombre: "Usuario Demo",
-    usuarioRut: "11.111.111-1",
-    usuarioCorreo: "demo@municipalidad.cl",
-  },
-  {
-    id: "SOL-2026-0002",
-    fechaRecibo: "15/04/26",
-    estado: "Falta Documentación",
-    encargado: "Benjamin Gomez",
-    area: "Serv. Ciudadano",
-    observacion: "Subir copia de Cédula de Identidad.",
-    razonSocial: "Panadería San Pedro",
-    rut: "77.456.321-9",
-    direccion: "Av. Principal 120, Santo Domingo",
-    tipoPatente: "Comercial Provisoria",
-    rolAvaluo: "2222-11",
-    pyme: "Sí",
-    documentos: ["Formulario_Solicitud.pdf"],
-    usuarioNombre: "Usuario Demo",
-    usuarioRut: "11.111.111-1",
-    usuarioCorreo: "demo@municipalidad.cl",
-  },
-  {
-    id: "SOL-2026-0003",
-    fechaRecibo: "10/04/26",
-    estado: "Aprobado",
-    encargado: "Oscar Ruiz",
-    area: "Finanzas",
-    observacion: "Patente otorgada correctamente.",
-    razonSocial: "Servicios Costa Azul",
-    rut: "78.111.222-3",
-    direccion: "Calle Los Pinos 45, Santo Domingo",
-    tipoPatente: "Patente Profesional",
-    rolAvaluo: "7890-12",
-    pyme: "No",
-    documentos: ["Resolucion_Final.pdf", "Comprobante_Pago.pdf"],
-    usuarioNombre: "Usuario Demo",
-    usuarioRut: "11.111.111-1",
-    usuarioCorreo: "demo@municipalidad.cl",
-  },
-];
-
-function normalizarSolicitudes(solicitudes: any[]): Solicitud[] {
-  return solicitudes.map((solicitud, index) => ({
-    id: solicitud.id || `SOL-2026-${String(index + 1).padStart(4, "0")}`,
-    fechaRecibo: solicitud.fechaRecibo || "10/05/26",
-    estado: solicitud.estado || "En Proceso",
-    encargado: solicitud.encargado || "Cristian Mejías",
-    area: solicitud.area || "Atención Gral.",
-    observacion: solicitud.observacion || "Solicitud ingresada correctamente.",
-
-    razonSocial: solicitud.razonSocial || "No informado",
-    rut: solicitud.rut || "No informado",
-    direccion: solicitud.direccion || "No informado",
-    tipoPatente: solicitud.tipoPatente || "Patente Comercial",
-    rolAvaluo: solicitud.rolAvaluo || "No informado",
-    pyme: solicitud.pyme || "No informado",
-
-    documentos: solicitud.documentos || [],
-
-    usuarioNombre: solicitud.usuarioNombre || "Usuario Demo",
-    usuarioRut: solicitud.usuarioRut || "11.111.111-1",
-    usuarioCorreo: solicitud.usuarioCorreo || "demo@municipalidad.cl",
-  }));
-}
-
-function obtenerSolicitudesGuardadas(): Solicitud[] {
-  const data = localStorage.getItem(STORAGE_KEY);
-
-  if (!data) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(solicitudesIniciales));
-    return solicitudesIniciales;
-  }
-
+const leerSolicitudesStorage = (): Solicitud[] => {
   try {
-    const solicitudes = JSON.parse(data);
-    const solicitudesNormalizadas = normalizarSolicitudes(solicitudes);
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const data = raw ? JSON.parse(raw) : [];
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(solicitudesNormalizadas));
-
-    return solicitudesNormalizadas;
-  } catch (error) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(solicitudesIniciales));
-    return solicitudesIniciales;
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
   }
-}
+};
 
-function guardarSolicitudes(solicitudes: Solicitud[]) {
+const escribirSolicitudesStorage = (
+  solicitudes: Solicitud[],
+  emitirEvento = true
+) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(solicitudes));
-}
 
-function generarNuevoId(solicitudes: Solicitud[]) {
-  const numeros = solicitudes.map((solicitud) => {
-    const partes = solicitud.id.split("-");
-    const ultimoNumero = partes[partes.length - 1];
-    return Number(ultimoNumero);
-  });
+  if (emitirEvento) {
+    window.dispatchEvent(new Event("solicitudesActualizadas"));
+  }
+};
+
+const obtenerIdSolicitud = (solicitud: any) => {
+  return solicitud?.codigo || solicitud?.id || solicitud?.solicitudId || "";
+};
+
+const generarCodigoSolicitud = (solicitudes: Solicitud[]) => {
+  const numeros = solicitudes
+    .map((solicitud) => obtenerIdSolicitud(solicitud))
+    .map((id) => {
+      const match = String(id).match(/SOL-2026-(\d+)/);
+      return match ? Number(match[1]) : 0;
+    })
+    .filter((numero) => !Number.isNaN(numero));
 
   const maximo = numeros.length > 0 ? Math.max(...numeros) : 0;
-  const nuevoNumero = maximo + 1;
+  const siguiente = String(maximo + 1).padStart(4, "0");
 
-  return `SOL-2026-${String(nuevoNumero).padStart(4, "0")}`;
-}
+  return `SOL-2026-${siguiente}`;
+};
 
-function obtenerFechaActual() {
-  const fecha = new Date();
+const normalizarSolicitud = (
+  solicitud: Solicitud,
+  codigoForzado?: string
+): Solicitud => {
+  const codigo =
+    codigoForzado ||
+    solicitud.codigo ||
+    solicitud.id ||
+    solicitud.solicitudId ||
+    "SOL-2026-0001";
 
-  const dia = String(fecha.getDate()).padStart(2, "0");
-  const mes = String(fecha.getMonth() + 1).padStart(2, "0");
-  const anio = String(fecha.getFullYear()).slice(-2);
+  const base = {
+    ...solicitud,
+    id: codigo,
+    codigo,
+    solicitudId: codigo,
+    tramite:
+      solicitud.tramite ||
+      solicitud.tipoTramite ||
+      solicitud.tipoPatente ||
+      "Trámite municipal",
+    estado: solicitud.estado || "Ingresada",
+    fechaIngreso:
+      solicitud.fechaIngreso ||
+      solicitud.fecha ||
+      new Date().toLocaleString("es-CL"),
+    ultimaActualizacion:
+      solicitud.ultimaActualizacion ||
+      solicitud.fechaActualizacion ||
+      solicitud.fechaIngreso ||
+      new Date().toLocaleString("es-CL"),
+  };
 
-  return `${dia}/${mes}/${anio}`;
-}
+  return funcionariosService.normalizarSolicitudConFuncionario(base);
+};
 
-function asignarFuncionario(solicitudes: Solicitud[]) {
-  const indice = solicitudes.length % funcionariosMunicipales.length;
-  return funcionariosMunicipales[indice];
-}
+const normalizarSolicitudesExistentes = (solicitudes: Solicitud[]) => {
+  return solicitudes.map((solicitud, index) => {
+    const codigo =
+      solicitud.codigo ||
+      solicitud.id ||
+      solicitud.solicitudId ||
+      `SOL-2026-${String(index + 1).padStart(4, "0")}`;
+
+    return normalizarSolicitud(solicitud, codigo);
+  });
+};
+
+const crearNotificacionFuncionario = (solicitud: Solicitud) => {
+  const idSolicitud = obtenerIdSolicitud(solicitud);
+  const funcionario = solicitud.funcionarioAsignado || solicitud.encargado || "";
+
+  if (!funcionario) return;
+
+  const nuevaNotificacion = {
+    id: `NF-${idSolicitud}`,
+    titulo: "Nueva solicitud asignada",
+    mensaje: `Se asignó la solicitud ${idSolicitud} a tu bandeja de gestión.`,
+    fecha: solicitud.fechaIngreso || new Date().toLocaleString("es-CL"),
+    leida: false,
+    tipo: "asignacion",
+    solicitudId: idSolicitud,
+    accionTexto: "Ver solicitud",
+    funcionario,
+  };
+
+  let notificaciones: any[] = [];
+
+  try {
+    const raw = localStorage.getItem("notificaciones_funcionario");
+    const data = raw ? JSON.parse(raw) : [];
+    notificaciones = Array.isArray(data) ? data : [];
+  } catch {
+    notificaciones = [];
+  }
+
+  const existe = notificaciones.some(
+    (notificacion) => notificacion.id === nuevaNotificacion.id
+  );
+
+  if (!existe) {
+    localStorage.setItem(
+      "notificaciones_funcionario",
+      JSON.stringify([nuevaNotificacion, ...notificaciones])
+    );
+
+    window.dispatchEvent(new Event("notificacionesFuncionarioActualizadas"));
+  }
+};
+
+const crearNotificacionUsuario = (solicitud: Solicitud) => {
+  const idSolicitud = obtenerIdSolicitud(solicitud);
+
+  const nuevaNotificacion = {
+    id: `NU-${idSolicitud}`,
+    titulo: "Solicitud ingresada correctamente",
+    mensaje: `Tu solicitud ${idSolicitud} fue registrada correctamente.`,
+    fecha: solicitud.fechaIngreso || new Date().toLocaleString("es-CL"),
+    leida: false,
+    tipo: "tramite",
+    solicitudId: idSolicitud,
+    accionTexto: "Ver seguimiento",
+  };
+
+  let notificaciones: any[] = [];
+
+  try {
+    const raw = localStorage.getItem("notificaciones_usuario");
+    const data = raw ? JSON.parse(raw) : [];
+    notificaciones = Array.isArray(data) ? data : [];
+  } catch {
+    notificaciones = [];
+  }
+
+  const existe = notificaciones.some(
+    (notificacion) => notificacion.id === nuevaNotificacion.id
+  );
+
+  if (!existe) {
+    localStorage.setItem(
+      "notificaciones_usuario",
+      JSON.stringify([nuevaNotificacion, ...notificaciones])
+    );
+
+    window.dispatchEvent(new Event("notificacionesUsuarioActualizadas"));
+  }
+};
+
+const guardarUltimaSolicitud = (solicitud: Solicitud) => {
+  const idSolicitud = obtenerIdSolicitud(solicitud);
+
+  localStorage.setItem("ultima_solicitud_creada", JSON.stringify(solicitud));
+  localStorage.setItem("ultimaSolicitudCreada", JSON.stringify(solicitud));
+  localStorage.setItem("solicitud_confirmada", JSON.stringify(solicitud));
+  localStorage.setItem("solicitudConfirmada", JSON.stringify(solicitud));
+  localStorage.setItem("ultimaSolicitudId", idSolicitud);
+};
+
+const obtenerSolicitudes = (): Solicitud[] => {
+  const solicitudes = leerSolicitudesStorage();
+  const normalizadas = normalizarSolicitudesExistentes(solicitudes);
+
+  escribirSolicitudesStorage(normalizadas, false);
+
+  return normalizadas;
+};
+
+const obtenerSolicitudPorId = (id: string): Solicitud | null => {
+  const solicitudes = obtenerSolicitudes();
+
+  return (
+    solicitudes.find((solicitud) => obtenerIdSolicitud(solicitud) === id) ||
+    null
+  );
+};
+
+const crearSolicitud = (solicitud: Solicitud): Solicitud => {
+  const existentes = obtenerSolicitudes();
+  const codigo = generarCodigoSolicitud(existentes);
+
+  const nuevaSolicitud = normalizarSolicitud(
+    {
+      ...solicitud,
+      id: codigo,
+      codigo,
+      solicitudId: codigo,
+      estado: solicitud.estado || "Ingresada",
+      fechaIngreso: new Date().toLocaleString("es-CL"),
+      ultimaActualizacion: new Date().toLocaleString("es-CL"),
+    },
+    codigo
+  );
+
+  const actualizadas = [nuevaSolicitud, ...existentes];
+
+  escribirSolicitudesStorage(actualizadas, true);
+  guardarUltimaSolicitud(nuevaSolicitud);
+  crearNotificacionFuncionario(nuevaSolicitud);
+  crearNotificacionUsuario(nuevaSolicitud);
+
+  return nuevaSolicitud;
+};
+
+const guardarSolicitud = (solicitud: Solicitud): Solicitud => {
+  const existentes = obtenerSolicitudes();
+
+  const codigo =
+    solicitud.codigo ||
+    solicitud.id ||
+    solicitud.solicitudId ||
+    generarCodigoSolicitud(existentes);
+
+  const solicitudNormalizada = normalizarSolicitud(solicitud, codigo);
+
+  const existe = existentes.some(
+    (item) => obtenerIdSolicitud(item) === codigo
+  );
+
+  const actualizadas = existe
+    ? existentes.map((item) =>
+        obtenerIdSolicitud(item) === codigo ? solicitudNormalizada : item
+      )
+    : [solicitudNormalizada, ...existentes];
+
+  escribirSolicitudesStorage(actualizadas, true);
+
+  return solicitudNormalizada;
+};
+
+const actualizarSolicitud = (
+  id: string,
+  cambios: Partial<Solicitud>
+): Solicitud | null => {
+  const existentes = obtenerSolicitudes();
+
+  const actual = existentes.find(
+    (solicitud) => obtenerIdSolicitud(solicitud) === id
+  );
+
+  if (!actual) return null;
+
+  const actualizada = guardarSolicitud({
+    ...actual,
+    ...cambios,
+    ultimaActualizacion: new Date().toLocaleString("es-CL"),
+  });
+
+  return actualizada;
+};
+
+const eliminarSolicitud = (id: string) => {
+  const existentes = obtenerSolicitudes();
+
+  const actualizadas = existentes.filter(
+    (solicitud) => obtenerIdSolicitud(solicitud) !== id
+  );
+
+  escribirSolicitudesStorage(actualizadas, true);
+};
+
+const obtenerSolicitudesPorUsuario = (identificadorUsuario: string) => {
+  const usuarioNormalizado =
+    funcionariosService.normalizarTexto(identificadorUsuario);
+
+  if (!usuarioNormalizado) {
+    return obtenerSolicitudes();
+  }
+
+  return obtenerSolicitudes().filter((solicitud) => {
+    const posiblesDatosUsuario = [
+      solicitud.correo,
+      solicitud.email,
+      solicitud.rut,
+      solicitud.solicitante,
+      solicitud.nombreSolicitante,
+      solicitud.contacto,
+    ];
+
+    return posiblesDatosUsuario.some((dato) => {
+      const datoNormalizado = funcionariosService.normalizarTexto(dato || "");
+      return datoNormalizado === usuarioNormalizado;
+    });
+  });
+};
+
+const obtenerSolicitudesPorFuncionario = (nombreFuncionario: string) => {
+  const funcionarioNormalizado =
+    funcionariosService.normalizarTexto(nombreFuncionario);
+
+  return obtenerSolicitudes().filter((solicitud) => {
+    const encargadoNormalizado = funcionariosService.normalizarTexto(
+      solicitud.encargado ||
+        solicitud.funcionario ||
+        solicitud.asignadoA ||
+        solicitud.funcionarioAsignado ||
+        ""
+    );
+
+    return encargadoNormalizado === funcionarioNormalizado;
+  });
+};
+
+const obtenerUltimaSolicitud = (): Solicitud | null => {
+  const keys = [
+    "ultima_solicitud_creada",
+    "ultimaSolicitudCreada",
+    "solicitud_confirmada",
+    "solicitudConfirmada",
+  ];
+
+  for (const key of keys) {
+    const raw = localStorage.getItem(key);
+
+    if (!raw) continue;
+
+    try {
+      const data = JSON.parse(raw);
+
+      if (data && typeof data === "object") {
+        return normalizarSolicitud(data);
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  const solicitudes = obtenerSolicitudes();
+
+  return solicitudes.length > 0 ? solicitudes[0] : null;
+};
 
 export const solicitudesService = {
-  obtenerSolicitudes(): Solicitud[] {
-    return obtenerSolicitudesGuardadas();
-  },
-
-  obtenerSolicitudesPorUsuario(usuarioCorreo: string): Solicitud[] {
-    const solicitudes = obtenerSolicitudesGuardadas();
-
-    return solicitudes.filter((solicitud) => {
-      const esSolicitudDemo =
-        solicitud.usuarioCorreo === "demo@municipalidad.cl";
-
-      const esSolicitudDelUsuario =
-        solicitud.usuarioCorreo &&
-        solicitud.usuarioCorreo.toLowerCase() === usuarioCorreo.toLowerCase();
-
-      return esSolicitudDemo || esSolicitudDelUsuario;
-    });
-  },
-
-  obtenerSolicitudPorId(id: string): Solicitud | undefined {
-    const solicitudes = obtenerSolicitudesGuardadas();
-    return solicitudes.find((solicitud) => solicitud.id === id);
-  },
-
-  crearSolicitud(data: {
-    razonSocial: string;
-    rut: string;
-    direccion: string;
-    tipoPatente: string;
-    rolAvaluo: string;
-    pyme: string;
-    documentos: string[];
-
-    usuarioNombre: string;
-    usuarioRut: string;
-    usuarioCorreo: string;
-  }): Solicitud {
-    const solicitudes = obtenerSolicitudesGuardadas();
-    const funcionarioAsignado = asignarFuncionario(solicitudes);
-
-    const nuevaSolicitud: Solicitud = {
-      id: generarNuevoId(solicitudes),
-      fechaRecibo: obtenerFechaActual(),
-      estado: "En Proceso",
-      encargado: funcionarioAsignado.nombre,
-      area: funcionarioAsignado.area,
-      observacion: "Solicitud ingresada correctamente.",
-
-      razonSocial: data.razonSocial,
-      rut: data.rut,
-      direccion: data.direccion,
-      tipoPatente: data.tipoPatente,
-      rolAvaluo: data.rolAvaluo,
-      pyme: data.pyme,
-
-      documentos: data.documentos,
-
-      usuarioNombre: data.usuarioNombre,
-      usuarioRut: data.usuarioRut,
-      usuarioCorreo: data.usuarioCorreo,
-    };
-
-    const nuevasSolicitudes = [...solicitudes, nuevaSolicitud];
-    guardarSolicitudes(nuevasSolicitudes);
-
-    localStorage.setItem("ultima_solicitud_id", nuevaSolicitud.id);
-
-    return nuevaSolicitud;
-  },
-
-  agregarDocumentoExtra(id: string, documentosExtra: string[]) {
-    const solicitudes = obtenerSolicitudesGuardadas();
-
-    const solicitudesActualizadas = solicitudes.map((solicitud) => {
-      if (solicitud.id !== id) {
-        return solicitud;
-      }
-
-      return {
-        ...solicitud,
-        documentos: [...solicitud.documentos, ...documentosExtra],
-      };
-    });
-
-    guardarSolicitudes(solicitudesActualizadas);
-  },
-
-  actualizarSolicitudFuncionario(
-    id: string,
-    data: {
-      estado: string;
-      observacion: string;
-      encargado: string;
-      area: string;
-    }
-  ) {
-    const solicitudes = obtenerSolicitudesGuardadas();
-
-    const solicitudesActualizadas = solicitudes.map((solicitud) => {
-      if (solicitud.id !== id) {
-        return solicitud;
-      }
-
-      return {
-        ...solicitud,
-        estado: data.estado,
-        observacion: data.observacion,
-        encargado: data.encargado,
-        area: data.area,
-      };
-    });
-
-    guardarSolicitudes(solicitudesActualizadas);
-  },
+  obtenerSolicitudes,
+  listarSolicitudes: obtenerSolicitudes,
+  obtenerSolicitudPorId,
+  crearSolicitud,
+  guardarSolicitud,
+  actualizarSolicitud,
+  eliminarSolicitud,
+  borrarSolicitud: eliminarSolicitud,
+  obtenerSolicitudesPorUsuario,
+  obtenerSolicitudesPorFuncionario,
+  obtenerUltimaSolicitud,
 };

@@ -1,12 +1,10 @@
 import React from "react";
-import { Redirect, Route } from "react-router-dom";
+import { Redirect, Route, RouteProps } from "react-router-dom";
 import { authService, UserRole } from "../services/authService";
 
-interface ProtectedRouteProps {
-  path: string;
+interface ProtectedRouteProps extends RouteProps {
   component: React.ComponentType<any>;
   allowedRole: UserRole;
-  exact?: boolean;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
@@ -18,14 +16,27 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     <Route
       {...rest}
       render={(props) => {
-        const isAuthenticated = authService.isAuthenticated();
+        const token = authService.getToken();
         const role = authService.getRole();
 
-        if (!isAuthenticated) {
-          return <Redirect to="/" />;
+        if (!token) {
+          const loginPath =
+            allowedRole === "funcionario"
+              ? "/login-funcionario"
+              : "/login-usuario";
+
+          return <Redirect to={loginPath} />;
         }
 
         if (role !== allowedRole) {
+          if (role === "usuario") {
+            return <Redirect to="/usuario/inicio" />;
+          }
+
+          if (role === "funcionario") {
+            return <Redirect to="/funcionario/inicio" />;
+          }
+
           return <Redirect to="/" />;
         }
 

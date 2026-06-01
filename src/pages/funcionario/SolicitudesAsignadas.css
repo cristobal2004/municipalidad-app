@@ -1,321 +1,670 @@
-.lista-funcionario-content {
-  --background: #cfe8f8;
+.solicitudes-asignadas-content {
+  --background: #ffffff;
 }
 
-.lista-funcionario-wrapper {
+.solicitudes-asignadas-wrapper {
   width: 100%;
   max-width: 1280px;
-  min-height: 760px;
-  margin: 36px auto;
-  background: #f4f4f4;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: #ffffff;
   display: flex;
   flex-direction: column;
 }
 
-.lista-funcionario-header {
-  height: 48px;
+.solicitudes-asignadas-header {
+  min-height: 68px;
   background: #ffffff;
   border-bottom: 4px solid #e32222;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
+  padding: 0 34px;
+  gap: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.solicitudes-asignadas-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.solicitudes-asignadas-brand img {
+  width: 46px;
+  height: auto;
+}
+
+.solicitudes-asignadas-brand span {
+  color: #1f2937;
+  font-size: 12px;
+  font-weight: 700;
+  display: block;
+  line-height: 1;
+}
+
+.solicitudes-asignadas-brand h1 {
+  color: #0b3b75;
+  font-size: 22px;
+  font-weight: 900;
+  margin: 2px 0 0;
+  line-height: 1;
+}
+
+.solicitudes-asignadas-user-area {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.panel-button {
+  height: 38px;
+  border: none;
+  background: #0057b8;
+  color: #ffffff;
+  border-radius: 6px;
   padding: 0 18px;
-  position: relative;
-}
-
-.lista-funcionario-header h1 {
-  color: #0070bc;
-  font-size: 18px;
+  font-size: 12px;
   font-weight: 800;
-  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
 }
 
-.lista-funcionario-actions {
-  position: absolute;
-  right: 18px;
+.funcionario-profile {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.panel-funcionario-label {
-  background: #0874bb;
+.funcionario-avatar-lista {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: #6d35b8;
   color: #ffffff;
-  border-radius: 3px;
-  padding: 5px 10px;
-  font-size: 10px;
-  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 900;
 }
 
-.funcionario-name {
-  color: #333333;
+.funcionario-profile strong {
+  display: block;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.funcionario-profile small {
+  display: block;
+  color: #4b5563;
   font-size: 11px;
   font-weight: 600;
 }
 
-.logout-mini-button {
-  width: 28px;
-  height: 22px;
-  border: 1px solid #cfcfcf;
+.logout-lista-button {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #d9e1ea;
   background: #ffffff;
-  color: #555555;
-  border-radius: 3px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: #e32222;
+  border-radius: 6px;
   cursor: pointer;
 }
 
-.logout-mini-button ion-icon {
-  font-size: 13px;
-}
-
-.lista-funcionario-main {
+.solicitudes-asignadas-main {
   flex: 1;
-  padding: 24px 16px 70px;
+  padding: 34px;
 }
 
-.lista-card {
-  background: #f4f4f4;
+.solicitudes-asignadas-hero {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 34px;
+  align-items: start;
+  margin-bottom: 24px;
 }
 
-.lista-title-block {
-  margin-bottom: 16px;
+.solicitudes-asignadas-title h2 {
+  color: #0f172a;
+  font-size: 26px;
+  font-weight: 900;
+  margin: 0 0 10px;
 }
 
-.lista-title-block h2 {
-  color: #0070bc;
-  font-size: 20px;
+.solicitudes-asignadas-title p {
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 260px;
+}
+
+.solicitudes-asignadas-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.solicitudes-asignadas-kpis article {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  min-height: 96px;
+  padding: 18px;
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 14px;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.045);
+}
+
+.solicitudes-asignadas-kpis ion-icon {
+  color: #0057b8;
+  font-size: 30px;
+}
+
+.solicitudes-asignadas-kpis span {
+  color: #4b5563;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.solicitudes-asignadas-kpis strong {
+  display: block;
+  color: #0057b8;
+  font-size: 28px;
+  font-weight: 900;
+  margin: 2px 0;
+}
+
+.solicitudes-asignadas-kpis strong.orange {
+  color: #f97316;
+}
+
+.solicitudes-asignadas-kpis strong.purple {
+  color: #7c3aed;
+}
+
+.solicitudes-asignadas-kpis strong.green {
+  color: #159447;
+}
+
+.solicitudes-asignadas-kpis p {
+  color: #6b7280;
+  font-size: 11px;
+  margin: 0;
+}
+
+.solicitudes-tabs-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 14px;
+}
+
+.solicitudes-tabs-row button {
+  height: 42px;
+  border: none;
+  background: #ffffff;
+  color: #1f2937;
+  padding: 0 28px;
+  font-size: 13px;
   font-weight: 800;
-  margin: 0 0 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-.lista-title-block p {
-  color: #555555;
+.solicitudes-tabs-row button.active {
+  background: #0057b8;
+  color: #ffffff;
+  border-bottom-color: #0057b8;
+}
+
+.assigned-info-box {
+  margin-left: auto;
+  width: fit-content;
+  min-height: 38px;
+  border: 1px solid #b7d4f5;
+  background: #edf4ff;
+  color: #0057b8;
+  border-radius: 7px;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.assigned-info-box ion-icon {
+  font-size: 18px;
+}
+
+.solicitudes-table-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.045);
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+
+.solicitudes-toolbar {
+  min-height: 72px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toolbar-actions button {
+  height: 38px;
+  border: 1px solid #d9e1ea;
+  background: #ffffff;
+  color: #1f2937;
+  border-radius: 6px;
+  padding: 0 16px;
+  font-size: 12px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.toolbar-actions button ion-icon {
+  color: #0057b8;
+}
+
+.search-box-funcionario {
+  width: min(460px, 100%);
+  height: 40px;
+  border: 1px solid #d9e1ea;
+  border-radius: 8px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 13px;
+}
+
+.search-box-funcionario ion-icon {
+  color: #111827;
+  font-size: 19px;
+}
+
+.search-box-funcionario input {
+  flex: 1;
+  border: none;
+  outline: none;
+  color: #111827;
+  font-size: 13px;
+  background: transparent;
+}
+
+.solicitudes-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.solicitudes-asignadas-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1060px;
+}
+
+.solicitudes-asignadas-table thead {
+  background: #f8fafc;
+}
+
+.solicitudes-asignadas-table th {
+  color: #374151;
+  font-size: 12px;
+  font-weight: 900;
+  text-align: left;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.solicitudes-asignadas-table th ion-icon {
+  font-size: 14px;
+  margin-left: 5px;
+}
+
+.solicitudes-asignadas-table td {
+  color: #1f2937;
+  font-size: 12px;
+  padding: 15px 16px;
+  border-bottom: 1px solid #eef2f7;
+  vertical-align: middle;
+}
+
+.solicitudes-asignadas-table tr:last-child td {
+  border-bottom: none;
+}
+
+.solicitudes-asignadas-table td strong {
+  display: block;
+  color: #111827;
+  font-size: 12px;
+  font-weight: 900;
+  margin-bottom: 3px;
+}
+
+.solicitudes-asignadas-table td span {
+  display: block;
+  color: #4b5563;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.solicitudes-asignadas-table td p {
+  color: #4b5563;
+  font-size: 12px;
+  line-height: 1.35;
+  margin: 0;
+  max-width: 180px;
+}
+
+.solicitudes-asignadas-table input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #0057b8;
+}
+
+.estado-chip,
+.prioridad-chip {
+  width: fit-content;
+  min-width: 82px;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 10px !important;
+  font-weight: 900;
+  text-align: center;
+}
+
+.estado-chip.revision {
+  background: #fff0df;
+  color: #d65f00 !important;
+}
+
+.estado-chip.pendiente {
+  background: #fff3cd;
+  color: #a46500 !important;
+}
+
+.estado-chip.aprobada {
+  background: #e6f7ec;
+  color: #159447 !important;
+}
+
+.estado-chip.rechazada {
+  background: #ffe5e5;
+  color: #a40000 !important;
+}
+
+.prioridad-chip.alta {
+  background: #ffe5e5;
+  color: #dc2626 !important;
+  border: 1px solid #f5b4b4;
+}
+
+.prioridad-chip.media {
+  background: #fff0df;
+  color: #f97316 !important;
+  border: 1px solid #ffc996;
+}
+
+.prioridad-chip.baja {
+  background: #edf4ff;
+  color: #0057b8 !important;
+  border: 1px solid #b7d4f5;
+}
+
+.ver-solicitud-link {
+  border: none;
+  background: transparent;
+  color: #0057b8;
+  font-size: 12px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sin-solicitudes-box {
+  text-align: center;
+  padding: 36px 16px;
+}
+
+.sin-solicitudes-box ion-icon {
+  color: #0874bb;
+  font-size: 38px;
+}
+
+.sin-solicitudes-box h3 {
+  color: #0f172a;
+  font-size: 16px;
+  margin: 10px 0 6px;
+}
+
+.sin-solicitudes-box p {
+  color: #6b7280;
   font-size: 12px;
   margin: 0;
 }
 
-.resumen-funcionario-grid {
+.table-footer-row {
+  min-height: 62px;
+  padding: 12px 16px;
+  border-top: 1px solid #eef2f7;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.table-footer-row > span {
+  color: #4b5563;
+  font-size: 12px;
+}
+
+.pagination-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination-buttons button {
+  min-width: 34px;
+  height: 34px;
+  border: 1px solid #d9e1ea;
+  background: #ffffff;
+  color: #1f2937;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.pagination-buttons button.active {
+  background: #0057b8;
+  color: #ffffff;
+  border-color: #0057b8;
+}
+
+.pagination-buttons button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.solicitudes-resumen-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 18px;
   margin-bottom: 22px;
 }
 
-.resumen-card {
+.resumen-operativo-card,
+.ayuda-funcionario-card {
   background: #ffffff;
-  border: 1px solid #d9e1ea;
-  border-left: 5px solid #0874bb;
-  border-radius: 5px;
-  padding: 14px 16px;
-  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.045);
 }
 
-.resumen-card span {
-  display: block;
-  color: #555555;
+.resumen-operativo-card {
+  padding: 20px;
+}
+
+.resumen-title {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 12px;
+  align-items: start;
+  margin-bottom: 18px;
+}
+
+.resumen-title > ion-icon {
+  width: 34px;
+  height: 34px;
+  padding: 8px;
+  border-radius: 8px;
+  background: #edf4ff;
+  color: #0874bb;
+  box-sizing: border-box;
+}
+
+.resumen-title h3,
+.ayuda-funcionario-card h3 {
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 900;
+  margin: 0 0 6px;
+}
+
+.resumen-title p,
+.ayuda-funcionario-card p {
+  color: #4b5563;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.resumen-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.resumen-kpis div {
+  min-height: 64px;
+  border: 1px solid #eef2f7;
+  border-radius: 8px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.resumen-kpis ion-icon {
+  color: #0874bb;
+  font-size: 22px;
+}
+
+.resumen-kpis span {
+  color: #4b5563;
   font-size: 11px;
   font-weight: 700;
-  margin-bottom: 8px;
 }
 
-.resumen-card strong {
-  display: block;
-  color: #0070bc;
-  font-size: 24px;
+.resumen-kpis strong {
+  color: #0057b8;
+  font-size: 16px;
   font-weight: 900;
 }
 
-.lista-table-panel {
-  background: #ffffff;
-  border: 2px solid #0b8cff;
-  padding: 28px 18px 12px;
+.ayuda-funcionario-card {
+  padding: 20px;
+  background: #f8fbff;
+  border-color: #cfe0f6;
 }
 
-.lista-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
+.ayuda-funcionario-card > ion-icon {
+  color: #0057b8;
+  font-size: 28px;
+  margin-bottom: 10px;
 }
 
-.lista-toolbar-left {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-
-.lista-toolbar-left button {
-  background: transparent;
+.ayuda-funcionario-card button {
+  margin-top: 12px;
   border: none;
-  color: #333333;
-  font-size: 11px;
+  background: transparent;
+  color: #0057b8;
+  font-size: 12px;
+  font-weight: 900;
   cursor: pointer;
+  padding: 0;
+}
+
+.solicitudes-bottom-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.volver-panel-button,
+.exportar-pdf-button {
+  height: 42px;
+  border-radius: 6px;
+  padding: 0 20px;
+  font-size: 13px;
+  font-weight: 900;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 6px;
-  border-radius: 3px;
-}
-
-.lista-toolbar-left button:hover {
-  background: #f0f6fb;
-  color: #006eb8;
-}
-
-.lista-toolbar-left button ion-icon {
-  font-size: 14px;
-}
-
-.lista-search-box {
-  width: 185px;
-  height: 28px;
-  border: 1px solid #d9e1ea;
-  border-radius: 2px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 8px;
-  background: #ffffff;
-}
-
-.lista-search-box ion-icon {
-  color: #666666;
-  font-size: 14px;
-}
-
-.lista-search-box input {
-  width: 100%;
-  border: none;
-  outline: none;
-  font-size: 11px;
-  background: transparent;
-  color: #333333;
-}
-
-.lista-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #ffffff;
-  font-size: 11px;
-}
-
-.lista-table th {
-  color: #333333;
-  background: #ffffff;
-  border-bottom: 1px solid #d9e1ea;
-  padding: 10px 8px;
-  text-align: left;
-  font-weight: 700;
-}
-
-.lista-table td {
-  color: #333333;
-  border-bottom: 1px solid #eeeeee;
-  padding: 11px 8px;
-  text-align: left;
-  vertical-align: middle;
-}
-
-.lista-table th:first-child,
-.lista-table td:first-child {
-  width: 28px;
-  text-align: center;
-}
-
-.lista-table input[type="checkbox"] {
-  width: 13px;
-  height: 13px;
-}
-
-.estado {
-  display: inline-block;
-  min-width: 72px;
-  padding: 4px 9px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 700;
-  text-align: center;
-}
-
-.estado-pendiente {
-  background: #fff3cd;
-  border: 1px solid #f2b600;
-  color: #9a6900;
-}
-
-.estado-aprobado {
-  background: #e6f7ec;
-  border: 1px solid #159447;
-  color: #159447;
-}
-
-.observacion-cell {
-  color: #555555;
-  font-style: italic;
-}
-
-.prioridad {
-  display: inline-block;
-  min-width: 70px;
-  padding: 5px 12px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 800;
-  color: #ffffff;
-  text-align: center;
-}
-
-.prioridad-alta {
-  background: #e64057;
-}
-
-.prioridad-media {
-  background: #ffc107;
-  color: #ffffff;
-}
-
-.prioridad-baja {
-  background: #4059d6;
-}
-
-.ver-link {
-  background: transparent;
-  border: none;
-  color: #006eb8;
-  font-size: 11px;
-  font-weight: 700;
-  text-decoration: underline;
+  gap: 8px;
   cursor: pointer;
 }
 
-.ver-link:hover {
-  color: #004f86;
-}
-
-.lista-count {
-  color: #555555;
-  font-size: 11px;
-  margin: 14px 0 0;
-}
-
-.volver-lista-button {
-  --background: #0874bb;
-  --background-hover: #075e99;
-  --border-radius: 4px;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: none;
-  margin-top: 22px;
-  width: 135px;
-}
-
-.lista-funcionario-footer {
-  height: 45px;
-  background: #0874bb;
+.volver-panel-button {
+  border: none;
+  background: #0057b8;
   color: #ffffff;
-  padding: 0 24px;
+}
+
+.exportar-pdf-button {
+  border: 1px solid #0057b8;
+  background: #ffffff;
+  color: #0057b8;
+}
+
+.solicitudes-asignadas-footer {
+  background: #005a9f;
+  color: #ffffff;
+  min-height: 46px;
+  padding: 0 34px;
   font-size: 11px;
   display: flex;
   align-items: center;
@@ -323,51 +672,110 @@
   margin-top: auto;
 }
 
-@media (max-width: 900px) {
-  .lista-funcionario-wrapper {
-    margin: 0;
-    min-height: 100vh;
+@media (max-width: 1100px) {
+  .solicitudes-asignadas-header {
+    position: static;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 14px 18px;
   }
 
-  .lista-funcionario-main {
-    padding: 20px 12px 60px;
+  .solicitudes-asignadas-user-area {
+    width: 100%;
+    flex-wrap: wrap;
   }
 
-  .resumen-funcionario-grid {
+  .solicitudes-asignadas-main {
+    padding: 24px 16px 28px;
+  }
+
+  .solicitudes-asignadas-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .solicitudes-asignadas-title p {
+    max-width: none;
+  }
+
+  .solicitudes-asignadas-kpis {
     grid-template-columns: 1fr 1fr;
   }
 
-  .lista-toolbar {
+  .assigned-info-box {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .solicitudes-toolbar {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+    align-items: stretch;
   }
 
-  .lista-toolbar-left {
+  .toolbar-actions {
     flex-wrap: wrap;
-    gap: 10px;
   }
 
-  .lista-search-box {
+  .search-box-funcionario {
     width: 100%;
   }
 
-  .lista-table-panel {
-    overflow-x: auto;
+  .solicitudes-resumen-row {
+    grid-template-columns: 1fr;
   }
 
-  .lista-table {
-    min-width: 850px;
+  .resumen-kpis {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .solicitudes-asignadas-brand h1 {
+    font-size: 18px;
   }
 
-  .funcionario-name {
-    display: none;
+  .panel-button {
+    width: 100%;
+    justify-content: center;
   }
 
-  .lista-funcionario-footer {
+  .solicitudes-asignadas-kpis,
+  .resumen-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .solicitudes-tabs-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .solicitudes-tabs-row button {
+    justify-content: center;
+  }
+
+  .table-footer-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pagination-buttons {
+    flex-wrap: wrap;
+  }
+
+  .solicitudes-bottom-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .volver-panel-button,
+  .exportar-pdf-button {
+    justify-content: center;
+  }
+
+  .solicitudes-asignadas-footer {
     flex-direction: column;
     justify-content: center;
     gap: 4px;
     text-align: center;
+    padding: 10px 16px;
   }
 }

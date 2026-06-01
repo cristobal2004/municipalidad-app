@@ -2,14 +2,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import { IonContent, IonIcon, IonPage } from "@ionic/react";
 import { useHistory, useParams } from "react-router-dom";
 import {
+  alertCircleOutline,
   arrowBackOutline,
   businessOutline,
   calendarOutline,
-  chatboxEllipsesOutline,
   checkmarkCircleOutline,
-  chevronDownOutline,
-  chevronUpOutline,
-  closeCircleOutline,
   cloudDownloadOutline,
   documentAttachOutline,
   documentTextOutline,
@@ -17,19 +14,13 @@ import {
   logOutOutline,
   notificationsOutline,
   personCircleOutline,
-  personOutline,
   refreshOutline,
   saveOutline,
-  sendOutline,
   swapHorizontalOutline,
   timeOutline,
-  warningOutline,
 } from "ionicons/icons";
 
-import {
-  Solicitud,
-  solicitudesService,
-} from "../../services/solicitudesService";
+import api from "../../services/api";
 import { authService } from "../../services/authService";
 import "./DetalleSolicitudFuncionario.css";
 
@@ -37,22 +28,24 @@ interface UsuarioActual {
   nombre?: string;
   correo?: string;
   rol?: string;
+  cargo?: string;
+  area?: string;
 }
 
 interface DocumentoAdjunto {
-  nombre: string;
-  tipo: string;
-  tamano: string;
-  fecha: string;
-  autor: string;
-}
-
-interface EventoHistorial {
-  titulo: string;
-  descripcion: string;
-  fecha: string;
-  autor: string;
-  tipo: "ingreso" | "asignacion" | "estado" | "comentario" | "documentos";
+  id?: number | string;
+  nombre?: string;
+  nombre_archivo?: string;
+  descripcion?: string;
+  description?: string;
+  estado?: string;
+  tipo?: string;
+  type?: string;
+  size?: number;
+  url?: string;
+  rutaArchivo?: string;
+  ruta_archivo?: string;
+  createdAt?: string;
 }
 
 const documentosDisponibles = [
@@ -67,272 +60,374 @@ const documentosDisponibles = [
 const DetalleSolicitudFuncionario: React.FC = () => {
   const history = useHistory();
   const params = useParams<{ id?: string; solicitudId?: string }>();
+
   const idParametro = params.id || params.solicitudId || "";
 
   const [usuarioActual, setUsuarioActual] = useState<UsuarioActual>({
     nombre: "Funcionario",
     correo: "",
     rol: "funcionario",
+    cargo: "Funcionario municipal",
+    area: "Área municipal",
   });
 
-  const [solicitud, setSolicitud] = useState<Solicitud | null>(null);
+  const [solicitud, setSolicitud] = useState<any | null>(null);
   const [estadoSeleccionado, setEstadoSeleccionado] = useState("En revisión");
-  const [observacionInterna, setObservacionInterna] = useState("");
-  const [fechaLimite, setFechaLimite] = useState("2026-05-27");
-  const [mostrarDocumentosRequeridos, setMostrarDocumentosRequeridos] =
-    useState(false);
-  const [documentosRequeridos, setDocumentosRequeridos] = useState<
-    Record<string, boolean>
-  >({});
+  const [observacion, setObservacion] = useState("");
+  const [mostrarDocumentos, setMostrarDocumentos] = useState(false);
+  const [documentosSeleccionados, setDocumentosSeleccionados] = useState<
+    string[]
+  >([]);
+  const [fechaLimite, setFechaLimite] = useState("2026-04-27");
   const [mensajeSistema, setMensajeSistema] = useState("");
+  const [cargando, setCargando] = useState(false);
+  const [mensajeError, setMensajeError] = useState("");
 
-  const obtenerValor = (objeto: any, campo: string, respaldo = "") => {
-    return objeto?.[campo] || respaldo;
+  const obtenerValor = (objeto: any, campo: string, respaldo: any = ""): any => {
+    const valor = objeto?.[campo];
+
+    if (valor === undefined || valor === null || valor === "") {
+      return respaldo;
+    }
+
+    return valor;
+  };
+
+  const normalizarTexto = (texto: string) => {
+    return String(texto || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+  };
+
+  const formatearFecha = (fecha: string) => {
+    if (!fecha || fecha === "Sin fecha") return "Sin fecha";
+
+    const fechaDate = new Date(fecha);
+
+    if (Number.isNaN(fechaDate.getTime())) {
+      return fecha;
+    }
+
+    return fechaDate.toLocaleDateString("es-CL", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  const obtenerUsuarioFuncionarioActual = (): UsuarioActual => {
+    const usuario = authService.getUsuarioActual();
+
+    if (usuario) {
+      return {
+        nombre: usuario.nombre || "Funcionario",
+        correo: usuario.correo || "",
+        rol: usuario.rol || "funcionario",
+        cargo: usuario.cargo || "Funcionario municipal",
+        area: usuario.area || "Área municipal",
+      };
+    }
+
+    return {
+      nombre: "Funcionario",
+      correo: "",
+      rol: "funcionario",
+      cargo: "Funcionario municipal",
+      area: "Área municipal",
+    };
+  };
+
+  const obtenerIniciales = (nombre: string) => {
+    const partes = nombre.trim().split(" ").filter(Boolean);
+
+    if (partes.length === 0) return "FN";
+    if (partes.length === 1) return partes[0].slice(0, 2).toUpperCase();
+
+    return `${partes[0][0]}${partes[1][0]}`.toUpperCase();
   };
 
   const obtenerId = (item: any) => {
-    if (!item) return "SIN-ID";
-    return obtenerValor(item, "id") || obtenerValor(item, "codigo") || "SIN-ID";
+    return (
+      obtenerValor(item, "codigo") ||
+      obtenerValor(item, "id") ||
+      obtenerValor(item, "solicitudId") ||
+      idParametro ||
+      "SIN-ID"
+    );
   };
 
   const obtenerTramite = (item: any) => {
-    if (!item) return "Patente Comercial";
-
     return (
+      obtenerValor(item, "tramite") ||
       obtenerValor(item, "tipoTramite") ||
       obtenerValor(item, "tipoPatente") ||
-      obtenerValor(item, "tramite") ||
-      "Patente Comercial"
-    );
-  };
-
-  const obtenerEstado = (item: any) => {
-    if (!item) return "En revisión";
-    return obtenerValor(item, "estado", "En revisión");
-  };
-
-  const obtenerFecha = (item: any) => {
-    if (!item) return "18/04/2026 10:24";
-
-    return (
-      obtenerValor(item, "fechaRecibo") ||
-      obtenerValor(item, "fechaIngreso") ||
-      obtenerValor(item, "fecha") ||
-      "18/04/2026 10:24"
-    );
-  };
-
-  const obtenerArea = (item: any) => {
-    if (!item) return "Atención General";
-
-    return (
-      obtenerValor(item, "area") ||
-      obtenerValor(item, "departamento") ||
-      "Atención General"
-    );
-  };
-
-  const obtenerEncargado = (item: any) => {
-    if (!item) return usuarioActual.nombre || "Funcionario municipal";
-
-    return (
-      obtenerValor(item, "encargado") ||
-      obtenerValor(item, "funcionario") ||
-      usuarioActual.nombre ||
-      "Funcionario municipal"
+      "Trámite municipal"
     );
   };
 
   const obtenerSolicitante = (item: any) => {
-    if (!item) return "Almacén El Parque";
-
     return (
       obtenerValor(item, "razonSocial") ||
-      obtenerValor(item, "nombreSolicitante") ||
       obtenerValor(item, "solicitante") ||
-      "Almacén El Parque"
+      obtenerValor(item, "nombreSolicitante") ||
+      obtenerValor(item, "usuarioNombre") ||
+      obtenerValor(item, "nombre") ||
+      "Solicitante no informado"
     );
   };
 
   const obtenerRut = (item: any) => {
-    if (!item) return "76.123.456-7";
-
     return (
       obtenerValor(item, "rut") ||
+      obtenerValor(item, "rutEmpresa") ||
       obtenerValor(item, "rutSolicitante") ||
-      "76.123.456-7"
+      obtenerValor(item, "identificacion") ||
+      "Sin RUT"
     );
   };
 
-  const obtenerCorreo = (item: any) => {
-    if (!item) return "contacto@ejemplo.cl";
-
-    return (
-      obtenerValor(item, "correo") ||
-      obtenerValor(item, "email") ||
-      obtenerValor(item, "correoElectronico") ||
-      "contacto@ejemplo.cl"
-    );
+  const obtenerEstado = (item: any) => {
+    return obtenerValor(item, "estado", "En revisión");
   };
 
-  const obtenerTelefono = (item: any) => {
-    if (!item) return "+56 9 1234 5678";
+  const obtenerEstadoGestion = (item: any) => {
+    const estado = normalizarTexto(obtenerEstado(item));
 
-    return (
-      obtenerValor(item, "telefono") ||
-      obtenerValor(item, "celular") ||
-      "+56 9 1234 5678"
-    );
-  };
+    if (estado.includes("aprob")) return "Aprobada";
+    if (estado.includes("rechaz")) return "Rechazada";
 
-  const obtenerDireccion = (item: any) => {
-    if (!item) return "Av. Libertador Bernardo O'Higgins 1234, Santo Domingo";
-
-    return (
-      obtenerValor(item, "direccion") ||
-      obtenerValor(item, "direccionLocal") ||
-      "Av. Libertador Bernardo O'Higgins 1234, Santo Domingo"
-    );
-  };
-
-  const obtenerGiro = (item: any) => {
-    if (!item) return "Venta de abarrotes y artículos de primera necesidad";
-
-    return (
-      obtenerValor(item, "giro") ||
-      obtenerValor(item, "giroComercial") ||
-      "Venta de abarrotes y artículos de primera necesidad"
-    );
-  };
-
-  const obtenerSuperficie = (item: any) => {
-    if (!item) return "120 m²";
-
-    return (
-      obtenerValor(item, "superficie") ||
-      obtenerValor(item, "superficieLocal") ||
-      "120 m²"
-    );
-  };
-
-  const obtenerObservacionSolicitante = (item: any) => {
-    if (!item) {
-      return "Solicita patente comercial para iniciar actividades en el local indicado.";
+    if (
+      estado.includes("falta") ||
+      estado.includes("document") ||
+      estado.includes("observada")
+    ) {
+      return "Pendiente de documentos";
     }
 
-    return (
-      obtenerValor(item, "observacionSolicitante") ||
-      obtenerValor(item, "descripcion") ||
-      obtenerValor(item, "observacionUsuario") ||
-      "Solicita patente comercial para iniciar actividades en el local indicado."
-    );
+    if (
+      estado.includes("ingresada") ||
+      estado.includes("proceso") ||
+      estado.includes("revision")
+    ) {
+      return "En revisión";
+    }
+
+    return "En revisión";
   };
 
-  const normalizarEstado = (estado: string) => {
-    const texto = estado.toLowerCase();
+  const convertirEstadoParaBackend = (estado: string) => {
+    const texto = normalizarTexto(estado);
 
     if (texto.includes("aprob")) return "aprobada";
     if (texto.includes("rechaz")) return "rechazada";
 
     if (
-      texto.includes("document") ||
       texto.includes("pendiente") ||
+      texto.includes("document") ||
       texto.includes("falta")
     ) {
-      return "pendiente";
+      return "observada";
     }
 
-    if (texto.includes("deriv")) return "derivada";
+    return "en_revision";
+  };
 
-    return "revision";
+  const obtenerArea = (item: any) => {
+    return (
+      obtenerValor(item, "area") ||
+      obtenerValor(item, "departamento") ||
+      obtenerValor(item, "areaResponsable") ||
+      "Atención General"
+    );
+  };
+
+  const obtenerPrioridad = (item: any) => {
+    return obtenerValor(item, "prioridad", "Media");
+  };
+
+  const obtenerFecha = (item: any) => {
+    return formatearFecha(
+      obtenerValor(item, "fechaIngreso") ||
+        obtenerValor(item, "fechaRecibo") ||
+        obtenerValor(item, "fecha") ||
+        "Sin fecha"
+    );
+  };
+
+  const obtenerContacto = (item: any) => {
+    return (
+      obtenerValor(item, "telefonoContacto") ||
+      obtenerValor(item, "telefono") ||
+      obtenerValor(item, "contacto") ||
+      "No informado"
+    );
+  };
+
+  const obtenerCorreo = (item: any) => {
+    return (
+      obtenerValor(item, "correoContacto") ||
+      obtenerValor(item, "correo") ||
+      obtenerValor(item, "email") ||
+      obtenerValor(item, "usuarioCorreo") ||
+      "No informado"
+    );
+  };
+
+  const obtenerEncargado = (item: any) => {
+    return (
+      obtenerValor(item, "encargado") ||
+      obtenerValor(item, "funcionario") ||
+      obtenerValor(item, "asignadoA") ||
+      obtenerValor(item, "funcionarioAsignado") ||
+      usuarioActual.nombre ||
+      "Funcionario"
+    );
   };
 
   const claseEstado = (estado: string) => {
-    const estadoNormalizado = normalizarEstado(estado);
+    const texto = normalizarTexto(estado);
 
-    if (estadoNormalizado === "aprobada") return "func-status aprobada";
-    if (estadoNormalizado === "rechazada") return "func-status rechazada";
-    if (estadoNormalizado === "pendiente") return "func-status pendiente";
-    if (estadoNormalizado === "derivada") return "func-status derivada";
-
-    return "func-status revision";
-  };
-
-  const documentosSeleccionados = Object.entries(documentosRequeridos)
-    .filter(([, seleccionado]) => seleccionado)
-    .map(([documento]) => documento);
-
-  const cargarSolicitud = () => {
-    const usuarioGuardado =
-      localStorage.getItem("usuario_actual") ||
-      localStorage.getItem("usuarioActual") ||
-      localStorage.getItem("current_user");
-
-    let usuario: UsuarioActual = {
-      nombre: "Funcionario",
-      correo: "",
-      rol: "funcionario",
-    };
-
-    if (usuarioGuardado) {
-      try {
-        usuario = JSON.parse(usuarioGuardado);
-      } catch {
-        usuario = {
-          nombre: "Funcionario",
-          correo: "",
-          rol: "funcionario",
-        };
-      }
+    if (texto.includes("aprob")) return "estado-detalle aprobado";
+    if (texto.includes("rechaz")) return "estado-detalle rechazado";
+    if (texto.includes("pendiente") || texto.includes("document")) {
+      return "estado-detalle pendiente";
     }
 
-    setUsuarioActual(usuario);
+    return "estado-detalle revision";
+  };
 
-    const solicitudes = solicitudesService.obtenerSolicitudes();
+  const obtenerDocumentosFaltantes = (item: any): string[] => {
+    const docs = obtenerValor(item, "documentosFaltantes");
 
-    const solicitudEncontrada =
-      solicitudes.find((item: any) => obtenerId(item) === idParametro) ||
-      solicitudes[solicitudes.length - 1] ||
-      null;
+    if (Array.isArray(docs)) {
+      return docs
+        .map((documento) => String(documento).trim())
+        .filter(Boolean);
+    }
 
-    if (!solicitudEncontrada) {
-      setSolicitud(null);
+    if (typeof docs === "string" && docs.trim() !== "") {
+      return docs
+        .split(",")
+        .map((documento) => documento.trim())
+        .filter(Boolean);
+    }
+
+    return [];
+  };
+
+  const documentosAdjuntos: DocumentoAdjunto[] = useMemo(() => {
+    const documentosRaw = solicitud?.documentos;
+
+    if (Array.isArray(documentosRaw)) {
+      return documentosRaw;
+    }
+
+    return [];
+  }, [solicitud]);
+
+  const obtenerUrlDocumento = (documento: DocumentoAdjunto) => {
+    const url =
+      documento.url || documento.rutaArchivo || documento.ruta_archivo || "";
+
+    if (!url) return "";
+
+    if (url.startsWith("http")) {
+      return url;
+    }
+
+    return `http://localhost:3000${url}`;
+  };
+
+  const obtenerNombreDocumento = (documento: DocumentoAdjunto) => {
+    return documento.nombre || documento.nombre_archivo || "Documento adjunto";
+  };
+
+  const obtenerTipoDocumento = (documento: DocumentoAdjunto) => {
+    const tipo = String(documento.type || documento.tipo || "").toLowerCase();
+    const nombre = obtenerNombreDocumento(documento).toLowerCase();
+
+    if (tipo.includes("pdf") || nombre.endsWith(".pdf")) return "PDF";
+
+    if (
+      tipo.includes("image") ||
+      nombre.endsWith(".jpg") ||
+      nombre.endsWith(".jpeg") ||
+      nombre.endsWith(".png")
+    ) {
+      return "Imagen";
+    }
+
+    return "Archivo";
+  };
+
+  const formatearTamanoArchivo = (size?: number) => {
+    if (!size || Number.isNaN(size)) return "";
+
+    if (size < 1024) return `${size} bytes`;
+
+    if (size < 1024 * 1024) {
+      return `${(size / 1024).toFixed(1)} KB`;
+    }
+
+    return `${(size / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
+  const abrirDocumento = (documento: DocumentoAdjunto) => {
+    const urlDocumento = obtenerUrlDocumento(documento);
+
+    if (!urlDocumento) {
+      setMensajeSistema("Este documento no tiene una ruta válida.");
       return;
     }
 
-    setSolicitud(solicitudEncontrada);
-    setEstadoSeleccionado(obtenerEstado(solicitudEncontrada));
+    window.open(urlDocumento, "_blank", "noopener,noreferrer");
+  };
 
-    const comentario =
-      obtenerValor(solicitudEncontrada, "comentarioFuncionario") ||
-      obtenerValor(solicitudEncontrada, "observacionFuncionario") ||
-      obtenerValor(solicitudEncontrada, "observacion") ||
-      "";
+  const cargarSolicitud = async () => {
+    try {
+      setCargando(true);
+      setMensajeError("");
 
-    setObservacionInterna(comentario);
+      const usuario = obtenerUsuarioFuncionarioActual();
 
-    const fechaGuardada =
-      obtenerValor(solicitudEncontrada, "fechaLimiteDocumentos") ||
-      "2026-05-27";
+      if (usuario.rol !== "funcionario") {
+        history.push("/login-funcionario");
+        return;
+      }
 
-    setFechaLimite(fechaGuardada);
+      setUsuarioActual(usuario);
 
-    const docsGuardados = obtenerValor(
-      solicitudEncontrada,
-      "documentosFaltantes"
-    );
+      const respuesta = await api.get(`/solicitudes/${idParametro}`);
+      const solicitudApi = respuesta.data?.solicitud || respuesta.data;
 
-    const seleccionInicial: Record<string, boolean> = {};
+      if (!solicitudApi) {
+        setSolicitud(null);
+        return;
+      }
 
-    documentosDisponibles.forEach((documento) => {
-      seleccionInicial[documento] =
-        Array.isArray(docsGuardados) && docsGuardados.includes(documento);
-    });
+      setSolicitud(solicitudApi);
+      setEstadoSeleccionado(obtenerEstadoGestion(solicitudApi));
+      setObservacion(
+        obtenerValor(solicitudApi, "comentarioFuncionario") ||
+          obtenerValor(solicitudApi, "observacionFuncionario") ||
+          ""
+      );
 
-    setDocumentosRequeridos(seleccionInicial);
+      setDocumentosSeleccionados(obtenerDocumentosFaltantes(solicitudApi));
+    } catch (error: any) {
+      console.error("Error al cargar solicitud del funcionario:", error);
 
-    if (Array.isArray(docsGuardados) && docsGuardados.length > 0) {
-      setMostrarDocumentosRequeridos(false);
+      const mensajeBackend =
+        error.response?.data?.mensaje ||
+        error.response?.data?.error ||
+        "No se pudo cargar la solicitud desde el backend.";
+
+      setMensajeError(mensajeBackend);
+      setSolicitud(null);
+    } finally {
+      setCargando(false);
     }
   };
 
@@ -343,370 +438,102 @@ const DetalleSolicitudFuncionario: React.FC = () => {
       cargarSolicitud();
     };
 
-    window.addEventListener("storage", escucharCambios);
     window.addEventListener("focus", escucharCambios);
     window.addEventListener("solicitudesActualizadas", escucharCambios);
 
     return () => {
-      window.removeEventListener("storage", escucharCambios);
       window.removeEventListener("focus", escucharCambios);
       window.removeEventListener("solicitudesActualizadas", escucharCambios);
     };
   }, [idParametro]);
 
-  const documentosAdjuntos: DocumentoAdjunto[] = useMemo(() => {
-    const adjuntos = obtenerValor(solicitud, "documentosAdjuntos");
+  const toggleDocumento = (documento: string) => {
+    setDocumentosSeleccionados((prev) =>
+      prev.includes(documento)
+        ? prev.filter((item) => item !== documento)
+        : [...prev, documento]
+    );
+  };
 
-    if (Array.isArray(adjuntos) && adjuntos.length > 0) {
-      return adjuntos;
-    }
+  const guardarCambios = async () => {
+    if (!solicitud) return;
 
-    return [
-      {
-        nombre: "Escritura_Sociedad.pdf",
-        tipo: "PDF",
-        tamano: "1.2 MB",
-        fecha: "18/04/2026 10:24",
-        autor: obtenerSolicitante(solicitud),
-      },
-      {
-        nombre: "Cert_Residencia.pdf",
-        tipo: "PDF",
-        tamano: "458 KB",
-        fecha: "18/04/2026 10:24",
-        autor: obtenerSolicitante(solicitud),
-      },
-      {
-        nombre: "Croquis_Local.jpg",
-        tipo: "JPG",
-        tamano: "1.1 MB",
-        fecha: "18/04/2026 10:24",
-        autor: obtenerSolicitante(solicitud),
-      },
-    ];
-  }, [solicitud]);
+    try {
+      setMensajeSistema("");
 
-  const historial: EventoHistorial[] = useMemo(() => {
-    const historialGuardado = obtenerValor(solicitud, "historial");
+      const estadoBackend = convertirEstadoParaBackend(estadoSeleccionado);
 
-    if (Array.isArray(historialGuardado) && historialGuardado.length > 0) {
-      return historialGuardado;
-    }
-
-    return [
-      {
-        titulo: "Solicitud ingresada",
-        descripcion: "La solicitud fue ingresada correctamente.",
-        fecha: obtenerFecha(solicitud),
-        autor: obtenerSolicitante(solicitud),
-        tipo: "ingreso",
-      },
-      {
-        titulo: "Asignada a funcionario",
-        descripcion: `La solicitud fue asignada a ${obtenerEncargado(
-          solicitud
-        )}.`,
-        fecha: "18/04/2026 10:26",
-        autor: "Sistema",
-        tipo: "asignacion",
-      },
-      {
-        titulo: "Estado cambiado a En revisión",
-        descripcion: `${obtenerEncargado(
-          solicitud
-        )} cambió el estado a En revisión.`,
-        fecha: "18/04/2026 10:30",
-        autor: obtenerEncargado(solicitud),
-        tipo: "estado",
-      },
-    ];
-  }, [solicitud]);
-
-  const guardarEnLocalStorage = (solicitudActualizada: any) => {
-    const posiblesKeys = [
-      "solicitudes",
-      "solicitudes_municipales",
-      "solicitudes_usuario",
-      "solicitudesUsuario",
-      "solicitudes_local",
-    ];
-
-    let actualizadaEnKey = false;
-
-    posiblesKeys.forEach((key) => {
-      const raw = localStorage.getItem(key);
-
-      if (!raw) return;
+      let respuesta;
 
       try {
-        const datos = JSON.parse(raw);
-
-        if (!Array.isArray(datos)) return;
-
-        const existe = datos.some(
-          (item) => obtenerId(item) === obtenerId(solicitudActualizada)
-        );
-
-        if (!existe) return;
-
-        const nuevasSolicitudes = datos.map((item) =>
-          obtenerId(item) === obtenerId(solicitudActualizada)
-            ? solicitudActualizada
-            : item
-        );
-
-        localStorage.setItem(key, JSON.stringify(nuevasSolicitudes));
-        actualizadaEnKey = true;
-      } catch {
-        return;
-      }
-    });
-
-    if (!actualizadaEnKey) {
-      const raw = localStorage.getItem("solicitudes");
-      let solicitudesActuales: any[] = [];
-
-      if (raw) {
-        try {
-          const datos = JSON.parse(raw);
-          solicitudesActuales = Array.isArray(datos) ? datos : [];
-        } catch {
-          solicitudesActuales = [];
+        respuesta = await api.put(`/solicitudes/${obtenerId(solicitud)}`, {
+          estado: estadoBackend,
+          observacion,
+          documentosFaltantes: documentosSeleccionados,
+          fechaLimiteDocumentos: fechaLimite,
+        });
+      } catch (errorPut: any) {
+        if (errorPut.response?.status === 404 || errorPut.response?.status === 405) {
+          respuesta = await api.patch(`/solicitudes/${obtenerId(solicitud)}`, {
+            estado: estadoBackend,
+            observacion,
+            documentosFaltantes: documentosSeleccionados,
+            fechaLimiteDocumentos: fechaLimite,
+          });
+        } else {
+          throw errorPut;
         }
       }
 
-      const existe = solicitudesActuales.some(
-        (item) => obtenerId(item) === obtenerId(solicitudActualizada)
+      const solicitudActualizada =
+        respuesta?.data?.solicitud || respuesta?.data || solicitud;
+
+      setSolicitud(solicitudActualizada);
+      setEstadoSeleccionado(obtenerEstadoGestion(solicitudActualizada));
+      setObservacion(
+        obtenerValor(solicitudActualizada, "comentarioFuncionario") ||
+          obtenerValor(solicitudActualizada, "observacionFuncionario") ||
+          observacion ||
+          ""
       );
 
-      const nuevasSolicitudes = existe
-        ? solicitudesActuales.map((item) =>
-            obtenerId(item) === obtenerId(solicitudActualizada)
-              ? solicitudActualizada
-              : item
-          )
-        : [solicitudActualizada, ...solicitudesActuales];
+      window.dispatchEvent(new Event("solicitudesActualizadas"));
 
-      localStorage.setItem("solicitudes", JSON.stringify(nuevasSolicitudes));
-    }
+      setMensajeSistema("Cambios guardados correctamente en el backend.");
 
-    const servicio = solicitudesService as any;
+      setTimeout(() => {
+        setMensajeSistema("");
+      }, 3000);
+    } catch (error: any) {
+      console.error("Error al guardar cambios:", error);
 
-    try {
-      if (typeof servicio.actualizarSolicitud === "function") {
-        servicio.actualizarSolicitud(
-          obtenerId(solicitudActualizada),
-          solicitudActualizada
-        );
-      }
+      const mensajeBackend =
+        error.response?.data?.mensaje ||
+        error.response?.data?.error ||
+        "No se pudieron guardar los cambios.";
 
-      if (typeof servicio.guardarSolicitud === "function") {
-        servicio.guardarSolicitud(solicitudActualizada);
-      }
-    } catch {
-      console.warn("No se pudo actualizar mediante solicitudesService.");
+      setMensajeSistema(mensajeBackend);
     }
   };
 
-  const crearNotificacionCiudadano = (
-    solicitudActualizada: any,
-    titulo: string,
-    mensaje: string,
-    tipo: "estado" | "documento" | "mensaje"
-  ) => {
-    const raw = localStorage.getItem("notificaciones_usuario");
-
-    let notificaciones: any[] = [];
-
-    if (raw) {
-      try {
-        const datos = JSON.parse(raw);
-        notificaciones = Array.isArray(datos) ? datos : [];
-      } catch {
-        notificaciones = [];
-      }
-    }
-
-    const nuevaNotificacion = {
-      id: `NOT-${Date.now()}`,
-      titulo,
-      mensaje,
-      fecha: new Date().toLocaleString("es-CL"),
-      leida: false,
-      tipo,
-      solicitudId: obtenerId(solicitudActualizada),
-      accionTexto: "Ver solicitud",
-    };
-
-    localStorage.setItem(
-      "notificaciones_usuario",
-      JSON.stringify([nuevaNotificacion, ...notificaciones])
-    );
-
-    window.dispatchEvent(new Event("notificacionesActualizadas"));
-  };
-
-  const agregarEventoHistorial = (
-    solicitudBase: any,
-    titulo: string,
-    descripcion: string,
-    tipo: EventoHistorial["tipo"]
-  ) => {
-    const historialActual = Array.isArray(solicitudBase.historial)
-      ? solicitudBase.historial
-      : historial;
-
-    const nuevoEvento: EventoHistorial = {
-      titulo,
-      descripcion,
-      fecha: new Date().toLocaleString("es-CL"),
-      autor: usuarioActual.nombre || "Funcionario municipal",
-      tipo,
-    };
-
-    return [nuevoEvento, ...historialActual];
-  };
-
-  const aplicarCambiosGuardados = () => {
-    if (!solicitud) return;
-
-    const estadoFinal = estadoSeleccionado;
-    const estadoNormalizado = normalizarEstado(estadoFinal);
-    const comentario = observacionInterna.trim();
-    const ahora = new Date().toLocaleString("es-CL");
-
-    if (
-      estadoNormalizado === "pendiente" &&
-      documentosSeleccionados.length === 0
-    ) {
-      setMensajeSistema(
-        "Selecciona al menos un documento antes de guardar la solicitud como pendiente de documentos."
-      );
-      return;
-    }
-
-    let tituloNotificacion = "Actualización de solicitud";
-    let mensajeNotificacion = `Tu solicitud ${obtenerId(
-      solicitud
-    )} fue actualizada por el funcionario municipal.`;
-    let tipoNotificacion: "estado" | "documento" | "mensaje" = "estado";
-    let tipoHistorial: EventoHistorial["tipo"] = "estado";
-
-    if (estadoNormalizado === "pendiente") {
-      tituloNotificacion = "Documentos solicitados";
-      mensajeNotificacion = `Se solicitaron documentos adicionales para continuar con tu solicitud ${obtenerId(
-        solicitud
-      )}.`;
-      tipoNotificacion = "documento";
-      tipoHistorial = "documentos";
-    } else if (estadoNormalizado === "aprobada") {
-      tituloNotificacion = "Solicitud aprobada";
-      mensajeNotificacion = `Tu solicitud ${obtenerId(
-        solicitud
-      )} fue aprobada por el municipio.`;
-    } else if (estadoNormalizado === "rechazada") {
-      tituloNotificacion = "Solicitud rechazada";
-      mensajeNotificacion = `Tu solicitud ${obtenerId(
-        solicitud
-      )} fue rechazada. Revisa las observaciones del funcionario.`;
-    } else if (estadoNormalizado === "derivada") {
-      tituloNotificacion = "Solicitud derivada";
-      mensajeNotificacion = `Tu solicitud ${obtenerId(
-        solicitud
-      )} fue derivada a otra área municipal.`;
-    } else if (comentario) {
-      tituloNotificacion = "Nuevo comentario del funcionario";
-      mensajeNotificacion = `El funcionario dejó una observación en tu solicitud ${obtenerId(
-        solicitud
-      )}.`;
-      tipoNotificacion = "mensaje";
-      tipoHistorial = "comentario";
-    }
-
-    const solicitudActualizada: any = {
-      ...(solicitud as any),
-      estado: estadoFinal,
-      encargado: usuarioActual.nombre || obtenerEncargado(solicitud),
-      funcionario: usuarioActual.nombre || obtenerEncargado(solicitud),
-      observacion: comentario,
-      observaciones: comentario,
-      comentarioFuncionario: comentario,
-      observacionFuncionario: comentario,
-      fechaComentario: ahora,
-      fechaObservacion: ahora,
-      fechaActualizacion: ahora,
-      ultimaActualizacion: ahora,
-      documentosFaltantes:
-        estadoNormalizado === "pendiente" ? documentosSeleccionados : [],
-      fechaLimiteDocumentos:
-        estadoNormalizado === "pendiente" ? fechaLimite : "",
-    };
-
-    const descripcionHistorial =
-      comentario ||
-      (estadoNormalizado === "pendiente"
-        ? `Se solicitaron los siguientes documentos: ${documentosSeleccionados.join(
-            ", "
-          )}.`
-        : mensajeNotificacion);
-
-    solicitudActualizada.historial = agregarEventoHistorial(
-      solicitudActualizada,
-      tituloNotificacion,
-      descripcionHistorial,
-      tipoHistorial
-    );
-
-    guardarEnLocalStorage(solicitudActualizada);
-    crearNotificacionCiudadano(
-      solicitudActualizada,
-      tituloNotificacion,
-      mensajeNotificacion,
-      tipoNotificacion
-    );
-
-    setSolicitud(solicitudActualizada);
-    setMensajeSistema(
-      "Cambios guardados correctamente y notificación enviada al ciudadano."
-    );
-
-    window.dispatchEvent(new Event("solicitudesActualizadas"));
-
-    setTimeout(() => {
-      setMensajeSistema("");
-    }, 3500);
-  };
-
-  const prepararAprobacion = () => {
+  const aprobarSolicitud = () => {
     setEstadoSeleccionado("Aprobada");
-    setMostrarDocumentosRequeridos(false);
-    setMensajeSistema(
-      "Solicitud preparada para aprobación. Presiona Guardar cambios para notificar al ciudadano."
-    );
+    setMostrarDocumentos(false);
   };
 
-  const prepararRechazo = () => {
+  const rechazarSolicitud = () => {
     setEstadoSeleccionado("Rechazada");
-    setMostrarDocumentosRequeridos(false);
-    setMensajeSistema(
-      "Solicitud preparada para rechazo. Agrega una observación y presiona Guardar cambios."
-    );
+    setMostrarDocumentos(false);
   };
 
-  const prepararDerivacion = () => {
-    setEstadoSeleccionado("Derivada a otra área");
-    setMostrarDocumentosRequeridos(false);
-    setMensajeSistema(
-      "Solicitud preparada para derivación. Presiona Guardar cambios para confirmar."
-    );
-  };
-
-  const alternarSolicitudDocumentos = () => {
-    setMostrarDocumentosRequeridos((prev) => !prev);
+  const solicitarDocumentos = () => {
     setEstadoSeleccionado("Pendiente de documentos");
-    setMensajeSistema(
-      "Selecciona los documentos faltantes y presiona Guardar cambios para notificar al ciudadano."
-    );
+    setMostrarDocumentos((prev) => !prev);
+  };
+
+  const derivarSolicitud = () => {
+    setEstadoSeleccionado("En revisión");
+    setMostrarDocumentos(false);
   };
 
   const cerrarSesion = () => {
@@ -714,18 +541,41 @@ const DetalleSolicitudFuncionario: React.FC = () => {
     history.push("/");
   };
 
+  if (cargando && !solicitud) {
+    return (
+      <IonPage>
+        <IonContent fullscreen className="detalle-funcionario-content">
+          <div className="detalle-funcionario-wrapper">
+            <main className="detalle-funcionario-main">
+              <section className="detalle-funcionario-empty">
+                <IonIcon icon={refreshOutline} />
+                <h2>Cargando solicitud...</h2>
+                <p>Estamos obteniendo el detalle desde el backend municipal.</p>
+              </section>
+            </main>
+          </div>
+        </IonContent>
+      </IonPage>
+    );
+  }
+
   if (!solicitud) {
     return (
       <IonPage>
         <IonContent fullscreen className="detalle-funcionario-content">
           <div className="detalle-funcionario-wrapper">
-            <main className="detalle-funcionario-empty">
-              <IonIcon icon={documentTextOutline} />
-              <h2>No se encontró la solicitud</h2>
-              <p>La solicitud seleccionada no existe o no está disponible.</p>
-              <button onClick={() => history.push("/funcionario/solicitudes")}>
-                Volver a solicitudes
-              </button>
+            <main className="detalle-funcionario-main">
+              <section className="detalle-funcionario-empty">
+                <IonIcon icon={documentTextOutline} />
+                <h2>No se encontró la solicitud</h2>
+                <p>
+                  {mensajeError ||
+                    "La solicitud seleccionada no está disponible."}
+                </p>
+                <button onClick={() => history.push("/funcionario/solicitudes")}>
+                  Volver a solicitudes
+                </button>
+              </section>
             </main>
           </div>
         </IonContent>
@@ -743,14 +593,18 @@ const DetalleSolicitudFuncionario: React.FC = () => {
                 src="/assets/Estandar-Muni.png"
                 alt="Municipalidad de Santo Domingo"
               />
+
               <h1>Municipalidad de Santo Domingo</h1>
             </div>
 
             <div className="detalle-funcionario-user-area">
-              <div className="funcionario-avatar">CM</div>
+              <div className="detalle-funcionario-avatar">
+                {obtenerIniciales(usuarioActual.nombre || "Funcionario")}
+              </div>
+
               <div>
                 <strong>{usuarioActual.nombre || "Funcionario"}</strong>
-                <small>Funcionario municipal</small>
+                <small>{usuarioActual.cargo || "Funcionario municipal"}</small>
               </div>
 
               <button onClick={cerrarSesion}>
@@ -761,18 +615,27 @@ const DetalleSolicitudFuncionario: React.FC = () => {
           </header>
 
           <main className="detalle-funcionario-main">
-            <section className="funcionario-breadcrumb">
-              <IonIcon icon={homeOutline} />
-              <span>Solicitudes</span>
-              <p>/</p>
-              <strong>Detalle de solicitud</strong>
+            <section className="detalle-funcionario-breadcrumb">
+              <button onClick={() => history.push("/funcionario/solicitudes")}>
+                <IonIcon icon={homeOutline} />
+                Solicitudes
+              </button>
+              <span>/</span>
+              <p>Detalle de solicitud</p>
             </section>
 
-            <section className="funcionario-layout">
-              <div className="funcionario-left-column">
-                <section className="funcionario-summary-card">
-                  <div className="summary-title-area">
-                    <div className="summary-main-icon">
+            {mensajeSistema && (
+              <section className="detalle-funcionario-message">
+                <IonIcon icon={checkmarkCircleOutline} />
+                <span>{mensajeSistema}</span>
+              </section>
+            )}
+
+            <section className="detalle-funcionario-layout">
+              <div className="detalle-funcionario-left">
+                <section className="detalle-solicitud-card">
+                  <div className="detalle-solicitud-title">
+                    <div className="detalle-solicitud-icon">
                       <IonIcon icon={documentTextOutline} />
                     </div>
 
@@ -786,15 +649,15 @@ const DetalleSolicitudFuncionario: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="summary-data-grid">
+                  <div className="detalle-solicitud-grid">
                     <div>
-                      <IonIcon icon={documentAttachOutline} />
+                      <IonIcon icon={documentTextOutline} />
                       <span>Tipo de trámite</span>
                       <strong>{obtenerTramite(solicitud)}</strong>
                     </div>
 
                     <div>
-                      <IonIcon icon={personOutline} />
+                      <IonIcon icon={personCircleOutline} />
                       <span>Solicitante</span>
                       <strong>{obtenerSolicitante(solicitud)}</strong>
                     </div>
@@ -818,29 +681,29 @@ const DetalleSolicitudFuncionario: React.FC = () => {
                     </div>
 
                     <div>
-                      <IonIcon icon={warningOutline} />
+                      <IonIcon icon={alertCircleOutline} />
                       <span>Prioridad</span>
-                      <strong>Media</strong>
+                      <strong>{obtenerPrioridad(solicitud)}</strong>
                     </div>
 
                     <div>
                       <IonIcon icon={timeOutline} />
                       <span>Contacto</span>
-                      <strong>{obtenerTelefono(solicitud)}</strong>
+                      <strong>{obtenerContacto(solicitud)}</strong>
                     </div>
 
                     <div>
                       <IonIcon icon={refreshOutline} />
                       <span>Sincronización</span>
-                      <strong>Tiempo real</strong>
+                      <strong>Backend conectado</strong>
                     </div>
                   </div>
                 </section>
 
-                <section className="funcionario-card">
+                <section className="detalle-info-card">
                   <h3>Datos del formulario</h3>
 
-                  <div className="form-data-grid">
+                  <div className="detalle-info-grid">
                     <div>
                       <span>Razón social</span>
                       <strong>{obtenerSolicitante(solicitud)}</strong>
@@ -852,127 +715,167 @@ const DetalleSolicitudFuncionario: React.FC = () => {
                     </div>
 
                     <div>
-                      <span>Representante legal</span>
-                      <strong>María Fernández</strong>
-                    </div>
-
-                    <div>
                       <span>Correo electrónico</span>
                       <strong>{obtenerCorreo(solicitud)}</strong>
                     </div>
 
                     <div>
                       <span>Teléfono</span>
-                      <strong>{obtenerTelefono(solicitud)}</strong>
+                      <strong>{obtenerContacto(solicitud)}</strong>
                     </div>
                   </div>
 
-                  <div className="form-data-divider"></div>
+                  <hr />
 
-                  <h4>Detalles de la solicitud</h4>
+                  <h3>Detalles de la solicitud</h3>
 
-                  <div className="form-data-grid details">
+                  <div className="detalle-info-grid">
                     <div>
                       <span>Dirección del local</span>
-                      <strong>{obtenerDireccion(solicitud)}</strong>
+                      <strong>
+                        {obtenerValor(
+                          solicitud,
+                          "direccion",
+                          "No informado"
+                        )}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>Tipo de patente</span>
+                      <strong>
+                        {obtenerValor(
+                          solicitud,
+                          "tipoPatente",
+                          "No informado"
+                        )}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>Rol de avalúo</span>
+                      <strong>
+                        {obtenerValor(
+                          solicitud,
+                          "rolAvaluo",
+                          "No informado"
+                        )}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>PyME</span>
+                      <strong>
+                        {String(obtenerValor(solicitud, "pyme")) === "true" ||
+                        obtenerValor(solicitud, "pyme") === true
+                          ? "Sí"
+                          : "No"}
+                      </strong>
                     </div>
 
                     <div>
                       <span>Giro comercial</span>
-                      <strong>{obtenerGiro(solicitud)}</strong>
+                      <strong>
+                        {obtenerValor(solicitud, "giro", "No informado")}
+                      </strong>
                     </div>
 
                     <div>
                       <span>Superficie del local</span>
-                      <strong>{obtenerSuperficie(solicitud)}</strong>
+                      <strong>
+                        {obtenerValor(
+                          solicitud,
+                          "superficie",
+                          "No informado"
+                        )}
+                      </strong>
                     </div>
 
                     <div>
                       <span>Observaciones del solicitante</span>
-                      <strong>{obtenerObservacionSolicitante(solicitud)}</strong>
+                      <strong>
+                        {obtenerValor(
+                          solicitud,
+                          "observacionesSolicitante",
+                          obtenerValor(
+                            solicitud,
+                            "observacion",
+                            "Sin observaciones del solicitante."
+                          )
+                        )}
+                      </strong>
                     </div>
                   </div>
                 </section>
 
-                <section className="funcionario-card">
+                <section className="detalle-documentos-card">
                   <h3>Documentos adjuntos</h3>
 
-                  <div className="attached-documents-list">
-                    {documentosAdjuntos.map((documento) => (
-                      <div
-                        className="attached-document-row"
-                        key={documento.nombre}
-                      >
-                        <div className="attached-document-icon">
-                          <IonIcon icon={documentTextOutline} />
-                        </div>
+                  {documentosAdjuntos.length > 0 ? (
+                    documentosAdjuntos.map((documento, index) => {
+                      const nombreDocumento = obtenerNombreDocumento(documento);
+                      const tipoDocumento = obtenerTipoDocumento(documento);
+                      const tamanoDocumento = formatearTamanoArchivo(
+                        documento.size
+                      );
+                      const fechaDocumento = formatearFecha(
+                        documento.createdAt || ""
+                      );
 
+                      return (
+                        <div
+                          className="detalle-documento-row"
+                          key={`${documento.id || nombreDocumento}-${index}`}
+                        >
+                          <div>
+                            <IonIcon icon={documentAttachOutline} />
+                            <div>
+                              <strong>{nombreDocumento}</strong>
+                              <span>
+                                {tipoDocumento}
+                                {tamanoDocumento
+                                  ? ` · ${tamanoDocumento}`
+                                  : ""}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div>
+                            <span>
+                              {fechaDocumento !== "Sin fecha"
+                                ? fechaDocumento
+                                : "Documento recibido"}
+                            </span>
+
+                            <button
+                              type="button"
+                              onClick={() => abrirDocumento(documento)}
+                              title="Abrir documento"
+                            >
+                              <IonIcon icon={cloudDownloadOutline} />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="detalle-documento-row">
+                      <div>
+                        <IonIcon icon={documentAttachOutline} />
                         <div>
-                          <strong>{documento.nombre}</strong>
+                          <strong>No hay documentos adjuntos</strong>
                           <span>
-                            {documento.tipo} · {documento.tamano}
+                            Esta solicitud no tiene archivos reales asociados.
                           </span>
                         </div>
-
-                        <p>
-                          {documento.fecha}
-                          <small>Por: {documento.autor}</small>
-                        </p>
-
-                        <button title="Descargar documento">
-                          <IonIcon icon={cloudDownloadOutline} />
-                        </button>
                       </div>
-                    ))}
-                  </div>
-                </section>
-
-                <section className="funcionario-card">
-                  <h3>Historial de la solicitud</h3>
-
-                  <div className="funcionario-history-list">
-                    {historial.map((evento, index) => (
-                      <div
-                        className={`funcionario-history-item ${evento.tipo}`}
-                        key={`${evento.titulo}-${index}`}
-                      >
-                        <div className="history-icon-dot">
-                          <IonIcon
-                            icon={
-                              evento.tipo === "comentario"
-                                ? chatboxEllipsesOutline
-                                : evento.tipo === "documentos"
-                                ? sendOutline
-                                : evento.tipo === "estado"
-                                ? timeOutline
-                                : checkmarkCircleOutline
-                            }
-                          />
-                        </div>
-
-                        <div>
-                          <strong>{evento.titulo}</strong>
-                          <p>{evento.descripcion}</p>
-
-                          {evento.tipo === "comentario" && (
-                            <span className="history-comment-box">
-                              {evento.descripcion}
-                            </span>
-                          )}
-                        </div>
-
-                        <small>
-                          {evento.fecha}
-                          <b>{evento.autor}</b>
-                        </small>
-                      </div>
-                    ))}
-                  </div>
+                    </div>
+                  )}
                 </section>
               </div>
 
-              <aside className="funcionario-right-column">
-                <section className="gestion-panel-card">
+              <aside className="detalle-funcionario-panel">
+                <section className="panel-gestion-card">
                   <h3>Panel de gestión funcionario</h3>
 
                   <label>
@@ -983,154 +886,104 @@ const DetalleSolicitudFuncionario: React.FC = () => {
                         setEstadoSeleccionado(event.target.value)
                       }
                     >
-                      <option value="En revisión">En revisión</option>
-                      <option value="Pendiente de documentos">
-                        Pendiente de documentos
-                      </option>
-                      <option value="Aprobada">Aprobada</option>
-                      <option value="Rechazada">Rechazada</option>
-                      <option value="Derivada a otra área">
-                        Derivada a otra área
-                      </option>
+                      <option>En revisión</option>
+                      <option>Pendiente de documentos</option>
+                      <option>Aprobada</option>
+                      <option>Rechazada</option>
                     </select>
                   </label>
 
                   <label>
                     Observaciones internas / comentario al ciudadano
                     <textarea
-                      value={observacionInterna}
-                      onChange={(event) =>
-                        setObservacionInterna(event.target.value)
-                      }
-                      maxLength={1000}
+                      value={observacion}
+                      onChange={(event) => setObservacion(event.target.value)}
                       placeholder="Agrega observaciones sobre la revisión de esta solicitud..."
                     />
-                    <small>{observacionInterna.length}/1000 caracteres</small>
                   </label>
 
-                  <div className="gestion-actions">
-                    <button className="approve" onClick={prepararAprobacion}>
-                      <IonIcon icon={checkmarkCircleOutline} />
-                      Aprobar solicitud
-                    </button>
+                  <small>{observacion.length}/1000 caracteres</small>
 
-                    <button
-                      className={`request-docs ${
-                        mostrarDocumentosRequeridos ? "open" : ""
-                      }`}
-                      onClick={alternarSolicitudDocumentos}
-                    >
-                      <IonIcon icon={documentAttachOutline} />
-                      Solicitar documentos
-                      <IonIcon
-                        icon={
-                          mostrarDocumentosRequeridos
-                            ? chevronUpOutline
-                            : chevronDownOutline
-                        }
-                      />
-                    </button>
+                  <button className="aprobar-button" onClick={aprobarSolicitud}>
+                    <IonIcon icon={checkmarkCircleOutline} />
+                    Aprobar solicitud
+                  </button>
 
-                    {mostrarDocumentosRequeridos && (
-                      <div className="required-documents-box">
-                        <h4>Documentos faltantes / requeridos</h4>
-                        <p>
-                          Marca los documentos que se solicitarán al ciudadano.
-                          Se enviarán recién al presionar Guardar cambios.
-                        </p>
+                  <button
+                    className="solicitar-button"
+                    onClick={solicitarDocumentos}
+                  >
+                    <IonIcon icon={documentAttachOutline} />
+                    Solicitar documentos
+                  </button>
 
-                        {documentosDisponibles.map((documento) => (
-                          <label
-                            className="document-checkbox-row"
-                            key={documento}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={Boolean(
-                                documentosRequeridos[documento]
-                              )}
-                              onChange={(event) =>
-                                setDocumentosRequeridos((prev) => ({
-                                  ...prev,
-                                  [documento]: event.target.checked,
-                                }))
-                              }
-                            />
-                            <span>{documento}</span>
-                          </label>
-                        ))}
+                  {mostrarDocumentos && (
+                    <div className="documentos-faltantes-box">
+                      <h4>Documentos faltantes / requeridos</h4>
+                      <p>
+                        Marca los documentos que se solicitarán al ciudadano.
+                        Luego presiona Guardar cambios.
+                      </p>
 
-                        <label className="fecha-limite-label">
-                          Fecha límite para envío
+                      {documentosDisponibles.map((documento) => (
+                        <label key={documento} className="documento-check-row">
                           <input
-                            type="date"
-                            value={fechaLimite}
-                            onChange={(event) =>
-                              setFechaLimite(event.target.value)
-                            }
+                            type="checkbox"
+                            checked={documentosSeleccionados.includes(
+                              documento
+                            )}
+                            onChange={() => toggleDocumento(documento)}
                           />
+                          <span>{documento}</span>
                         </label>
-                      </div>
-                    )}
+                      ))}
 
-                    <button className="reject" onClick={prepararRechazo}>
-                      <IonIcon icon={closeCircleOutline} />
-                      Rechazar solicitud
-                    </button>
-
-                    <button className="derive" onClick={prepararDerivacion}>
-                      <IonIcon icon={swapHorizontalOutline} />
-                      Derivar a otra área
-                    </button>
-
-                    <button className="save" onClick={aplicarCambiosGuardados}>
-                      <IonIcon icon={saveOutline} />
-                      Guardar cambios
-                    </button>
-                  </div>
-
-                  {mensajeSistema && (
-                    <div
-                      className={`system-message-box ${
-                        mensajeSistema.includes("Selecciona")
-                          ? "warning"
-                          : ""
-                      }`}
-                    >
-                      <IonIcon
-                        icon={
-                          mensajeSistema.includes("Selecciona")
-                            ? warningOutline
-                            : checkmarkCircleOutline
-                        }
-                      />
-                      <span>{mensajeSistema}</span>
+                      <label>
+                        Fecha límite para envío
+                        <input
+                          type="date"
+                          value={fechaLimite}
+                          onChange={(event) =>
+                            setFechaLimite(event.target.value)
+                          }
+                        />
+                      </label>
                     </div>
                   )}
+
+                  <button className="rechazar-button" onClick={rechazarSolicitud}>
+                    <IonIcon icon={alertCircleOutline} />
+                    Rechazar solicitud
+                  </button>
+
+                  <button className="derivar-button" onClick={derivarSolicitud}>
+                    <IonIcon icon={swapHorizontalOutline} />
+                    Mantener en revisión
+                  </button>
+
+                  <button className="guardar-button" onClick={guardarCambios}>
+                    <IonIcon icon={saveOutline} />
+                    Subir cambios
+                  </button>
                 </section>
 
-                <section className="auto-notification-card">
-                  <div>
-                    <IonIcon icon={notificationsOutline} />
-                  </div>
-
+                <section className="panel-sync-card">
+                  <IonIcon icon={notificationsOutline} />
                   <h3>Notificación automática al ciudadano</h3>
-
                   <p>
                     Los cambios se enviarán al ciudadano solo cuando presiones
-                    Guardar cambios. Esto evita notificaciones accidentales y
-                    mantiene el historial ordenado.
+                    Guardar cambios.
                   </p>
 
-                  <span>
-                    <b></b>
-                    Sincronización en tiempo real
-                  </span>
+                  <div>
+                    <span></span>
+                    Sincronización con backend
+                  </div>
                 </section>
               </aside>
             </section>
 
-            <section className="detalle-funcionario-bottom-actions">
+            <section className="detalle-funcionario-bottom">
               <button onClick={() => history.push("/funcionario/solicitudes")}>
                 <IonIcon icon={arrowBackOutline} />
                 Volver a solicitudes
@@ -1139,7 +992,7 @@ const DetalleSolicitudFuncionario: React.FC = () => {
           </main>
 
           <footer className="detalle-funcionario-footer">
-            <span>© 2026 I. Municipalidad de Santo Domingo</span>
+            <span>© 2026 Municipalidad de Santo Domingo</span>
             <span>Municipalidad de Santo Domingo</span>
           </footer>
         </div>

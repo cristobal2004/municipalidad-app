@@ -17,11 +17,10 @@ import {
   timeOutline,
 } from "ionicons/icons";
 import { useHistory } from "react-router-dom";
-import {
-  Solicitud,
-  solicitudesService,
-} from "../../services/solicitudesService";
+
+import type { Solicitud } from "../../services/solicitudesService";
 import { authService } from "../../services/authService";
+import { solicitudesApiService } from "../../services/solicitudesApiService";
 import "./InicioUsuario.css";
 
 interface UsuarioActual {
@@ -29,6 +28,20 @@ interface UsuarioActual {
   correo?: string;
   rut?: string;
 }
+
+type TipoNotificacionReal = "tramite" | "documento" | "mensaje";
+
+interface NotificacionInicio {
+  id: string;
+  titulo: string;
+  mensaje: string;
+  fecha: string;
+  leida: boolean;
+  tipo: TipoNotificacionReal;
+  solicitudId?: string;
+}
+
+const STORAGE_ESTADO_NOTIFICACIONES = "notificaciones_usuario_estado";
 
 const InicioUsuario: React.FC = () => {
   const history = useHistory();
@@ -38,110 +51,496 @@ const InicioUsuario: React.FC = () => {
     nombre: "Usuario",
     correo: "",
   });
+  const [cargando, setCargando] = useState(false);
+  const [mensajeError, setMensajeError] = useState("");
+
+  const cargarDatos = async () => {
+    try {
+      setCargando(true);
+      setMensajeError("");
+
+      const usuario = authService.getUsuarioActual();
+
+      if (!usuario) {
+        history.push("/login-usuario");
+        return;
+      }
+
+      setUsuarioActual({
+        nombre: usuario.nombre,
+        correo: usuario.correo,
+        rut: usuario.rut,
+      });
+
+      const solicitudesBackend =
+        await solicitudesApiService.obtenerMisSolicitudes();
+
+      const solicitudesOrdenadas = [...(solicitudesBackend as Solicitud[])].sort(
+        (a: any, b: any) => {
+          const fechaA = new Date(
+            a.ultimaActualizacion || a.fechaIngreso || a.fechaRecibo || ""
+          ).getTime();
+
+          const fechaB = new Date(
+            b.ultimaActualizacion || b.fechaIngreso || b.fechaRecibo || ""
+          ).getTime();
+
+          if (Number.isNaN(fechaA) || Number.isNaN(fechaB)) {
+            return 0;
+          }
+
+          return fechaB - fechaA;
+        }
+      );
+
+      setSolicitudes(solicitudesOrdenadas);
+    } catch (error: any) {
+      console.error("Error al cargar inicio usuario:", error);
+
+      const mensajeBackend =
+        error.response?.data?.mensaje ||
+        error.response?.data?.error ||
+        "No se pudieron cargar tus solicitudes. Intenta nuevamente.";
+
+      setMensajeError(mensajeBackend);
+    } finally {
+      setCargando(false);
+    }
+  };
 
   useEffect(() => {
-    const usuarioGuardado =
-      localStorage.getItem("usuario_actual") ||
-      localStorage.getItem("usuarioActual") ||
-      localStorage.getItem("current_user");
+    cargarDatos();
 
-    let usuario: UsuarioActual = {
-      nombre: "Usuario",
-      correo: "",
+    const escucharCambios = () => {
+      cargarDatos();
     };
 
-    if (usuarioGuardado) {
-      try {
-        usuario = JSON.parse(usuarioGuardado);
-      } catch (error) {
-        usuario = {
-          nombre: "Usuario",
-          correo: "",
-        };
-      }
-    }
+    window.addEventListener("focus", escucharCambios);
+    window.addEventListener("solicitudesActualizadas", escucharCambios);
+    window.addEventListener("notificacionesActualizadas", escucharCambios);
 
-    setUsuarioActual(usuario);
-
-    const correo = usuario.correo || "";
-
-    if (correo) {
-      setSolicitudes(solicitudesService.obtenerSolicitudesPorUsuario(correo));
-    } else {
-      setSolicitudes(solicitudesService.obtenerSolicitudes());
-    }
-  }, []);
+    return () => {
+      window.removeEventListener("focus", escucharCambios);
+      window.removeEventListener("solicitudesActualizadas", escucharCambios);
+      window.removeEventListener("notificacionesActualizadas", escucharCambios);
+    };
+  }, [history]);
 
   const cerrarSesion = () => {
     authService.logout();
     history.push("/");
   };
 
-  const solicitudesActivas = solicitudes.filter(
-    (solicitud) =>
-      solicitud.estado === "En Proceso" ||
-      solicitud.estado === "Falta Documentación"
-  );
+  const obtenerValor = (
+    solicitud: Solicitud | any,
+    campo: string,
+    respaldo: any = ""
+  ): any => {
+    const valor = solicitud?.[campo];
+
+    if (valor === undefined || valor === null || valor === "") {
+      return respaldo;
+    }
+
+    return valor;
+  };
+
+  const obtenerId = (solicitud: Solicitud) => {
+    return (
+      obtenerValor(solicitud, "codigo") ||
+      obtenerValor(solicitud, "solicitudId") ||
+      obtenerValor(solicitud, "id") ||
+      "SIN-ID"
+    );
+  };
+
+  const obtenerTipoPatente = (solicitud: Solicitud) => {
+    return (
+      obtenerValor(solicitud, "tipoPatente") ||
+      obtenerValor(solicitud, "tipoTramite") ||
+      obtenerValor(solicitud, "tramite") ||
+      "Trámite municipal"
+    );
+  };
+
+  const obtenerEstado = (solicitud: Solicitud) => {
+    return obtenerValor(solicitud, "estado", "Ingresada");
+  };
+
+  const formatearFecha = (fecha: string) => {
+    if (!fecha || fecha === "Sin fecha") return "Sin fecha";
+
+    const fechaDate = new Date(fecha);
+
+    if (Number.isNaN(fechaDate.getTime())) {
+      return fecha;
+    }
+
+    return fechaDate.toLocaleDateString("es-CL", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  const formatearFechaHora = (fecha: string) => {
+    if (!fecha || fecha === "Sin fecha") return "Sin fecha";
+
+    const fechaDate = new Date(fecha);
+
+    if (Number.isNaN(fechaDate.getTime())) {
+      return fecha;
+    }
+
+    return fechaDate.toLocaleString("es-CL", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const obtenerFechaRecibo = (solicitud: Solicitud) => {
+    const fecha =
+      obtenerValor(solicitud, "fechaRecibo") ||
+      obtenerValor(solicitud, "fechaIngreso") ||
+      obtenerValor(solicitud, "createdAt") ||
+      "Sin fecha";
+
+    return formatearFecha(fecha);
+  };
+
+  const obtenerFechaIngresoRaw = (solicitud: Solicitud) => {
+    return (
+      obtenerValor(solicitud, "fechaIngreso") ||
+      obtenerValor(solicitud, "fechaRecibo") ||
+      obtenerValor(solicitud, "createdAt") ||
+      "Sin fecha"
+    );
+  };
+
+  const obtenerUltimaActualizacionRaw = (solicitud: Solicitud) => {
+    return (
+      obtenerValor(solicitud, "ultimaActualizacion") ||
+      obtenerValor(solicitud, "fechaActualizacion") ||
+      obtenerValor(solicitud, "fechaIngreso") ||
+      obtenerValor(solicitud, "fechaRecibo") ||
+      "Sin fecha"
+    );
+  };
+
+  const obtenerFechaComentarioRaw = (solicitud: Solicitud) => {
+    return (
+      obtenerValor(solicitud, "fechaComentario") ||
+      obtenerValor(solicitud, "fechaObservacion") ||
+      obtenerUltimaActualizacionRaw(solicitud)
+    );
+  };
+
+  const normalizarTexto = (texto: string) => {
+    return String(texto || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+  };
+
+  const normalizarEstado = (estado: string) => {
+    const estadoLower = normalizarTexto(estado);
+
+    if (estadoLower.includes("aprob")) return "aprobada";
+    if (estadoLower.includes("rechaz")) return "rechazada";
+
+    if (
+      estadoLower.includes("falta") ||
+      estadoLower.includes("document") ||
+      estadoLower.includes("pendiente")
+    ) {
+      return "pendiente_documentos";
+    }
+
+    if (
+      estadoLower.includes("revision") ||
+      estadoLower.includes("revisión") ||
+      estadoLower.includes("proceso")
+    ) {
+      return "en_revision";
+    }
+
+    return "ingresada";
+  };
+
+  const obtenerDocumentosFaltantes = (solicitud: Solicitud): string[] => {
+    const documentos = obtenerValor(solicitud, "documentosFaltantes", []);
+
+    if (Array.isArray(documentos)) {
+      return documentos
+        .map((documento) => String(documento).trim())
+        .filter((documento) => documento !== "");
+    }
+
+    if (typeof documentos === "string" && documentos.trim() !== "") {
+      try {
+        const parseado = JSON.parse(documentos);
+
+        if (Array.isArray(parseado)) {
+          return parseado
+            .map((documento) => String(documento).trim())
+            .filter((documento) => documento !== "");
+        }
+      } catch {
+        return documentos
+          .split(",")
+          .map((documento) => documento.trim())
+          .filter((documento) => documento !== "");
+      }
+    }
+
+    return [];
+  };
+
+  const obtenerComentarioFuncionario = (solicitud: Solicitud) => {
+    return (
+      obtenerValor(solicitud, "comentarioFuncionario") ||
+      obtenerValor(solicitud, "observacionFuncionario") ||
+      obtenerValor(solicitud, "respuestaFuncionario") ||
+      ""
+    );
+  };
+
+  const cargarEstadoLectura = (): Record<string, boolean> => {
+    const raw = localStorage.getItem(STORAGE_ESTADO_NOTIFICACIONES);
+
+    if (!raw) {
+      return {};
+    }
+
+    try {
+      const data = JSON.parse(raw);
+      return data && typeof data === "object" ? data : {};
+    } catch {
+      return {};
+    }
+  };
+
+  const crearNotificacionesDesdeSolicitudes = (
+    solicitudesActuales: Solicitud[]
+  ): NotificacionInicio[] => {
+    const estadoLectura = cargarEstadoLectura();
+    const notificacionesGeneradas: NotificacionInicio[] = [];
+
+    solicitudesActuales.forEach((solicitud) => {
+      const idSolicitud = obtenerId(solicitud);
+      const tramite = obtenerTipoPatente(solicitud);
+      const estado = obtenerEstado(solicitud);
+      const fechaActualizacion = obtenerUltimaActualizacionRaw(solicitud);
+      const fechaIngreso = obtenerFechaIngresoRaw(solicitud);
+      const documentosFaltantes = obtenerDocumentosFaltantes(solicitud);
+      const comentarioFuncionario = obtenerComentarioFuncionario(solicitud);
+
+      if (
+        documentosFaltantes.length > 0 ||
+        normalizarEstado(estado) === "pendiente_documentos"
+      ) {
+        const id = `DOC-${idSolicitud}-${fechaActualizacion}`;
+        const listaDocumentos =
+          documentosFaltantes.length > 0
+            ? documentosFaltantes.join(", ")
+            : "documentos adicionales";
+
+        notificacionesGeneradas.push({
+          id,
+          titulo: "Documentos solicitados",
+          mensaje: `Debes adjuntar: ${listaDocumentos}.`,
+          fecha: formatearFechaHora(fechaActualizacion),
+          leida: estadoLectura[id] === true,
+          tipo: "documento",
+          solicitudId: idSolicitud,
+        });
+      }
+
+      if (comentarioFuncionario.trim() !== "") {
+        const id = `MSG-${idSolicitud}-${obtenerFechaComentarioRaw(
+          solicitud
+        )}`;
+
+        notificacionesGeneradas.push({
+          id,
+          titulo: "Comentario del funcionario",
+          mensaje: comentarioFuncionario,
+          fecha: formatearFechaHora(obtenerFechaComentarioRaw(solicitud)),
+          leida: estadoLectura[id] === true,
+          tipo: "mensaje",
+          solicitudId: idSolicitud,
+        });
+      }
+
+      const idEstado = `EST-${idSolicitud}-${fechaActualizacion}`;
+
+      notificacionesGeneradas.push({
+        id: idEstado,
+        titulo: `Estado actualizado: ${obtenerTextoEstado(estado)}`,
+        mensaje: `Tu trámite ${tramite} se encuentra en estado "${obtenerTextoEstado(
+          estado
+        )}".`,
+        fecha: formatearFechaHora(fechaActualizacion),
+        leida: estadoLectura[idEstado] === true,
+        tipo: "tramite",
+        solicitudId: idSolicitud,
+      });
+
+      const idIngreso = `ING-${idSolicitud}-${fechaIngreso}`;
+
+      notificacionesGeneradas.push({
+        id: idIngreso,
+        titulo: "Solicitud ingresada correctamente",
+        mensaje: `Tu solicitud ${idSolicitud} fue registrada en el sistema municipal.`,
+        fecha: formatearFechaHora(fechaIngreso),
+        leida: estadoLectura[idIngreso] === true,
+        tipo: "tramite",
+        solicitudId: idSolicitud,
+      });
+    });
+
+    const unicas = notificacionesGeneradas.filter(
+      (notificacion, index, arreglo) =>
+        index === arreglo.findIndex((item) => item.id === notificacion.id)
+    );
+
+    return unicas.sort((a, b) => {
+      const fechaA = new Date(a.fecha).getTime();
+      const fechaB = new Date(b.fecha).getTime();
+
+      if (Number.isNaN(fechaA) || Number.isNaN(fechaB)) {
+        return 0;
+      }
+
+      return fechaB - fechaA;
+    });
+  };
+
+  const notificacionesInicio = useMemo(() => {
+    return crearNotificacionesDesdeSolicitudes(solicitudes);
+  }, [solicitudes]);
+
+  const avisosNoLeidos = notificacionesInicio.filter(
+    (notificacion) => !notificacion.leida
+  ).length;
+
+  const notificacionesRecientes = notificacionesInicio.slice(0, 3);
+
+  const solicitudesActivas = solicitudes.filter((solicitud) => {
+    const estado = normalizarEstado(obtenerEstado(solicitud));
+    return estado === "ingresada" || estado === "en_revision";
+  });
 
   const pendientesDocumentos = solicitudes.filter(
-    (solicitud) => solicitud.estado === "Falta Documentación"
+    (solicitud) =>
+      normalizarEstado(obtenerEstado(solicitud)) === "pendiente_documentos" ||
+      obtenerDocumentosFaltantes(solicitud).length > 0
   );
 
   const solicitudesAprobadas = solicitudes.filter(
-    (solicitud) => solicitud.estado === "Aprobado"
+    (solicitud) => normalizarEstado(obtenerEstado(solicitud)) === "aprobada"
   );
-
-  const avisosNuevos = pendientesDocumentos.length + solicitudesActivas.length;
 
   const ultimaSolicitud = useMemo(() => {
     if (solicitudes.length === 0) return undefined;
-    return solicitudes[solicitudes.length - 1];
+    return solicitudes[0];
   }, [solicitudes]);
 
+  const primeraPendienteDocumentos = useMemo(() => {
+    return pendientesDocumentos[0];
+  }, [pendientesDocumentos]);
+
   const obtenerClaseEstado = (estado: string) => {
-    if (estado === "Aprobado") return "estado-mini estado-aprobado";
-    if (estado === "Falta Documentación") return "estado-mini estado-falta";
+    const estadoNormalizado = normalizarEstado(estado);
+
+    if (estadoNormalizado === "aprobada") return "estado-mini estado-aprobado";
+    if (estadoNormalizado === "pendiente_documentos") {
+      return "estado-mini estado-falta";
+    }
+
     return "estado-mini estado-proceso";
   };
 
-  const obtenerTextoEstado = (estado: string) => {
-    if (estado === "Aprobado") return "Aprobada";
-    if (estado === "Falta Documentación") return "Documentos pendientes";
-    return "En revisión";
-  };
+  function obtenerTextoEstado(estado: string) {
+    const estadoNormalizado = normalizarEstado(estado);
+
+    if (estadoNormalizado === "aprobada") return "Aprobada";
+    if (estadoNormalizado === "rechazada") return "Rechazada";
+    if (estadoNormalizado === "pendiente_documentos") {
+      return "Documentos pendientes";
+    }
+    if (estadoNormalizado === "en_revision") return "En revisión";
+
+    return "Ingresada";
+  }
 
   const obtenerEtapaActual = (estado: string) => {
-    if (estado === "Aprobado") return 4;
-    if (estado === "Falta Documentación") return 3;
-    return 2;
+    const estadoNormalizado = normalizarEstado(estado);
+
+    if (estadoNormalizado === "aprobada" || estadoNormalizado === "rechazada") {
+      return 4;
+    }
+
+    if (estadoNormalizado === "pendiente_documentos") return 3;
+    if (estadoNormalizado === "en_revision") return 2;
+
+    return 1;
   };
 
-  const renderSeguimiento = (estado: string) => {
+  const obtenerMensajeAlerta = (solicitud: Solicitud) => {
+    const documentosFaltantes = obtenerDocumentosFaltantes(solicitud);
+    const comentarioFuncionario = obtenerComentarioFuncionario(solicitud);
+
+    if (documentosFaltantes.length > 0) {
+      return `Debes adjuntar los siguientes documentos: ${documentosFaltantes.join(
+        ", "
+      )}.`;
+    }
+
+    if (comentarioFuncionario.trim() !== "") {
+      return comentarioFuncionario;
+    }
+
+    return (
+      obtenerValor(solicitud, "observacion") ||
+      obtenerValor(solicitud, "observaciones") ||
+      "Tu solicitud se encuentra registrada y será revisada por el equipo municipal correspondiente."
+    );
+  };
+
+  const renderSeguimiento = (solicitud: Solicitud) => {
+    const estado = obtenerEstado(solicitud);
     const etapa = obtenerEtapaActual(estado);
+
+    const fechaIngreso = obtenerFechaRecibo(solicitud);
+    const fechaActualizacion = formatearFecha(
+      obtenerUltimaActualizacionRaw(solicitud)
+    );
 
     const pasos = [
       {
         numero: 1,
         titulo: "Ingresada",
-        fecha: ultimaSolicitud?.fechaRecibo || "Pendiente",
+        fecha: fechaIngreso,
       },
       {
         numero: 2,
         titulo: "En revisión",
-        fecha:
-          etapa >= 2
-            ? ultimaSolicitud?.fechaRecibo || "Pendiente"
-            : "Pendiente",
+        fecha: etapa >= 2 ? fechaActualizacion : "Pendiente",
       },
       {
         numero: 3,
         titulo: "Documentos pendientes",
-        fecha: etapa >= 3 ? "Actual" : "Pendiente",
+        fecha: etapa >= 3 ? fechaActualizacion : "Pendiente",
       },
       {
         numero: 4,
         titulo: "Finalizada",
-        fecha: etapa >= 4 ? "Completada" : "Pendiente",
+        fecha: etapa >= 4 ? fechaActualizacion : "Pendiente",
       },
     ];
 
@@ -178,6 +577,27 @@ const InicioUsuario: React.FC = () => {
     );
   };
 
+  const obtenerIconoNotificacion = (tipo: TipoNotificacionReal) => {
+    if (tipo === "documento") return folderOpenOutline;
+    if (tipo === "mensaje") return mailUnreadOutline;
+    return documentTextOutline;
+  };
+
+  const obtenerColorNotificacion = (tipo: TipoNotificacionReal) => {
+    if (tipo === "documento") return "orange";
+    if (tipo === "mensaje") return "green";
+    return "blue";
+  };
+
+  const irASubirDocumentos = () => {
+    if (primeraPendienteDocumentos) {
+      history.push(`/usuario/solicitud/${obtenerId(primeraPendienteDocumentos)}`);
+      return;
+    }
+
+    history.push("/usuario/mis-tramites");
+  };
+
   return (
     <IonPage>
       <IonContent fullscreen scrollY className="inicio-usuario-content">
@@ -198,7 +618,7 @@ const InicioUsuario: React.FC = () => {
                 title="Notificaciones pendientes"
               >
                 <IonIcon icon={notificationsOutline} />
-                {avisosNuevos > 0 && <span>{avisosNuevos}</span>}
+                {avisosNoLeidos > 0 && <span>{avisosNoLeidos}</span>}
               </button>
 
               <div className="user-chip">
@@ -219,6 +639,22 @@ const InicioUsuario: React.FC = () => {
           </header>
 
           <main className="inicio-main">
+            {cargando && (
+              <section className="panel-card">
+                <h3>Cargando solicitudes...</h3>
+                <p>
+                  Estamos obteniendo tu información desde el sistema municipal.
+                </p>
+              </section>
+            )}
+
+            {mensajeError && (
+              <section className="panel-card">
+                <h3>No se pudo cargar la información</h3>
+                <p>{mensajeError}</p>
+              </section>
+            )}
+
             <section className="inicio-hero">
               <div className="inicio-hero-overlay">
                 <span className="hero-badge">Oficina Virtual Municipal</span>
@@ -276,7 +712,7 @@ const InicioUsuario: React.FC = () => {
                   <p>Requieren tu atención</p>
                 </div>
 
-                <button onClick={() => history.push("/usuario/mis-tramites")}>
+                <button onClick={irASubirDocumentos}>
                   Ver detalles <IonIcon icon={arrowForwardOutline} />
                 </button>
               </article>
@@ -304,13 +740,11 @@ const InicioUsuario: React.FC = () => {
 
                 <div>
                   <span>Avisos nuevos</span>
-                  <strong>{avisosNuevos}</strong>
+                  <strong>{avisosNoLeidos}</strong>
                   <p>No leídos</p>
                 </div>
 
-                <button
-                  onClick={() => history.push("/usuario/notificaciones")}
-                >
+                <button onClick={() => history.push("/usuario/notificaciones")}>
                   Ver avisos <IonIcon icon={arrowForwardOutline} />
                 </button>
               </article>
@@ -338,27 +772,29 @@ const InicioUsuario: React.FC = () => {
                         </div>
 
                         <div>
-                          <h4>{ultimaSolicitud.id}</h4>
-                          <p>{ultimaSolicitud.tipoPatente}</p>
+                          <h4>{obtenerId(ultimaSolicitud)}</h4>
+                          <p>{obtenerTipoPatente(ultimaSolicitud)}</p>
                           <span>
                             Última actualización:{" "}
-                            {ultimaSolicitud.fechaRecibo}
+                            {formatearFecha(
+                              obtenerUltimaActualizacionRaw(ultimaSolicitud)
+                            )}
                           </span>
                         </div>
 
                         <span
                           className={obtenerClaseEstado(
-                            ultimaSolicitud.estado
+                            obtenerEstado(ultimaSolicitud)
                           )}
                         >
-                          {obtenerTextoEstado(ultimaSolicitud.estado)}
+                          {obtenerTextoEstado(obtenerEstado(ultimaSolicitud))}
                         </span>
 
                         <button
                           className="detalle-button"
                           onClick={() =>
                             history.push(
-                              `/usuario/solicitud/${ultimaSolicitud.id}`
+                              `/usuario/solicitud/${obtenerId(ultimaSolicitud)}`
                             )
                           }
                         >
@@ -366,14 +802,11 @@ const InicioUsuario: React.FC = () => {
                         </button>
                       </div>
 
-                      {renderSeguimiento(ultimaSolicitud.estado)}
+                      {renderSeguimiento(ultimaSolicitud)}
 
                       <div className="info-alert">
                         <IonIcon icon={alertCircleOutline} />
-                        <span>
-                          {ultimaSolicitud.observacion ||
-                            "Tu solicitud se encuentra registrada y será revisada por el equipo municipal correspondiente."}
-                        </span>
+                        <span>{obtenerMensajeAlerta(ultimaSolicitud)}</span>
                       </div>
                     </div>
                   ) : (
@@ -400,7 +833,9 @@ const InicioUsuario: React.FC = () => {
 
                   <div className="quick-actions-grid">
                     <button
-                      onClick={() => history.push("/usuario/solicitar-patente")}
+                      onClick={() =>
+                        history.push("/usuario/nueva-solicitud/patente")
+                      }
                     >
                       <IonIcon icon={storefrontOutline} />
                       <strong>Patente comercial</strong>
@@ -454,32 +889,40 @@ const InicioUsuario: React.FC = () => {
                   </div>
 
                   <div className="notification-list">
-                    <div className="notification-row">
-                      <span className="notification-dot blue"></span>
-                      <IonIcon icon={documentTextOutline} />
-                      <strong>Actualización de trámite</strong>
-                      <p>
-                        Tu trámite {ultimaSolicitud?.id || "SOL-2026-0001"}{" "}
-                        cambió de estado.
-                      </p>
-                      <small>{ultimaSolicitud?.fechaRecibo || "Hoy"}</small>
-                    </div>
+                    {notificacionesRecientes.length > 0 ? (
+                      notificacionesRecientes.map((notificacion) => (
+                        <div
+                          className="notification-row"
+                          key={notificacion.id}
+                        >
+                          <span
+                            className={`notification-dot ${obtenerColorNotificacion(
+                              notificacion.tipo
+                            )}`}
+                          ></span>
 
-                    <div className="notification-row">
-                      <span className="notification-dot orange"></span>
-                      <IonIcon icon={folderOpenOutline} />
-                      <strong>Documentos requeridos</strong>
-                      <p>Se podrían solicitar antecedentes adicionales.</p>
-                      <small>Revisión municipal</small>
-                    </div>
+                          <IonIcon
+                            icon={obtenerIconoNotificacion(
+                              notificacion.tipo
+                            )}
+                          />
 
-                    <div className="notification-row">
-                      <span className="notification-dot green"></span>
-                      <IonIcon icon={checkmarkCircleOutline} />
-                      <strong>Trámite registrado</strong>
-                      <p>Tu solicitud fue registrada correctamente.</p>
-                      <small>Proceso iniciado</small>
-                    </div>
+                          <strong>{notificacion.titulo}</strong>
+
+                          <p>{notificacion.mensaje}</p>
+
+                          <small>{notificacion.fecha}</small>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="notification-row">
+                        <span className="notification-dot green"></span>
+                        <IonIcon icon={checkmarkCircleOutline} />
+                        <strong>Sin notificaciones recientes</strong>
+                        <p>No tienes avisos pendientes por revisar.</p>
+                        <small>Actualizado</small>
+                      </div>
+                    )}
                   </div>
                 </section>
               </div>
@@ -492,25 +935,29 @@ const InicioUsuario: React.FC = () => {
                   </h3>
 
                   <strong>
-                    {ultimaSolicitud?.fechaRecibo || "Sin registros"}
+                    {ultimaSolicitud
+                      ? formatearFecha(
+                          obtenerUltimaActualizacionRaw(ultimaSolicitud)
+                        )
+                      : "Sin registros"}
                   </strong>
 
                   <p>
                     {ultimaSolicitud
-                      ? `${ultimaSolicitud.tipoPatente} (${ultimaSolicitud.id})`
+                      ? `${obtenerTipoPatente(ultimaSolicitud)} (${obtenerId(
+                          ultimaSolicitud
+                        )})`
                       : "No existen solicitudes registradas."}
                   </p>
 
                   <span>
                     Estado actual:{" "}
                     {ultimaSolicitud
-                      ? obtenerTextoEstado(ultimaSolicitud.estado)
+                      ? obtenerTextoEstado(obtenerEstado(ultimaSolicitud))
                       : "Sin estado"}
                   </span>
 
-                  <button
-                    onClick={() => history.push("/usuario/mis-tramites")}
-                  >
+                  <button onClick={() => history.push("/usuario/mis-tramites")}>
                     Ver todo el historial{" "}
                     <IonIcon icon={arrowForwardOutline} />
                   </button>
@@ -522,7 +969,7 @@ const InicioUsuario: React.FC = () => {
                     Próximas acciones
                   </h3>
 
-                  <button className="action-row" type="button">
+                  <button className="action-row" type="button" onClick={irASubirDocumentos}>
                     <div className="action-icon orange">
                       <IonIcon icon={folderOpenOutline} />
                     </div>
@@ -545,7 +992,7 @@ const InicioUsuario: React.FC = () => {
 
                     <div>
                       <strong>Citas programadas</strong>
-                      <span>1 cita próxima esta semana</span>
+                      <span>Sin citas registradas</span>
                     </div>
 
                     <IonIcon icon={arrowForwardOutline} />
@@ -562,7 +1009,7 @@ const InicioUsuario: React.FC = () => {
 
                     <div>
                       <strong>Revisar avisos</strong>
-                      <span>{avisosNuevos} avisos sin leer</span>
+                      <span>{avisosNoLeidos} avisos sin leer</span>
                     </div>
 
                     <IonIcon icon={arrowForwardOutline} />

@@ -4,7 +4,6 @@ import {
   arrowBackOutline,
   arrowForwardOutline,
   briefcaseOutline,
-  calendarOutline,
   checkmarkCircleOutline,
   documentTextOutline,
   downloadOutline,
@@ -16,16 +15,13 @@ import {
   searchOutline,
   swapVerticalOutline,
   timeOutline,
-  warningOutline,
   bulbOutline,
   addCircleOutline,
 } from "ionicons/icons";
 import { useHistory } from "react-router-dom";
-import {
-  Solicitud,
-  solicitudesService,
-} from "../../services/solicitudesService";
+import type { Solicitud } from "../../services/solicitudesService";
 import { authService } from "../../services/authService";
+import { solicitudesApiService } from "../../services/solicitudesApiService";
 import "./MisTramites.css";
 
 interface UsuarioActual {
@@ -64,41 +60,50 @@ const MisTramites: React.FC = () => {
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [mostrarOrden, setMostrarOrden] = useState(false);
   const [paginaActual, setPaginaActual] = useState(1);
+  const [cargando, setCargando] = useState(false);
+  const [mensajeError, setMensajeError] = useState("");
 
   const registrosPorPagina = 5;
 
   useEffect(() => {
-    const usuarioGuardado =
-      localStorage.getItem("usuario_actual") ||
-      localStorage.getItem("usuarioActual") ||
-      localStorage.getItem("current_user");
+    const cargarDatos = async () => {
+      try {
+        setCargando(true);
+        setMensajeError("");
 
-    let usuario: UsuarioActual = {
-      nombre: "Usuario",
-      correo: "",
+        const usuario = authService.getUsuarioActual();
+
+        if (!usuario) {
+          history.push("/login-usuario");
+          return;
+        }
+
+        setUsuarioActual({
+          nombre: usuario.nombre,
+          correo: usuario.correo,
+          rut: usuario.rut,
+        });
+
+        const solicitudesBackend =
+          await solicitudesApiService.obtenerMisSolicitudes();
+
+        setSolicitudes(solicitudesBackend as Solicitud[]);
+      } catch (error: any) {
+        console.error("Error al cargar mis trámites:", error);
+
+        const mensajeBackend =
+          error.response?.data?.mensaje ||
+          error.response?.data?.error ||
+          "No se pudieron cargar tus trámites. Intenta nuevamente.";
+
+        setMensajeError(mensajeBackend);
+      } finally {
+        setCargando(false);
+      }
     };
 
-    if (usuarioGuardado) {
-      try {
-        usuario = JSON.parse(usuarioGuardado);
-      } catch (error) {
-        usuario = {
-          nombre: "Usuario",
-          correo: "",
-        };
-      }
-    }
-
-    setUsuarioActual(usuario);
-
-    const correo = usuario.correo || "";
-
-    if (correo) {
-      setSolicitudes(solicitudesService.obtenerSolicitudesPorUsuario(correo));
-    } else {
-      setSolicitudes(solicitudesService.obtenerSolicitudes());
-    }
-  }, []);
+    cargarDatos();
+  }, [history]);
 
   useEffect(() => {
     setPaginaActual(1);
@@ -135,27 +140,59 @@ const MisTramites: React.FC = () => {
     return obtenerValor(solicitud, "estado") || "Ingresada";
   };
 
+  const formatearFecha = (fecha: string) => {
+    if (!fecha || fecha === "Sin fecha") return "Sin fecha";
+
+    const fechaDate = new Date(fecha);
+
+    if (Number.isNaN(fechaDate.getTime())) {
+      return fecha;
+    }
+
+    return fechaDate.toLocaleDateString("es-CL", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
   const obtenerFechaIngreso = (solicitud: Solicitud) => {
-    return (
+    const fecha =
       obtenerValor(solicitud, "fechaRecibo") ||
       obtenerValor(solicitud, "fechaIngreso") ||
       obtenerValor(solicitud, "fecha") ||
-      "Sin fecha"
-    );
+      "Sin fecha";
+
+    return formatearFecha(fecha);
   };
 
   const obtenerUltimaActualizacion = (solicitud: Solicitud) => {
+    const fecha =
+      obtenerValor(solicitud, "ultimaActualizacion") ||
+      obtenerValor(solicitud, "fechaActualizacion") ||
+      obtenerValor(solicitud, "updatedAt") ||
+      obtenerValor(solicitud, "fechaIngreso") ||
+      obtenerValor(solicitud, "fechaRecibo") ||
+      "Sin fecha";
+
+    return formatearFecha(fecha);
+  };
+
+  const obtenerFechaOrden = (solicitud: Solicitud) => {
     return (
       obtenerValor(solicitud, "ultimaActualizacion") ||
       obtenerValor(solicitud, "fechaActualizacion") ||
       obtenerValor(solicitud, "updatedAt") ||
-      obtenerFechaIngreso(solicitud)
+      obtenerValor(solicitud, "fechaIngreso") ||
+      obtenerValor(solicitud, "fechaRecibo") ||
+      ""
     );
   };
 
   const obtenerEncargado = (solicitud: Solicitud) => {
     return (
       obtenerValor(solicitud, "encargado") ||
+      obtenerValor(solicitud, "funcionarioAsignado") ||
       obtenerValor(solicitud, "funcionario") ||
       obtenerValor(solicitud, "area") ||
       "Área municipal"
@@ -199,8 +236,10 @@ const MisTramites: React.FC = () => {
   const claseEstado = (estado: string) => {
     const estadoNormalizado = normalizarEstado(estado);
 
-    if (estadoNormalizado === "aprobada") return "badge-estado estado-aprobada";
-    if (estadoNormalizado === "rechazada") return "badge-estado estado-rechazada";
+    if (estadoNormalizado === "aprobada")
+      return "badge-estado estado-aprobada";
+    if (estadoNormalizado === "rechazada")
+      return "badge-estado estado-rechazada";
     if (estadoNormalizado === "pendiente_documentos")
       return "badge-estado estado-pendiente";
     if (estadoNormalizado === "en_revision")
@@ -212,6 +251,12 @@ const MisTramites: React.FC = () => {
   const convertirFechaOrden = (fecha: string) => {
     if (!fecha || fecha === "Sin fecha") return 0;
 
+    const fechaDate = new Date(fecha);
+
+    if (!Number.isNaN(fechaDate.getTime())) {
+      return fechaDate.getTime();
+    }
+
     const fechaLimpia = fecha.split(" ")[0];
     const partes = fechaLimpia.split("/");
 
@@ -219,12 +264,12 @@ const MisTramites: React.FC = () => {
       const dia = Number(partes[0]);
       const mes = Number(partes[1]) - 1;
       const anioTexto = partes[2];
-      const anio = anioTexto.length === 2 ? Number(`20${anioTexto}`) : Number(anioTexto);
+      const anio =
+        anioTexto.length === 2 ? Number(`20${anioTexto}`) : Number(anioTexto);
       return new Date(anio, mes, dia).getTime();
     }
 
-    const fechaDate = new Date(fecha);
-    return Number.isNaN(fechaDate.getTime()) ? 0 : fechaDate.getTime();
+    return 0;
   };
 
   const solicitudesFiltradas = useMemo(() => {
@@ -247,8 +292,8 @@ const MisTramites: React.FC = () => {
     resultado = [...resultado].sort((a, b) => {
       const idA = obtenerId(a);
       const idB = obtenerId(b);
-      const fechaA = convertirFechaOrden(obtenerUltimaActualizacion(a));
-      const fechaB = convertirFechaOrden(obtenerUltimaActualizacion(b));
+      const fechaA = convertirFechaOrden(obtenerFechaOrden(a));
+      const fechaB = convertirFechaOrden(obtenerFechaOrden(b));
       const estadoA = textoEstado(obtenerEstado(a));
       const estadoB = textoEstado(obtenerEstado(b));
 
@@ -381,6 +426,27 @@ const MisTramites: React.FC = () => {
           </header>
 
           <main className="mis-tramites-main">
+            {cargando && (
+              <section className="mis-tramites-advice">
+                <div>
+                  <h3>Cargando trámites...</h3>
+                  <p>
+                    Estamos obteniendo tus solicitudes desde el sistema
+                    municipal.
+                  </p>
+                </div>
+              </section>
+            )}
+
+            {mensajeError && (
+              <section className="mis-tramites-advice">
+                <div>
+                  <h3>No se pudieron cargar los trámites</h3>
+                  <p>{mensajeError}</p>
+                </div>
+              </section>
+            )}
+
             <section className="mis-tramites-title-card">
               <div className="mis-tramites-title-icon">
                 <IonIcon icon={folderOpenOutline} />
@@ -571,7 +637,11 @@ const MisTramites: React.FC = () => {
                             </td>
                             <td>{obtenerTramite(solicitud)}</td>
                             <td>
-                              <span className={claseEstado(obtenerEstado(solicitud))}>
+                              <span
+                                className={claseEstado(
+                                  obtenerEstado(solicitud)
+                                )}
+                              >
                                 {textoEstado(obtenerEstado(solicitud))}
                               </span>
                             </td>

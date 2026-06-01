@@ -1,0 +1,289 @@
+.agenda-funcionario-toolbar {
+  --background: #ffffff;
+  --color: #14345c;
+  border-bottom: 1px solid #e7edf5;
+}
+
+.agenda-funcionario-page {
+  --background: #f4f7fb;
+}
+
+.agenda-funcionario-hero {
+  margin: 18px 16px 12px;
+  padding: 22px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #123d6b 0%, #1d6fa5 55%, #25a4b8 100%);
+  color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0 14px 30px rgba(18, 61, 107, 0.22);
+}
+
+.agenda-funcionario-eyebrow {
+  margin: 0 0 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.agenda-funcionario-hero h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+}
+
+.agenda-funcionario-hero p {
+  margin: 8px 0 0;
+  max-width: 560px;
+  font-size: 0.96rem;
+  line-height: 1.5;
+  opacity: 0.92;
+}
+
+.agenda-funcionario-hero-icon {
+  min-width: 74px;
+  width: 74px;
+  height: 74px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.16);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.agenda-funcionario-hero-icon ion-icon {
+  font-size: 2.4rem;
+}
+
+.agenda-funcionario-loading,
+.agenda-funcionario-error,
+.agenda-funcionario-empty {
+  margin: 28px 16px;
+  padding: 28px 22px;
+  border-radius: 22px;
+  background: #ffffff;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(20, 52, 92, 0.08);
+}
+
+.agenda-funcionario-loading ion-spinner {
+  width: 38px;
+  height: 38px;
+  color: #1d6fa5;
+}
+
+.agenda-funcionario-loading p {
+  margin: 12px 0 0;
+  color: #4b6178;
+  font-weight: 600;
+}
+
+.agenda-funcionario-error ion-icon,
+.agenda-funcionario-empty ion-icon {
+  font-size: 3rem;
+  color: #1d6fa5;
+}
+
+.agenda-funcionario-error h2,
+.agenda-funcionario-empty h2 {
+  margin: 12px 0 8px;
+  color: #14345c;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.agenda-funcionario-error p,
+.agenda-funcionario-empty p {
+  margin: 0 auto 16px;
+  max-width: 520px;
+  color: #5b6f86;
+  line-height: 1.5;
+}
+
+.agenda-funcionario-list {
+  padding: 4px 16px 28px;
+}
+
+.agenda-funcionario-card {
+  margin: 14px 0;
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 10px 25px rgba(20, 52, 92, 0.08);
+  overflow: hidden;
+}
+
+.agenda-funcionario-card ion-card-content {
+  padding: 18px;
+}
+
+.agenda-funcionario-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.agenda-funcionario-card-label {
+  margin: 0 0 6px;
+  color: #7a8fa6;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.agenda-funcionario-card-header h2 {
+  margin: 0;
+  color: #14345c;
+  font-size: 1.05rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: capitalize;
+}
+
+.agenda-funcionario-card-header h2 ion-icon {
+  color: #1d6fa5;
+  font-size: 1.25rem;
+}
+
+.agenda-funcionario-badge {
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.agenda-funcionario-badge.estado-agendada {
+  --background: #e7f5ff;
+  --color: #146aa3;
+}
+
+.agenda-funcionario-badge.estado-pendiente {
+  --background: #fff4dd;
+  --color: #9a6400;
+}
+
+.agenda-funcionario-badge.estado-confirmada {
+  --background: #e8f8ef;
+  --color: #1f7a43;
+}
+
+.agenda-funcionario-badge.estado-realizada {
+  --background: #edf7ed;
+  --color: #2f7d32;
+}
+
+.agenda-funcionario-badge.estado-cancelada {
+  --background: #fdecec;
+  --color: #b42318;
+}
+
+.agenda-funcionario-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.agenda-funcionario-info-item {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #f7fafd;
+  border: 1px solid #edf2f7;
+}
+
+.agenda-funcionario-info-full {
+  grid-column: 1 / -1;
+}
+
+.agenda-funcionario-info-item ion-icon {
+  margin-top: 2px;
+  min-width: 22px;
+  color: #1d6fa5;
+  font-size: 1.25rem;
+}
+
+.agenda-funcionario-info-item span {
+  display: block;
+  margin-bottom: 4px;
+  color: #7a8fa6;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.agenda-funcionario-info-item strong {
+  display: block;
+  color: #14345c;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.agenda-funcionario-actions {
+  margin-top: 18px;
+}
+
+.agenda-funcionario-actions ion-button {
+  --background: #1d6fa5;
+  --background-hover: #185d8b;
+  --background-activated: #144e76;
+  --border-radius: 14px;
+  height: 46px;
+  font-weight: 800;
+  text-transform: none;
+}
+
+@media (max-width: 720px) {
+  .agenda-funcionario-hero {
+    align-items: flex-start;
+  }
+
+  .agenda-funcionario-hero-icon {
+    display: none;
+  }
+
+  .agenda-funcionario-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .agenda-funcionario-info-full {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .agenda-funcionario-hero {
+    margin: 14px 12px 10px;
+    padding: 20px;
+    border-radius: 22px;
+  }
+
+  .agenda-funcionario-hero h1 {
+    font-size: 1.55rem;
+  }
+
+  .agenda-funcionario-list {
+    padding: 2px 12px 24px;
+  }
+
+  .agenda-funcionario-card-header {
+    flex-direction: column;
+  }
+
+  .agenda-funcionario-badge {
+    align-self: flex-start;
+  }
+}

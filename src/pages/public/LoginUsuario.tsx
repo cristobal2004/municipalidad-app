@@ -10,7 +10,6 @@ import {
 } from "@ionic/react";
 import { useHistory } from "react-router-dom";
 import { authService } from "../../services/authService";
-import { usuariosService } from "../../services/usuariosService";
 import "./LoginUsuario.css";
 
 const LoginUsuario: React.FC = () => {
@@ -20,8 +19,9 @@ const LoginUsuario: React.FC = () => {
   const [password, setPassword] = useState("");
   const [recordarDatos, setRecordarDatos] = useState(false);
   const [mensajeError, setMensajeError] = useState("");
+  const [cargando, setCargando] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setMensajeError("");
 
     if (!correo.trim() || !password.trim()) {
@@ -29,21 +29,37 @@ const LoginUsuario: React.FC = () => {
       return;
     }
 
-    const resultado = usuariosService.loginUsuario(correo, password);
+    try {
+      setCargando(true);
 
-    if (!resultado.ok) {
-      setMensajeError(resultado.mensaje);
-      return;
+      const usuario = await authService.login({
+        correo,
+        password,
+      });
+
+      if (usuario.rol !== "usuario") {
+        authService.logout();
+        setMensajeError("Esta cuenta no corresponde a un usuario ciudadano.");
+        return;
+      }
+
+      history.push("/usuario/inicio");
+    } catch (error: any) {
+      const mensajeBackend =
+        error.response?.data?.mensaje ||
+        error.response?.data?.error ||
+        "No se pudo iniciar sesión. Verifica tus credenciales.";
+
+      setMensajeError(mensajeBackend);
+    } finally {
+      setCargando(false);
     }
-
-    authService.login("usuario");
-    history.push("/usuario/inicio");
   };
 
   const handleClaveUnica = () => {
-    usuariosService.loginConClaveUnica();
-    authService.login("usuario");
-    history.push("/usuario/inicio");
+    setMensajeError(
+      "La autenticación con ClaveÚnica quedará disponible en una integración futura. Para EP2 se usará inicio de sesión con correo y contraseña."
+    );
   };
 
   return (
@@ -111,8 +127,9 @@ const LoginUsuario: React.FC = () => {
                 expand="block"
                 className="login-main-button"
                 onClick={handleLogin}
+                disabled={cargando}
               >
-                Ingresar
+                {cargando ? "Ingresando..." : "Ingresar"}
               </IonButton>
 
               <div className="login-divider">

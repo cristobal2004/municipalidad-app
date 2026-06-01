@@ -24,11 +24,10 @@ import {
   timeOutline,
 } from "ionicons/icons";
 
-import {
-  Solicitud,
-  solicitudesService,
-} from "../../services/solicitudesService";
+import api from "../../services/api";
+import type { Solicitud } from "../../services/solicitudesService";
 import { authService } from "../../services/authService";
+import { solicitudesApiService } from "../../services/solicitudesApiService";
 import "./DetalleSolicitudUsuario.css";
 
 interface UsuarioActual {
@@ -44,6 +43,21 @@ interface DocumentoSolicitud {
   tipo: "pdf" | "imagen" | "doc";
 }
 
+interface DocumentoAdjunto {
+  id?: number | string;
+  nombre?: string;
+  nombre_archivo?: string;
+  descripcion?: string;
+  description?: string;
+  estado?: string;
+  tipo?: string;
+  type?: string;
+  size?: number;
+  url?: string;
+  rutaArchivo?: string;
+  ruta_archivo?: string;
+}
+
 interface EventoHistorial {
   fecha: string;
   titulo: string;
@@ -56,6 +70,10 @@ interface EventoHistorial {
     | "rechazada"
     | "comentario";
 }
+
+const API_BACKEND_URL =
+  import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "").replace(/\/$/, "") ||
+  "http://localhost:3000";
 
 const DetalleSolicitudUsuario: React.FC = () => {
   const history = useHistory();
@@ -76,17 +94,53 @@ const DetalleSolicitudUsuario: React.FC = () => {
   );
 
   const [archivosSubidos, setArchivosSubidos] = useState<File[]>([]);
+  const [cargando, setCargando] = useState(false);
+  const [subiendoDocumentos, setSubiendoDocumentos] = useState(false);
+  const [mensajeError, setMensajeError] = useState("");
+  const [mensajeAccion, setMensajeAccion] = useState("");
+  const [tipoMensajeAccion, setTipoMensajeAccion] = useState<
+    "exito" | "error" | ""
+  >("");
 
   const solicitudAnteriorRef = useRef<Solicitud | null>(null);
 
-  const obtenerValor = (objeto: any, campo: string, respaldo = "") => {
-    return objeto?.[campo] || respaldo;
+  const obtenerValor = (objeto: any, campo: string, respaldo: any = ""): any => {
+    const valor = objeto?.[campo];
+
+    if (valor === undefined || valor === null) {
+      return respaldo;
+    }
+
+    return valor;
+  };
+
+  const formatearFecha = (fecha: string) => {
+    if (!fecha || fecha === "Sin fecha" || fecha === "Sin actualización") {
+      return fecha;
+    }
+
+    const fechaDate = new Date(fecha);
+
+    if (Number.isNaN(fechaDate.getTime())) {
+      return fecha;
+    }
+
+    return fechaDate.toLocaleDateString("es-CL", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
   };
 
   const obtenerId = (item: any) => {
     if (!item) return "SIN-ID";
 
-    return obtenerValor(item, "id") || obtenerValor(item, "codigo") || "SIN-ID";
+    return (
+      obtenerValor(item, "id") ||
+      obtenerValor(item, "codigo") ||
+      obtenerValor(item, "solicitudId") ||
+      "SIN-ID"
+    );
   };
 
   const obtenerTramite = (item: any) => {
@@ -108,23 +162,27 @@ const DetalleSolicitudUsuario: React.FC = () => {
   const obtenerFechaIngreso = (item: any) => {
     if (!item) return "Sin fecha";
 
-    return (
+    const fecha =
       obtenerValor(item, "fechaRecibo") ||
       obtenerValor(item, "fechaIngreso") ||
       obtenerValor(item, "fecha") ||
-      "Sin fecha"
-    );
+      "Sin fecha";
+
+    return formatearFecha(fecha);
   };
 
   const obtenerUltimaActualizacion = (item: any) => {
     if (!item) return "Sin actualización";
 
-    return (
+    const fecha =
       obtenerValor(item, "ultimaActualizacion") ||
       obtenerValor(item, "fechaActualizacion") ||
       obtenerValor(item, "updatedAt") ||
-      obtenerFechaIngreso(item)
-    );
+      obtenerValor(item, "fechaIngreso") ||
+      obtenerValor(item, "fechaRecibo") ||
+      "Sin actualización";
+
+    return formatearFecha(fecha);
   };
 
   const obtenerArea = (item: any) => {
@@ -132,6 +190,7 @@ const DetalleSolicitudUsuario: React.FC = () => {
 
     return (
       obtenerValor(item, "area") ||
+      obtenerValor(item, "areaResponsable") ||
       obtenerValor(item, "departamento") ||
       "Dirección General"
     );
@@ -142,20 +201,31 @@ const DetalleSolicitudUsuario: React.FC = () => {
 
     return (
       obtenerValor(item, "encargado") ||
+      obtenerValor(item, "funcionarioAsignado") ||
       obtenerValor(item, "funcionario") ||
       "Funcionario municipal"
     );
   };
 
-  const obtenerObservacion = (item: any) => {
+  const obtenerObservacionSolicitante = (item: any) => {
+    if (!item) return "";
+
+    return (
+      obtenerValor(item, "observacionesSolicitante") ||
+      obtenerValor(item, "observacionSolicitante") ||
+      obtenerValor(item, "observacion") ||
+      obtenerValor(item, "observaciones") ||
+      ""
+    );
+  };
+
+  const obtenerObservacionFuncionario = (item: any) => {
     if (!item) return "";
 
     return (
       obtenerValor(item, "comentarioFuncionario") ||
-      obtenerValor(item, "comentario") ||
       obtenerValor(item, "observacionFuncionario") ||
-      obtenerValor(item, "observacion") ||
-      obtenerValor(item, "observaciones") ||
+      obtenerValor(item, "respuestaFuncionario") ||
       ""
     );
   };
@@ -166,8 +236,6 @@ const DetalleSolicitudUsuario: React.FC = () => {
     return (
       obtenerValor(item, "fechaComentario") ||
       obtenerValor(item, "fechaObservacion") ||
-      obtenerValor(item, "fechaActualizacion") ||
-      obtenerValor(item, "ultimaActualizacion") ||
       obtenerUltimaActualizacion(item)
     );
   };
@@ -185,17 +253,27 @@ const DetalleSolicitudUsuario: React.FC = () => {
       typeof documentosFaltantesRaw === "string" &&
       documentosFaltantesRaw.trim() !== ""
     ) {
-      return documentosFaltantesRaw
-        .split(",")
-        .map((documento) => documento.trim())
-        .filter((documento) => documento !== "");
+      try {
+        const documentosParseados = JSON.parse(documentosFaltantesRaw);
+
+        if (Array.isArray(documentosParseados)) {
+          return documentosParseados
+            .map((documento) => String(documento).trim())
+            .filter((documento) => documento !== "");
+        }
+      } catch {
+        return documentosFaltantesRaw
+          .split(",")
+          .map((documento) => documento.trim())
+          .filter((documento) => documento !== "");
+      }
     }
 
     return [];
   };
 
   const normalizarEstado = (estado: string) => {
-    const texto = estado.toLowerCase();
+    const texto = String(estado || "").toLowerCase();
 
     if (texto.includes("aprob")) return "aprobada";
     if (texto.includes("rechaz")) return "rechazada";
@@ -262,6 +340,69 @@ const DetalleSolicitudUsuario: React.FC = () => {
     return 1;
   };
 
+  const obtenerUrlDocumento = (documento: DocumentoAdjunto) => {
+    const url =
+      documento.url || documento.rutaArchivo || documento.ruta_archivo || "";
+
+    if (!url) return "";
+
+    if (url.startsWith("http")) {
+      return url;
+    }
+
+    if (url.startsWith("/")) {
+      return `${API_BACKEND_URL}${url}`;
+    }
+
+    return `${API_BACKEND_URL}/${url}`;
+  };
+
+  const obtenerNombreDocumento = (documento: DocumentoAdjunto) => {
+    return documento.nombre || documento.nombre_archivo || "Documento adjunto";
+  };
+
+  const obtenerDescripcionDocumento = (documento: DocumentoAdjunto) => {
+    return (
+      documento.description ||
+      documento.descripcion ||
+      "Documento adjuntado por el solicitante."
+    );
+  };
+
+  const obtenerTipoDocumento = (documento: DocumentoAdjunto) => {
+    const tipo = String(documento.type || documento.tipo || "").toLowerCase();
+    const nombre = obtenerNombreDocumento(documento).toLowerCase();
+
+    if (
+      tipo.includes("image") ||
+      nombre.endsWith(".jpg") ||
+      nombre.endsWith(".jpeg") ||
+      nombre.endsWith(".png")
+    ) {
+      return "imagen";
+    }
+
+    if (tipo.includes("pdf") || nombre.endsWith(".pdf")) {
+      return "pdf";
+    }
+
+    return "doc";
+  };
+
+  const formatearTamanoArchivo = (size?: number) => {
+    if (!size || Number.isNaN(size)) return "";
+
+    if (size < 1024) {
+      return `${size} bytes`;
+    }
+
+    if (size < 1024 * 1024) {
+      return `${(size / 1024).toFixed(1)} KB`;
+    }
+
+    return `${(size / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
   const registrarNotificacionLocal = (
     solicitudActualizada: Solicitud,
     estadoAnterior: string,
@@ -302,86 +443,69 @@ const DetalleSolicitudUsuario: React.FC = () => {
     window.dispatchEvent(new Event("notificacionesActualizadas"));
   };
 
-  const cargarSolicitud = (notificarCambio = false) => {
-    const usuarioGuardado =
-      localStorage.getItem("usuario_actual") ||
-      localStorage.getItem("usuarioActual") ||
-      localStorage.getItem("current_user");
-
-    let usuario: UsuarioActual = {
-      nombre: "Usuario",
-      correo: "",
-    };
-
-    if (usuarioGuardado) {
-      try {
-        usuario = JSON.parse(usuarioGuardado);
-      } catch {
-        usuario = {
-          nombre: "Usuario",
-          correo: "",
-        };
-      }
-    }
-
-    setUsuarioActual(usuario);
-
-    const correo = usuario.correo || "";
-
-    let solicitudes: Solicitud[] = [];
-
+  const cargarSolicitud = async (notificarCambio = false) => {
     try {
-      solicitudes = correo
-        ? solicitudesService.obtenerSolicitudesPorUsuario(correo)
-        : solicitudesService.obtenerSolicitudes();
-    } catch {
-      solicitudes = solicitudesService.obtenerSolicitudes();
-    }
+      setCargando(true);
+      setMensajeError("");
 
-    if (!Array.isArray(solicitudes) || solicitudes.length === 0) {
-      try {
-        const raw = localStorage.getItem("solicitudes");
-        const parseadas = raw ? JSON.parse(raw) : [];
-        solicitudes = Array.isArray(parseadas) ? parseadas : [];
-      } catch {
-        solicitudes = [];
+      const usuario = authService.getUsuarioActual();
+
+      if (!usuario) {
+        history.push("/login-usuario");
+        return;
       }
-    }
 
-    const solicitudEncontrada =
-      solicitudes.find((item: any) => obtenerId(item) === idParametro) ||
-      solicitudes[solicitudes.length - 1] ||
-      null;
+      setUsuarioActual({
+        nombre: usuario.nombre,
+        correo: usuario.correo,
+        rut: usuario.rut,
+      });
 
-    if (!solicitudEncontrada) {
-      setSolicitud(null);
-      return;
-    }
+      const solicitudEncontrada =
+        await solicitudesApiService.obtenerSolicitudPorId(idParametro);
 
-    const solicitudAnterior = solicitudAnteriorRef.current;
+      if (!solicitudEncontrada) {
+        setSolicitud(null);
+        return;
+      }
 
-    if (solicitudAnterior && notificarCambio) {
-      const estadoAnterior = obtenerEstado(solicitudAnterior);
-      const estadoNuevo = obtenerEstado(solicitudEncontrada);
+      const solicitudAnterior = solicitudAnteriorRef.current;
 
-      if (estadoAnterior !== estadoNuevo) {
-        setMensajeTiempoReal(
-          `Cambio detectado: el funcionario actualizó el estado a "${textoEstado(
+      if (solicitudAnterior && notificarCambio) {
+        const estadoAnterior = obtenerEstado(solicitudAnterior);
+        const estadoNuevo = obtenerEstado(solicitudEncontrada);
+
+        if (estadoAnterior !== estadoNuevo) {
+          setMensajeTiempoReal(
+            `Cambio detectado: el funcionario actualizó el estado a "${textoEstado(
+              estadoNuevo
+            )}".`
+          );
+
+          registrarNotificacionLocal(
+            solicitudEncontrada as Solicitud,
+            estadoAnterior,
             estadoNuevo
-          )}".`
-        );
-
-        registrarNotificacionLocal(
-          solicitudEncontrada,
-          estadoAnterior,
-          estadoNuevo
-        );
+          );
+        }
       }
-    }
 
-    solicitudAnteriorRef.current = solicitudEncontrada;
-    setSolicitud(solicitudEncontrada);
-    setUltimaSincronizacion("hace unos segundos");
+      solicitudAnteriorRef.current = solicitudEncontrada as Solicitud;
+      setSolicitud(solicitudEncontrada as Solicitud);
+      setUltimaSincronizacion("hace unos segundos");
+    } catch (error: any) {
+      console.error("Error al cargar detalle de solicitud:", error);
+
+      const mensajeBackend =
+        error.response?.data?.mensaje ||
+        error.response?.data?.error ||
+        "No se pudo cargar el detalle de la solicitud.";
+
+      setMensajeError(mensajeBackend);
+      setSolicitud(null);
+    } finally {
+      setCargando(false);
+    }
   };
 
   useEffect(() => {
@@ -389,26 +513,33 @@ const DetalleSolicitudUsuario: React.FC = () => {
 
     const intervalo = window.setInterval(() => {
       cargarSolicitud(true);
-    }, 1500);
+    }, 10000);
 
     const escucharCambios = () => {
       cargarSolicitud(true);
     };
 
-    window.addEventListener("storage", escucharCambios);
     window.addEventListener("focus", escucharCambios);
     window.addEventListener("solicitudesActualizadas", escucharCambios);
 
     return () => {
       window.clearInterval(intervalo);
-      window.removeEventListener("storage", escucharCambios);
       window.removeEventListener("focus", escucharCambios);
       window.removeEventListener("solicitudesActualizadas", escucharCambios);
     };
   }, [idParametro]);
 
+  const documentosAdjuntos: DocumentoAdjunto[] = useMemo(() => {
+    const documentosRaw = (solicitud as any)?.documentos;
+
+    if (Array.isArray(documentosRaw)) {
+      return documentosRaw;
+    }
+
+    return [];
+  }, [solicitud]);
+
   const documentosSolicitados: DocumentoSolicitud[] = useMemo(() => {
-    const estadoActual = normalizarEstado(obtenerEstado(solicitud));
     const documentosFaltantes = obtenerDocumentosFaltantes(solicitud);
 
     if (documentosFaltantes.length > 0) {
@@ -432,37 +563,7 @@ const DetalleSolicitudUsuario: React.FC = () => {
       });
     }
 
-    if (estadoActual === "aprobada") {
-      return [
-        {
-          nombre: "Formulario de solicitud.pdf",
-          descripcion: "Documento ingresado correctamente.",
-          estado: "Recibido",
-          tipo: "pdf",
-        },
-        {
-          nombre: "Certificado municipal.pdf",
-          descripcion: "Antecedente validado por el municipio.",
-          estado: "Recibido",
-          tipo: "pdf",
-        },
-      ];
-    }
-
-    return [
-      {
-        nombre: "Formulario de solicitud.pdf",
-        descripcion: "Documento ingresado correctamente.",
-        estado: "Recibido",
-        tipo: "pdf",
-      },
-      {
-        nombre: "Certificado municipal.pdf",
-        descripcion: "Antecedente validado por el municipio.",
-        estado: "Recibido",
-        tipo: "pdf",
-      },
-    ];
+    return [];
   }, [solicitud]);
 
   const historial: EventoHistorial[] = useMemo(() => {
@@ -487,7 +588,7 @@ const DetalleSolicitudUsuario: React.FC = () => {
     const estadoActual = normalizarEstado(obtenerEstado(solicitud));
     const fechaIngreso = obtenerFechaIngreso(solicitud);
     const ultimaActualizacion = obtenerUltimaActualizacion(solicitud);
-    const observacionFuncionario = obtenerObservacion(solicitud);
+    const observacionFuncionario = obtenerObservacionFuncionario(solicitud);
     const documentosFaltantes = obtenerDocumentosFaltantes(solicitud);
 
     const eventos: EventoHistorial[] = [
@@ -497,13 +598,22 @@ const DetalleSolicitudUsuario: React.FC = () => {
         descripcion: "Tu solicitud fue registrada correctamente.",
         tipo: "ingresada",
       },
-      {
-        fecha: fechaIngreso,
-        titulo: "En revisión",
-        descripcion: "Tu solicitud está siendo revisada por el área responsable.",
-        tipo: "revision",
-      },
     ];
+
+    if (
+      estadoActual === "en_revision" ||
+      estadoActual === "pendiente_documentos" ||
+      estadoActual === "aprobada" ||
+      estadoActual === "rechazada"
+    ) {
+      eventos.unshift({
+        fecha: ultimaActualizacion,
+        titulo: "En revisión",
+        descripcion:
+          "Tu solicitud está siendo revisada por el área responsable.",
+        tipo: "revision",
+      });
+    }
 
     if (observacionFuncionario.trim() !== "") {
       eventos.unshift({
@@ -559,7 +669,69 @@ const DetalleSolicitudUsuario: React.FC = () => {
 
   const manejarCargaArchivos = (event: React.ChangeEvent<HTMLInputElement>) => {
     const archivos = Array.from(event.target.files || []);
+
     setArchivosSubidos(archivos);
+    setMensajeAccion("");
+    setTipoMensajeAccion("");
+  };
+
+  const enviarDocumentosPendientes = async () => {
+    try {
+      if (!solicitud) return;
+
+      if (archivosSubidos.length === 0) {
+        setTipoMensajeAccion("error");
+        setMensajeAccion("Debes seleccionar al menos un documento para subir.");
+        return;
+      }
+
+      setSubiendoDocumentos(true);
+      setTipoMensajeAccion("");
+      setMensajeAccion("");
+
+      const formData = new FormData();
+
+      archivosSubidos.forEach((archivo) => {
+        formData.append("documentos", archivo);
+      });
+
+      const respuesta = await api.post(
+        `/solicitudes/${obtenerId(solicitud)}/documentos`,
+        formData
+      );
+
+      const solicitudActualizada = respuesta.data?.solicitud;
+
+      if (solicitudActualizada) {
+        setSolicitud(solicitudActualizada as Solicitud);
+        solicitudAnteriorRef.current = solicitudActualizada as Solicitud;
+      }
+
+      setArchivosSubidos([]);
+      setTipoMensajeAccion("exito");
+      setMensajeAccion(
+        "Documentos subidos correctamente. La solicitud volvió a estado En revisión."
+      );
+      setMensajeTiempoReal(
+        "Documentos recibidos: tu solicitud fue actualizada y enviada nuevamente a revisión."
+      );
+      setUltimaSincronizacion("hace unos segundos");
+
+      window.dispatchEvent(new Event("solicitudesActualizadas"));
+      window.dispatchEvent(new Event("notificacionesActualizadas"));
+    } catch (error: any) {
+      console.error("Error al subir documentos pendientes:", error);
+
+      const mensajeBackend =
+        error.response?.data?.mensaje ||
+        error.response?.data?.error ||
+        "No se pudieron subir los documentos.";
+
+      setTipoMensajeAccion("error");
+      setMensajeAccion(mensajeBackend);
+    } finally {
+      setSubiendoDocumentos(false);
+    }
   };
 
   const descargarComprobante = () => {
@@ -575,7 +747,19 @@ Fecha de ingreso: ${obtenerFechaIngreso(solicitud)}
 Área responsable: ${obtenerArea(solicitud)}
 Funcionario asignado: ${obtenerEncargado(solicitud)}
 Última actualización: ${obtenerUltimaActualizacion(solicitud)}
-Observación funcionario: ${obtenerObservacion(solicitud) || "Sin observaciones"}
+Observación del solicitante: ${
+      obtenerObservacionSolicitante(solicitud) ||
+      "Sin observaciones del solicitante"
+    }
+Observación funcionario: ${
+      obtenerObservacionFuncionario(solicitud) ||
+      "Sin observaciones del funcionario"
+    }
+Documentos adjuntos: ${
+      documentosAdjuntos.length > 0
+        ? documentosAdjuntos.map((doc) => obtenerNombreDocumento(doc)).join(", ")
+        : "Sin documentos adjuntos"
+    }
 Documentos faltantes: ${
       documentosFaltantes.length > 0
         ? documentosFaltantes.join(", ")
@@ -599,6 +783,47 @@ Documentos faltantes: ${
     seccionDocumentos?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  const irAAgendarFuncionario = () => {
+    history.push(
+      `/usuario/agendar-funcionario?solicitudId=${obtenerId(solicitud)}`
+    );
+  };
+
+  if (cargando && !solicitud) {
+    return (
+      <IonPage>
+        <IonContent fullscreen className="detalle-solicitud-content">
+          <div className="detalle-solicitud-wrapper">
+            <main className="detalle-solicitud-empty">
+              <IonIcon icon={refreshOutline} />
+              <h2>Cargando solicitud...</h2>
+              <p>Estamos obteniendo el detalle desde el sistema municipal.</p>
+            </main>
+          </div>
+        </IonContent>
+      </IonPage>
+    );
+  }
+
+  if (mensajeError && !solicitud) {
+    return (
+      <IonPage>
+        <IonContent fullscreen className="detalle-solicitud-content">
+          <div className="detalle-solicitud-wrapper">
+            <main className="detalle-solicitud-empty">
+              <IonIcon icon={alertCircleOutline} />
+              <h2>No se pudo cargar la solicitud</h2>
+              <p>{mensajeError}</p>
+              <button onClick={() => history.push("/usuario/mis-tramites")}>
+                Volver a mis trámites
+              </button>
+            </main>
+          </div>
+        </IonContent>
+      </IonPage>
+    );
+  }
+
   if (!solicitud) {
     return (
       <IonPage>
@@ -608,8 +833,8 @@ Documentos faltantes: ${
               <IonIcon icon={folderOpenOutline} />
               <h2>No se encontró la solicitud</h2>
               <p>
-                La solicitud seleccionada no existe o no está asociada al usuario
-                actual.
+                La solicitud seleccionada no existe o no está asociada al
+                usuario actual.
               </p>
               <button onClick={() => history.push("/usuario/mis-tramites")}>
                 Volver a mis trámites
@@ -635,7 +860,8 @@ Documentos faltantes: ${
     {
       numero: 2,
       titulo: "En revisión",
-      fecha: etapaActual >= 2 ? obtenerFechaIngreso(solicitud) : "Pendiente",
+      fecha:
+        etapaActual >= 2 ? obtenerUltimaActualizacion(solicitud) : "Pendiente",
       icono: refreshOutline,
     },
     {
@@ -651,18 +877,14 @@ Documentos faltantes: ${
       numero: 4,
       titulo: "Aprobación final",
       fecha:
-        etapaActual >= 4
-          ? obtenerUltimaActualizacion(solicitud)
-          : "Pendiente",
+        etapaActual >= 4 ? obtenerUltimaActualizacion(solicitud) : "Pendiente",
       icono: checkmarkCircleOutline,
     },
     {
       numero: 5,
       titulo: "Finalizada",
       fecha:
-        etapaActual >= 5
-          ? obtenerUltimaActualizacion(solicitud)
-          : "Pendiente",
+        etapaActual >= 5 ? obtenerUltimaActualizacion(solicitud) : "Pendiente",
       icono: checkmarkCircleOutline,
     },
   ];
@@ -687,7 +909,6 @@ Documentos faltantes: ${
                 title="Notificaciones"
               >
                 <IonIcon icon={notificationsOutline} />
-                <span>3</span>
               </button>
 
               <div className="detalle-user-chip">
@@ -851,6 +1072,88 @@ Documentos faltantes: ${
             <section className="comentario-funcionario-card">
               <div className="comentario-funcionario-header">
                 <div className="comentario-funcionario-icon">
+                  <IonIcon icon={businessOutline} />
+                </div>
+
+                <div>
+                  <h3>Datos ingresados por el solicitante</h3>
+                  <p>Información declarada al momento de crear la solicitud.</p>
+                </div>
+
+                <span>{obtenerFechaIngreso(solicitud)}</span>
+              </div>
+
+              <div className="comentario-funcionario-body">
+                <strong>Información del local</strong>
+
+                <p>
+                  <b>Razón social:</b>{" "}
+                  {obtenerValor(solicitud, "razonSocial") || "No informado"}
+                </p>
+
+                <p>
+                  <b>RUT:</b>{" "}
+                  {obtenerValor(solicitud, "rut") || "No informado"}
+                </p>
+
+                <p>
+                  <b>Dirección:</b>{" "}
+                  {obtenerValor(solicitud, "direccion") || "No informado"}
+                </p>
+
+                <p>
+                  <b>Tipo de patente:</b>{" "}
+                  {obtenerValor(solicitud, "tipoPatente") || "No informado"}
+                </p>
+
+                <p>
+                  <b>Rol de avalúo:</b>{" "}
+                  {obtenerValor(solicitud, "rolAvaluo") || "No informado"}
+                </p>
+
+                <p>
+                  <b>PyME:</b>{" "}
+                  {String(obtenerValor(solicitud, "pyme")) === "true" ||
+                  obtenerValor(solicitud, "pyme") === true
+                    ? "Sí"
+                    : "No"}
+                </p>
+
+                <p>
+                  <b>Correo de contacto:</b>{" "}
+                  {obtenerValor(solicitud, "correoContacto") ||
+                    obtenerValor(solicitud, "correo") ||
+                    "No informado"}
+                </p>
+
+                <p>
+                  <b>Teléfono de contacto:</b>{" "}
+                  {obtenerValor(solicitud, "telefonoContacto") ||
+                    obtenerValor(solicitud, "telefono") ||
+                    "No informado"}
+                </p>
+
+                <p>
+                  <b>Giro comercial:</b>{" "}
+                  {obtenerValor(solicitud, "giro") || "No informado"}
+                </p>
+
+                <p>
+                  <b>Superficie:</b>{" "}
+                  {obtenerValor(solicitud, "superficie") || "No informado"}
+                </p>
+
+                <p>
+                  <b>Observaciones del solicitante:</b>{" "}
+                  {obtenerObservacionSolicitante(solicitud) ||
+                    "Sin observaciones del solicitante."}
+                </p>
+              </div>
+            </section>
+
+            <section className="comentario-funcionario-card">
+              <div className="comentario-funcionario-header">
+                <div className="comentario-funcionario-icon">
                   <IonIcon icon={chatboxEllipsesOutline} />
                 </div>
 
@@ -865,10 +1168,10 @@ Documentos faltantes: ${
                 <span>{obtenerFechaComentario(solicitud)}</span>
               </div>
 
-              {obtenerObservacion(solicitud).trim() !== "" ? (
+              {obtenerObservacionFuncionario(solicitud).trim() !== "" ? (
                 <div className="comentario-funcionario-body">
                   <strong>{obtenerEncargado(solicitud)}</strong>
-                  <p>{obtenerObservacion(solicitud)}</p>
+                  <p>{obtenerObservacionFuncionario(solicitud)}</p>
                 </div>
               ) : (
                 <div className="comentario-funcionario-empty">
@@ -904,58 +1207,133 @@ Documentos faltantes: ${
 
             <section id="documentos-solicitados" className="documents-card">
               <div className="section-title">
-                <h3>Documentos solicitados</h3>
+                <h3>Documentos adjuntos</h3>
                 <p>
                   {hayDocumentosPendientes
-                    ? "Debes subir los documentos solicitados por el funcionario para continuar."
-                    : "Documentos asociados a esta solicitud."}
+                    ? "Documentos asociados a esta solicitud y requerimientos pendientes."
+                    : "Documentos reales adjuntados por el solicitante."}
                 </p>
               </div>
 
               <div className="documents-content">
                 <div className="documents-list">
-                  {documentosSolicitados.map((documento) => (
-                    <div className="document-row" key={documento.nombre}>
-                      <div className={`document-icon ${documento.tipo}`}>
-                        <IonIcon icon={documentTextOutline} />
-                      </div>
+                  {documentosAdjuntos.length > 0 ? (
+                    documentosAdjuntos.map((documento, index) => {
+                      const urlDocumento = obtenerUrlDocumento(documento);
+                      const tipoDocumento = obtenerTipoDocumento(documento);
+                      const nombreDocumento = obtenerNombreDocumento(documento);
+                      const tamanoArchivo = formatearTamanoArchivo(
+                        documento.size
+                      );
 
-                      <div>
-                        <strong>{documento.nombre}</strong>
-                        <span>{documento.descripcion}</span>
-                      </div>
+                      return (
+                        <div
+                          className="document-row"
+                          key={`${documento.id || nombreDocumento}-${index}`}
+                        >
+                          <div className={`document-icon ${tipoDocumento}`}>
+                            <IonIcon icon={documentTextOutline} />
+                          </div>
 
-                      <p
-                        className={`document-status ${
-                          documento.estado === "Recibido"
-                            ? "received"
-                            : documento.estado === "Rechazado"
-                            ? "rejected"
-                            : "pending"
-                        }`}
-                      >
-                        {documento.estado}
-                      </p>
-                    </div>
-                  ))}
+                          <div>
+                            <strong>{nombreDocumento}</strong>
+                            <span>{obtenerDescripcionDocumento(documento)}</span>
+                            {tamanoArchivo && <span>{tamanoArchivo}</span>}
+                          </div>
 
-                  {archivosSubidos.length > 0 && (
+                          <div>
+                            <p className="document-status received">
+                              {documento.estado || "Recibido"}
+                            </p>
+
+                            {urlDocumento && (
+                              <a
+                                href={urlDocumento}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-link-button"
+                              >
+                                Abrir documento
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
                     <div className="uploaded-files-box">
-                      <strong>Archivos seleccionados</strong>
-                      {archivosSubidos.map((archivo) => (
-                        <span key={archivo.name}>{archivo.name}</span>
-                      ))}
+                      <strong>No hay documentos adjuntos</strong>
+                      <span>
+                        Esta solicitud no tiene archivos reales asociados en la
+                        base de datos.
+                      </span>
+                    </div>
+                  )}
+
+                  {hayDocumentosPendientes &&
+                    documentosSolicitados.length > 0 && (
+                      <>
+                        <div className="uploaded-files-box">
+                          <strong>Documentos pendientes solicitados</strong>
+                          {documentosSolicitados.map((documento) => (
+                            <span key={documento.nombre}>
+                              {documento.nombre}
+                            </span>
+                          ))}
+                        </div>
+
+                        {archivosSubidos.length > 0 && (
+                          <div className="uploaded-files-box">
+                            <strong>Archivos seleccionados</strong>
+                            {archivosSubidos.map((archivo) => (
+                              <span key={archivo.name}>{archivo.name}</span>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                  {mensajeAccion && (
+                    <div className="uploaded-files-box">
+                      <strong>
+                        {tipoMensajeAccion === "exito"
+                          ? "Operación exitosa"
+                          : "Atención"}
+                      </strong>
+                      <span>{mensajeAccion}</span>
                     </div>
                   )}
                 </div>
 
-                <label className="upload-box">
-                  <input type="file" multiple onChange={manejarCargaArchivos} />
-                  <IonIcon icon={cloudUploadOutline} />
-                  <strong>Arrastra y suelta tus archivos aquí</strong>
-                  <span>o haz clic para seleccionar</span>
-                  <p>Formatos permitidos: PDF, JPG, PNG. Máx. 10 MB.</p>
-                </label>
+                {hayDocumentosPendientes && (
+                  <div>
+                    <label className="upload-box">
+                      <input
+                        type="file"
+                        multiple
+                        onChange={manejarCargaArchivos}
+                      />
+                      <IonIcon icon={cloudUploadOutline} />
+                      <strong>Arrastra y suelta tus archivos aquí</strong>
+                      <span>o haz clic para seleccionar</span>
+                      <p>Formatos permitidos: PDF, JPG, PNG. Máx. 10 MB.</p>
+                    </label>
+
+                    <button
+                      type="button"
+                      className="primary-button"
+                      onClick={enviarDocumentosPendientes}
+                      disabled={
+                        subiendoDocumentos || archivosSubidos.length === 0
+                      }
+                    >
+                      <IonIcon icon={cloudUploadOutline} />
+                      {subiendoDocumentos
+                        ? "Subiendo documentos..."
+                        : "Subir documentos pendientes"}
+                    </button>
+                  </div>
+                )}
               </div>
             </section>
 
@@ -1060,6 +1438,11 @@ Documentos faltantes: ${
               >
                 <IonIcon icon={arrowBackOutline} />
                 Volver a mis trámites
+              </button>
+
+              <button className="secondary-button" onClick={irAAgendarFuncionario}>
+                <IonIcon icon={calendarOutline} />
+                Agendar con funcionario
               </button>
 
               <button className="primary-button" onClick={descargarComprobante}>

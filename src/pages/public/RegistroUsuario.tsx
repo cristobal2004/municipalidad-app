@@ -11,7 +11,7 @@ import {
   IonSelectOption,
 } from "@ionic/react";
 import { useHistory } from "react-router-dom";
-import { usuariosService } from "../../services/usuariosService";
+import { authService } from "../../services/authService";
 import "./RegistroUsuario.css";
 
 const CrearCuentaUsuario: React.FC = () => {
@@ -29,8 +29,9 @@ const CrearCuentaUsuario: React.FC = () => {
 
   const [mensajeError, setMensajeError] = useState("");
   const [mensajeExito, setMensajeExito] = useState("");
+  const [cargando, setCargando] = useState(false);
 
-  const registrarCuenta = () => {
+  const registrarCuenta = async () => {
     setMensajeError("");
     setMensajeExito("");
 
@@ -48,6 +49,16 @@ const CrearCuentaUsuario: React.FC = () => {
       return;
     }
 
+    if (!correo.includes("@")) {
+      setMensajeError("Debe ingresar un correo electrónico válido.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setMensajeError("La contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
+
     if (password !== confirmarPassword) {
       setMensajeError("Las contraseñas no coinciden.");
       return;
@@ -58,26 +69,35 @@ const CrearCuentaUsuario: React.FC = () => {
       return;
     }
 
-    const resultado = usuariosService.registrarUsuario({
-      nombre,
-      rut,
-      correo,
-      region,
-      comuna,
-      tipoUsuario,
-      password,
-    });
+    try {
+      setCargando(true);
 
-    if (!resultado.ok) {
-      setMensajeError(resultado.mensaje);
-      return;
+      await authService.register({
+        nombre,
+        rut,
+        correo,
+        password,
+        region,
+        comuna,
+        tipoUsuario,
+        rol: "usuario",
+      });
+
+      setMensajeExito("Cuenta registrada correctamente. Redirigiendo al inicio...");
+
+      setTimeout(() => {
+        history.push("/usuario/inicio");
+      }, 1200);
+    } catch (error: any) {
+      const mensajeBackend =
+        error.response?.data?.mensaje ||
+        error.response?.data?.error ||
+        "No se pudo registrar la cuenta. Intenta nuevamente.";
+
+      setMensajeError(mensajeBackend);
+    } finally {
+      setCargando(false);
     }
-
-    setMensajeExito("Cuenta registrada correctamente. Redirigiendo al inicio de sesión...");
-
-    setTimeout(() => {
-      history.push("/login-usuario");
-    }, 1200);
   };
 
   return (
@@ -237,13 +257,17 @@ const CrearCuentaUsuario: React.FC = () => {
                 expand="block"
                 className="registro-button"
                 onClick={registrarCuenta}
+                disabled={cargando}
               >
-                Registrar cuenta
+                {cargando ? "Registrando..." : "Registrar cuenta"}
               </IonButton>
 
               <p className="registro-login-link">
                 ¿Ya tienes cuenta?{" "}
-                <button type="button" onClick={() => history.push("/login-usuario")}>
+                <button
+                  type="button"
+                  onClick={() => history.push("/login-usuario")}
+                >
                   Inicia sesión aquí
                 </button>
               </p>
