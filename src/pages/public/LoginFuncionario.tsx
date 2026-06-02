@@ -82,6 +82,13 @@ const LoginFuncionario: React.FC = () => {
           </header>
 
           <main className="login-funcionario-background">
+            
+            <IonButton
+              className="back-button"
+              onClick={() => history.push("/")}>
+              ← Volver
+            </IonButton>
+
             <section className="login-funcionario-card">
               <h2>Iniciar Sesión</h2>
 
@@ -122,15 +129,16 @@ const LoginFuncionario: React.FC = () => {
               </IonItem>
 
               <div className="login-funcionario-options">
-                <label className="login-funcionario-remember">
+                <label className="funcionario-remember-option">
                   <IonCheckbox
                     checked={recordarDatos}
                     onIonChange={(e) => setRecordarDatos(e.detail.checked)}
                   />
                   <span>Recordar mis datos</span>
                 </label>
+                
 
-                <button className="login-funcionario-forgot" type="button">
+                <button className="funcionario-forgot-button" type="button">
                   ¿Olvidaste tu contraseña?
                 </button>
               </div>

@@ -4,10 +4,9 @@
 
 .login-funcionario-wrapper {
   width: 100%;
-  max-width: 1120px;
-  min-height: 720px;
-  margin: 40px auto;
+  min-height: 100vh;
   background: #ffffff;
+
   display: flex;
   flex-direction: column;
 }
@@ -103,7 +102,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #555;
+  color: #555555;
   font-size: 11px;
 }
 
@@ -114,12 +113,12 @@
 .funcionario-forgot-button {
   background: transparent;
   border: none;
-  color: #006eb8;
+  color: #0874bb;
   font-size: 11px;
   cursor: pointer;
 }
 
-.funcionario-main-button {
+.login-funcionario-main-button{
   --background: #0874bb;
   --background-hover: #075e99;
   --border-radius: 4px;
@@ -148,9 +147,9 @@
   margin: 0;
 }
 
-.webauthn-button {
+.login-funcionario-webauthn-button {
   --background: #0874bb;
-  --background-hover: #075e99;
+  --background-hover: #0874bb;
   --border-radius: 4px;
   font-size: 12px;
   font-weight: 700;
@@ -197,4 +196,17 @@
     gap: 4px;
     text-align: center;
   }
+  
+.volver-atras-button {
+  --background: #0874bb;
+  --background-hover: #075e99;
+  --border-radius: 4px;
+
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: none;
+
+  margin-bottom: 12px;
+}
+
 }

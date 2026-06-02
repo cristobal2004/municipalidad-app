@@ -88,14 +88,12 @@
 
 .muni-page-wrapper {
   width: 100%;
-  max-width: 1180px;
-  min-height: 760px;
-  margin: 40px auto;
+  min-height: 100vh;
   background: #ffffff;
+
   display: flex;
   flex-direction: column;
 }
-
 .muni-header {
   height: 45px;
   background: #ffffff;

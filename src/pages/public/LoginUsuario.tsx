@@ -71,6 +71,12 @@ const LoginUsuario: React.FC = () => {
           </header>
 
           <main className="login-background">
+            <IonButton
+              className="volver-atras-button"
+              onClick={() => history.push("/")}>
+              ← Volver
+            </IonButton>
+            
             <button
               className="register-pill"
               onClick={() => history.push("/registro")}
