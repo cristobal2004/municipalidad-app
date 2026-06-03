@@ -1,0 +1,357 @@
+{
+  "info": {
+    "_postman_id": "f4f3036e-7f44-48f8-af62-d46a6724ecce",
+    "name": "Entrega P2 Pruebas POSTMAN",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "55472358",
+    "_collection_link": "https://go.postman.co/collection/55472358-f4f3036e-7f44-48f8-af62-d46a6724ecce?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Municipalidad App - EP2",
+      "item": [
+        {
+          "name": "01-health-api",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/health",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02 - Verificar conexión con base de datos",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/db-test",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "db-test"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "03-registro-usuario",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"nombre\": \"Usuario de Prueba\",\r\n  \"rut\": \"12345678-5\",\r\n  \"correo\": \"usuario.prueba@example.com\",\r\n  \"password\": \"ClaveSegura123\",\r\n  \"region\": \"Valparaíso\",\r\n  \"comuna\": \"Santo Domingo\",\r\n  \"tipoUsuario\": \"vecino\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/auth/register",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "04-login-exitoso",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"correo\": \"usuario.prueba@example.com\",\r\n  \"password\": \"ClaveSegura123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "05-login-error",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"correo\": \"usuario.prueba@example.com\",\r\n  \"password\": \"Incorrecta\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "06-ruta-protegida-sin-token",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/auth/me",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "07-ruta-protegida-con-token",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTUsInJvbCI6InVzdWFyaW8iLCJjb3JyZW8iOiJ1c3VhcmlvLnBydWViYUBleGFtcGxlLmNvbSIsImlhdCI6MTc4MDUyMjI0MCwiZXhwIjoxNzgwNTI5NDQwfQ.HEjPS_sA78jRzF5s3cagFOWQXp9pLea_KyVCOZEZTng",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/auth/me",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "08-crear-solicitud",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTUsInJvbCI6InVzdWFyaW8iLCJjb3JyZW8iOiJ1c3VhcmlvLnBydWViYUBleGFtcGxlLmNvbSIsImlhdCI6MTc4MDUyMjg2NywiZXhwIjoxNzgwNTMwMDY3fQ.CIaR5KIxzth7eZ0tZrwFwaWxuTQONFwrsLfvI4rYFYI",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"tipoTramite\": \"Patente comercial\",\r\n  \"razonSocial\": \"Almacén de Prueba\",\r\n  \"rut\": \"76543210-1\",\r\n  \"direccion\": \"Avenida Principal 123\",\r\n  \"tipoPatente\": \"Comercial\",\r\n  \"rolAvaluo\": \"123-45\",\r\n  \"pyme\": true,\r\n  \"correoContacto\": \"usuario.prueba@example.com\",\r\n  \"telefonoContacto\": \"+56912345678\",\r\n  \"giro\": \"Venta de alimentos\",\r\n  \"superficie\": \"45\",\r\n  \"observacionesSolicitante\": \"Solicitud creada desde Postman\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/solicitudes",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "solicitudes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "09-listar-solicitudes",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTUsInJvbCI6InVzdWFyaW8iLCJjb3JyZW8iOiJ1c3VhcmlvLnBydWViYUBleGFtcGxlLmNvbSIsImlhdCI6MTc4MDUyMjg2NywiZXhwIjoxNzgwNTMwMDY3fQ.CIaR5KIxzth7eZ0tZrwFwaWxuTQONFwrsLfvI4rYFYI",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/solicitudes/mis-solicitudes",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "solicitudes",
+                "mis-solicitudes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10-permisos-rol",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTUsInJvbCI6InVzdWFyaW8iLCJjb3JyZW8iOiJ1c3VhcmlvLnBydWViYUBleGFtcGxlLmNvbSIsImlhdCI6MTc4MDUyMjg2NywiZXhwIjoxNzgwNTMwMDY3fQ.CIaR5KIxzth7eZ0tZrwFwaWxuTQONFwrsLfvI4rYFYI",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/solicitudes/ID_DE_LA_SOLICITUD",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "solicitudes",
+                "ID_DE_LA_SOLICITUD"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "11-eliminar-solicitud",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTUsInJvbCI6InVzdWFyaW8iLCJjb3JyZW8iOiJ1c3VhcmlvLnBydWViYUBleGFtcGxlLmNvbSIsImlhdCI6MTc4MDUyMjg2NywiZXhwIjoxNzgwNTMwMDY3fQ.CIaR5KIxzth7eZ0tZrwFwaWxuTQONFwrsLfvI4rYFYI",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/api/solicitudes/SOL-2026-0011",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "solicitudes",
+                "SOL-2026-0011"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
