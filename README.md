@@ -148,8 +148,8 @@ DB_PORT=5432
 DB_NAME=municipalidad_app
 DB_USER=postgres
 DB_PASSWORD=tu_password
-JWT_SECRET=clave_secreta_para_jwt
-JWT_EXPIRES_IN=1d
+JWT_SECRET=municipalidad_app
+
 ```
 ----
 
@@ -377,3 +377,155 @@ https://github.com/cristobal2004/municipalidad-app
 ## Estado de la entrega
 
 Esta Entrega Parcial 2 incluye la integración entre frontend y backend, autenticación mediante JWT, conexión con base de datos relacional PostgreSQL, API REST funcional y evidencias de pruebas mediante Postman.
+
+## Cumplimiento de requerimientos de la Entrega Parcial 2
+
+### EP 2.1: Creación del servidor backend
+
+El backend fue desarrollado utilizando Node.js con Express.js.
+
+El servidor se encuentra ubicado en:
+
+```text
+municipalidad-backend/
+```
+
+La estructura del backend separa responsabilidades mediante rutas, controladores, middlewares y configuración de base de datos.
+
+Elementos principales:
+
+```text
+municipalidad-backend/src/routes/
+municipalidad-backend/src/controllers/
+municipalidad-backend/src/middlewares/
+municipalidad-backend/src/db/
+```
+
+El servidor expone una API REST disponible localmente en:
+
+```text
+http://localhost:3000/api
+```
+
+---
+
+### EP 2.2: Configuración y modelado de base de datos relacional
+
+El proyecto utiliza PostgreSQL como base de datos relacional.
+
+La base de datos considera tablas para:
+
+- usuarios
+- solicitudes
+- documentos
+- observaciones
+- agendamientos
+
+El modelo contempla relaciones entre usuarios y solicitudes, solicitudes y documentos, solicitudes y observaciones, y solicitudes y agendamientos.
+
+Los archivos SQL principales son:
+
+```text
+municipalidad-backend/src/db/schema.sql
+database/municipalidad_db_con_datos.sql
+```
+
+El archivo `schema.sql` corresponde al esquema limpio de la base de datos, mientras que `municipalidad_db_con_datos.sql` corresponde a una exportación con datos de prueba utilizados durante el desarrollo.
+
+---
+
+### EP 2.3: Desarrollo de API REST
+
+El backend implementa una API REST con endpoints para las principales entidades del sistema.
+
+Se utilizan métodos HTTP como:
+
+- GET
+- POST
+- PATCH
+- DELETE
+
+La API responde en formato JSON estructurado y utiliza códigos HTTP adecuados para representar resultados exitosos y errores.
+
+Algunos códigos utilizados son:
+
+- 200 OK
+- 201 Created
+- 400 Bad Request
+- 401 Unauthorized
+- 403 Forbidden
+- 404 Not Found
+- 409 Conflict
+- 500 Internal Server Error
+
+---
+
+### EP 2.4: Consumo de API REST desde Ionic + React
+
+El frontend consume la API REST utilizando Axios.
+
+La configuración principal de conexión se encuentra en:
+
+```text
+src/services/api.ts
+```
+
+En este archivo se define la URL base del backend mediante variable de entorno:
+
+```env
+VITE_API_URL=http://localhost:3000/api
+```
+
+También se implementa un interceptor para adjuntar automáticamente el token JWT en las peticiones protegidas mediante el encabezado:
+
+```text
+Authorization: Bearer <token>
+```
+
+Además, se maneja el error 401 para cerrar sesión o redirigir al usuario cuando el token no es válido o ha expirado.
+
+---
+
+### EP 2.5: Implementación de autenticación con JWT
+
+El sistema implementa autenticación mediante JSON Web Token.
+
+El flujo de autenticación considera:
+
+- Formulario de registro.
+- Formulario de inicio de sesión.
+- Generación de JWT desde el backend.
+- Almacenamiento del token en el frontend.
+- Validación del token mediante middleware.
+- Protección de rutas privadas.
+- Diferenciación de acceso según rol.
+
+Los roles utilizados por el sistema permiten diferenciar entre usuarios ciudadanos y funcionarios/administradores.
+
+La lógica principal de autenticación se encuentra en:
+
+```text
+municipalidad-backend/src/controllers/authController.js
+municipalidad-backend/src/middlewares/authMiddleware.js
+src/services/authService.ts
+src/routes/
+```
+
+---
+
+### EP 2.6: Validación de usuarios y manejo de sesiones
+
+El sistema implementa medidas básicas de validación y seguridad para el manejo de usuarios y sesiones.
+
+Entre las medidas implementadas se encuentran:
+
+- Validación de campos requeridos.
+- Validación de formato de correo electrónico.
+- Hash de contraseñas mediante bcrypt.
+- Comparación segura de contraseñas en el inicio de sesión.
+- Manejo de sesiones mediante JWT.
+- Protección de rutas privadas.
+- Uso de consultas parametrizadas para reducir el riesgo de inyección SQL.
+- Manejo de errores con respuestas JSON.
+
+El backend no almacena contraseñas en texto plano, sino que guarda el hash generado mediante bcrypt.
