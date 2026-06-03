@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS usuarios (
   comuna VARCHAR(80),
   tipo_usuario VARCHAR(50),
   area VARCHAR(100),
+  numero_empleado VARCHAR(50),
+  cargo VARCHAR(100),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -24,6 +26,12 @@ CREATE TABLE IF NOT EXISTS solicitudes (
   tipo_patente VARCHAR(100),
   rol_avaluo VARCHAR(80),
   pyme BOOLEAN DEFAULT false,
+  correo_contacto VARCHAR(120),
+  telefono_contacto VARCHAR(30),
+  giro VARCHAR(150),
+  superficie VARCHAR(50),
+  observaciones_solicitante TEXT,
+  prioridad VARCHAR(30) DEFAULT 'media',
   estado VARCHAR(30) NOT NULL DEFAULT 'pendiente'
     CHECK (estado IN ('pendiente', 'en_revision', 'observada', 'aprobada', 'rechazada')),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -35,9 +43,13 @@ CREATE TABLE IF NOT EXISTS documentos (
   solicitud_id INTEGER NOT NULL REFERENCES solicitudes(id) ON DELETE CASCADE,
   nombre_archivo VARCHAR(200) NOT NULL,
   tipo_documento VARCHAR(100),
+  tipo_archivo VARCHAR(100),
   ruta_archivo TEXT,
+  size_bytes INTEGER,
+  estado VARCHAR(30) DEFAULT 'recibido',
   estado_validacion VARCHAR(30) DEFAULT 'pendiente'
     CHECK (estado_validacion IN ('pendiente', 'aprobado', 'rechazado')),
+  descripcion TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
