@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict 1Km62ipnjKiswDi6CdWxUk3OwYuhCWi2JzUmFaiBccd385LtOG9g8goAoWrUIUy
+\restrict yazAXDENuzqjRar7inND7Pu2h6qHoiY0BrQfTaKWfhkbRvu9JzEqP47q0gwapBI
 
 -- Dumped from database version 18.4
 -- Dumped by pg_dump version 18.4
@@ -19,12 +19,44 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+ALTER TABLE IF EXISTS ONLY public.solicitudes DROP CONSTRAINT IF EXISTS solicitudes_usuario_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.solicitudes DROP CONSTRAINT IF EXISTS solicitudes_funcionario_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observaciones DROP CONSTRAINT IF EXISTS observaciones_solicitud_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observaciones DROP CONSTRAINT IF EXISTS observaciones_funcionario_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.documentos DROP CONSTRAINT IF EXISTS documentos_solicitud_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.agendamientos DROP CONSTRAINT IF EXISTS agendamientos_usuario_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.agendamientos DROP CONSTRAINT IF EXISTS agendamientos_solicitud_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.agendamientos DROP CONSTRAINT IF EXISTS agendamientos_funcionario_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.usuarios DROP CONSTRAINT IF EXISTS usuarios_rut_key;
+ALTER TABLE IF EXISTS ONLY public.usuarios DROP CONSTRAINT IF EXISTS usuarios_pkey;
+ALTER TABLE IF EXISTS ONLY public.usuarios DROP CONSTRAINT IF EXISTS usuarios_numero_empleado_key;
+ALTER TABLE IF EXISTS ONLY public.usuarios DROP CONSTRAINT IF EXISTS usuarios_correo_key;
+ALTER TABLE IF EXISTS ONLY public.solicitudes DROP CONSTRAINT IF EXISTS solicitudes_pkey;
+ALTER TABLE IF EXISTS ONLY public.solicitudes DROP CONSTRAINT IF EXISTS solicitudes_codigo_key;
+ALTER TABLE IF EXISTS ONLY public.observaciones DROP CONSTRAINT IF EXISTS observaciones_pkey;
+ALTER TABLE IF EXISTS ONLY public.documentos DROP CONSTRAINT IF EXISTS documentos_pkey;
+ALTER TABLE IF EXISTS ONLY public.agendamientos DROP CONSTRAINT IF EXISTS agendamientos_pkey;
+ALTER TABLE IF EXISTS public.usuarios ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.solicitudes ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.observaciones ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.documentos ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.agendamientos ALTER COLUMN id DROP DEFAULT;
+DROP SEQUENCE IF EXISTS public.usuarios_id_seq;
+DROP TABLE IF EXISTS public.usuarios;
+DROP SEQUENCE IF EXISTS public.solicitudes_id_seq;
+DROP TABLE IF EXISTS public.solicitudes;
+DROP SEQUENCE IF EXISTS public.observaciones_id_seq;
+DROP TABLE IF EXISTS public.observaciones;
+DROP SEQUENCE IF EXISTS public.documentos_id_seq;
+DROP TABLE IF EXISTS public.documentos;
+DROP SEQUENCE IF EXISTS public.agendamientos_id_seq;
+DROP TABLE IF EXISTS public.agendamientos;
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
 
 --
--- Name: agendamientos; Type: TABLE; Schema: public; Owner: postgres
+-- Name: agendamientos; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.agendamientos (
@@ -39,10 +71,8 @@ CREATE TABLE public.agendamientos (
 );
 
 
-ALTER TABLE public.agendamientos OWNER TO postgres;
-
 --
--- Name: agendamientos_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: agendamientos_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.agendamientos_id_seq
@@ -54,17 +84,15 @@ CREATE SEQUENCE public.agendamientos_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.agendamientos_id_seq OWNER TO postgres;
-
 --
--- Name: agendamientos_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: agendamientos_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.agendamientos_id_seq OWNED BY public.agendamientos.id;
 
 
 --
--- Name: documentos; Type: TABLE; Schema: public; Owner: postgres
+-- Name: documentos; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.documentos (
@@ -83,10 +111,8 @@ CREATE TABLE public.documentos (
 );
 
 
-ALTER TABLE public.documentos OWNER TO postgres;
-
 --
--- Name: documentos_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: documentos_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.documentos_id_seq
@@ -98,17 +124,15 @@ CREATE SEQUENCE public.documentos_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.documentos_id_seq OWNER TO postgres;
-
 --
--- Name: documentos_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: documentos_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.documentos_id_seq OWNED BY public.documentos.id;
 
 
 --
--- Name: observaciones; Type: TABLE; Schema: public; Owner: postgres
+-- Name: observaciones; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.observaciones (
@@ -122,10 +146,8 @@ CREATE TABLE public.observaciones (
 );
 
 
-ALTER TABLE public.observaciones OWNER TO postgres;
-
 --
--- Name: observaciones_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: observaciones_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.observaciones_id_seq
@@ -137,17 +159,15 @@ CREATE SEQUENCE public.observaciones_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.observaciones_id_seq OWNER TO postgres;
-
 --
--- Name: observaciones_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: observaciones_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.observaciones_id_seq OWNED BY public.observaciones.id;
 
 
 --
--- Name: solicitudes; Type: TABLE; Schema: public; Owner: postgres
+-- Name: solicitudes; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.solicitudes (
@@ -177,10 +197,8 @@ CREATE TABLE public.solicitudes (
 );
 
 
-ALTER TABLE public.solicitudes OWNER TO postgres;
-
 --
--- Name: solicitudes_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: solicitudes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.solicitudes_id_seq
@@ -192,17 +210,15 @@ CREATE SEQUENCE public.solicitudes_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.solicitudes_id_seq OWNER TO postgres;
-
 --
--- Name: solicitudes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: solicitudes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.solicitudes_id_seq OWNED BY public.solicitudes.id;
 
 
 --
--- Name: usuarios; Type: TABLE; Schema: public; Owner: postgres
+-- Name: usuarios; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.usuarios (
@@ -223,10 +239,8 @@ CREATE TABLE public.usuarios (
 );
 
 
-ALTER TABLE public.usuarios OWNER TO postgres;
-
 --
--- Name: usuarios_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: usuarios_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.usuarios_id_seq
@@ -238,52 +252,50 @@ CREATE SEQUENCE public.usuarios_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.usuarios_id_seq OWNER TO postgres;
-
 --
--- Name: usuarios_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: usuarios_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.usuarios_id_seq OWNED BY public.usuarios.id;
 
 
 --
--- Name: agendamientos id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: agendamientos id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.agendamientos ALTER COLUMN id SET DEFAULT nextval('public.agendamientos_id_seq'::regclass);
 
 
 --
--- Name: documentos id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: documentos id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.documentos ALTER COLUMN id SET DEFAULT nextval('public.documentos_id_seq'::regclass);
 
 
 --
--- Name: observaciones id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: observaciones id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.observaciones ALTER COLUMN id SET DEFAULT nextval('public.observaciones_id_seq'::regclass);
 
 
 --
--- Name: solicitudes id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: solicitudes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.solicitudes ALTER COLUMN id SET DEFAULT nextval('public.solicitudes_id_seq'::regclass);
 
 
 --
--- Name: usuarios id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: usuarios id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.usuarios ALTER COLUMN id SET DEFAULT nextval('public.usuarios_id_seq'::regclass);
 
 
 --
--- Data for Name: agendamientos; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: agendamientos; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.agendamientos (id, solicitud_id, usuario_id, funcionario_id, fecha_hora, estado, created_at) FROM stdin;
@@ -293,7 +305,7 @@ COPY public.agendamientos (id, solicitud_id, usuario_id, funcionario_id, fecha_h
 
 
 --
--- Data for Name: documentos; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: documentos; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.documentos (id, solicitud_id, nombre_archivo, tipo_documento, ruta_archivo, estado_validacion, created_at, tipo_archivo, size_bytes, estado, descripcion) FROM stdin;
@@ -310,7 +322,7 @@ COPY public.documentos (id, solicitud_id, nombre_archivo, tipo_documento, ruta_a
 
 
 --
--- Data for Name: observaciones; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: observaciones; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.observaciones (id, solicitud_id, funcionario_id, mensaje, estado_resultante, created_at) FROM stdin;
@@ -334,7 +346,7 @@ COPY public.observaciones (id, solicitud_id, funcionario_id, mensaje, estado_res
 
 
 --
--- Data for Name: solicitudes; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: solicitudes; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.solicitudes (id, codigo, usuario_id, funcionario_id, tipo_tramite, razon_social, rut_empresa, direccion, tipo_patente, rol_avaluo, pyme, estado, created_at, updated_at, correo_contacto, telefono_contacto, giro, superficie, observaciones_solicitante, prioridad, documentos_faltantes, fecha_limite_documentos) FROM stdin;
@@ -352,7 +364,7 @@ COPY public.solicitudes (id, codigo, usuario_id, funcionario_id, tipo_tramite, r
 
 
 --
--- Data for Name: usuarios; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: usuarios; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.usuarios (id, nombre, rut, correo, password_hash, rol, region, comuna, tipo_usuario, area, created_at, numero_empleado, cargo) FROM stdin;
@@ -368,42 +380,42 @@ COPY public.usuarios (id, nombre, rut, correo, password_hash, rol, region, comun
 
 
 --
--- Name: agendamientos_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: agendamientos_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.agendamientos_id_seq', 6, true);
 
 
 --
--- Name: documentos_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: documentos_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.documentos_id_seq', 9, true);
 
 
 --
--- Name: observaciones_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: observaciones_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.observaciones_id_seq', 16, true);
 
 
 --
--- Name: solicitudes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: solicitudes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.solicitudes_id_seq', 10, true);
 
 
 --
--- Name: usuarios_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: usuarios_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.usuarios_id_seq', 13, true);
 
 
 --
--- Name: agendamientos agendamientos_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: agendamientos agendamientos_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.agendamientos
@@ -411,7 +423,7 @@ ALTER TABLE ONLY public.agendamientos
 
 
 --
--- Name: documentos documentos_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: documentos documentos_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.documentos
@@ -419,7 +431,7 @@ ALTER TABLE ONLY public.documentos
 
 
 --
--- Name: observaciones observaciones_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: observaciones observaciones_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.observaciones
@@ -427,7 +439,7 @@ ALTER TABLE ONLY public.observaciones
 
 
 --
--- Name: solicitudes solicitudes_codigo_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: solicitudes solicitudes_codigo_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.solicitudes
@@ -435,7 +447,7 @@ ALTER TABLE ONLY public.solicitudes
 
 
 --
--- Name: solicitudes solicitudes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: solicitudes solicitudes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.solicitudes
@@ -443,7 +455,7 @@ ALTER TABLE ONLY public.solicitudes
 
 
 --
--- Name: usuarios usuarios_correo_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: usuarios usuarios_correo_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.usuarios
@@ -451,7 +463,7 @@ ALTER TABLE ONLY public.usuarios
 
 
 --
--- Name: usuarios usuarios_numero_empleado_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: usuarios usuarios_numero_empleado_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.usuarios
@@ -459,7 +471,7 @@ ALTER TABLE ONLY public.usuarios
 
 
 --
--- Name: usuarios usuarios_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: usuarios usuarios_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.usuarios
@@ -467,7 +479,7 @@ ALTER TABLE ONLY public.usuarios
 
 
 --
--- Name: usuarios usuarios_rut_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: usuarios usuarios_rut_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.usuarios
@@ -475,7 +487,7 @@ ALTER TABLE ONLY public.usuarios
 
 
 --
--- Name: agendamientos agendamientos_funcionario_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: agendamientos agendamientos_funcionario_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.agendamientos
@@ -483,7 +495,7 @@ ALTER TABLE ONLY public.agendamientos
 
 
 --
--- Name: agendamientos agendamientos_solicitud_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: agendamientos agendamientos_solicitud_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.agendamientos
@@ -491,7 +503,7 @@ ALTER TABLE ONLY public.agendamientos
 
 
 --
--- Name: agendamientos agendamientos_usuario_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: agendamientos agendamientos_usuario_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.agendamientos
@@ -499,7 +511,7 @@ ALTER TABLE ONLY public.agendamientos
 
 
 --
--- Name: documentos documentos_solicitud_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: documentos documentos_solicitud_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.documentos
@@ -507,7 +519,7 @@ ALTER TABLE ONLY public.documentos
 
 
 --
--- Name: observaciones observaciones_funcionario_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: observaciones observaciones_funcionario_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.observaciones
@@ -515,7 +527,7 @@ ALTER TABLE ONLY public.observaciones
 
 
 --
--- Name: observaciones observaciones_solicitud_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: observaciones observaciones_solicitud_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.observaciones
@@ -523,7 +535,7 @@ ALTER TABLE ONLY public.observaciones
 
 
 --
--- Name: solicitudes solicitudes_funcionario_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: solicitudes solicitudes_funcionario_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.solicitudes
@@ -531,7 +543,7 @@ ALTER TABLE ONLY public.solicitudes
 
 
 --
--- Name: solicitudes solicitudes_usuario_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: solicitudes solicitudes_usuario_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.solicitudes
@@ -542,5 +554,5 @@ ALTER TABLE ONLY public.solicitudes
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 1Km62ipnjKiswDi6CdWxUk3OwYuhCWi2JzUmFaiBccd385LtOG9g8goAoWrUIUy
+\unrestrict yazAXDENuzqjRar7inND7Pu2h6qHoiY0BrQfTaKWfhkbRvu9JzEqP47q0gwapBI
 
