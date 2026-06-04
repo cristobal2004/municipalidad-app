@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { IonContent, IonIcon, IonPage } from "@ionic/react";
-import { useHistory, useParams } from "react-router-dom";
+import { useHistory, useLocation, useParams } from "react-router-dom";
 import {
   alertCircleOutline,
   arrowBackOutline,
@@ -48,6 +48,12 @@ interface DocumentoAdjunto {
   createdAt?: string;
 }
 
+interface LocationState {
+  volverA?: string;
+  textoVolver?: string;
+  textoOrigen?: string;
+}
+
 const documentosDisponibles = [
   "Cédula de identidad",
   "Certificado de residencia",
@@ -59,9 +65,18 @@ const documentosDisponibles = [
 
 const DetalleSolicitudFuncionario: React.FC = () => {
   const history = useHistory();
+  const location = useLocation<LocationState>();
   const params = useParams<{ id?: string; solicitudId?: string }>();
 
   const idParametro = params.id || params.solicitudId || "";
+
+  const rutaVolver = location.state?.volverA || "/funcionario/solicitudes";
+  const textoVolver = location.state?.textoVolver || "Volver a solicitudes";
+  const textoOrigen = location.state?.textoOrigen || "Solicitudes";
+
+  const volverPaginaAnterior = () => {
+    history.push(rutaVolver);
+  };
 
   const [usuarioActual, setUsuarioActual] = useState<UsuarioActual>({
     nombre: "Funcionario",
@@ -473,7 +488,10 @@ const DetalleSolicitudFuncionario: React.FC = () => {
           fechaLimiteDocumentos: fechaLimite,
         });
       } catch (errorPut: any) {
-        if (errorPut.response?.status === 404 || errorPut.response?.status === 405) {
+        if (
+          errorPut.response?.status === 404 ||
+          errorPut.response?.status === 405
+        ) {
           respuesta = await api.patch(`/solicitudes/${obtenerId(solicitud)}`, {
             estado: estadoBackend,
             observacion,
@@ -572,9 +590,7 @@ const DetalleSolicitudFuncionario: React.FC = () => {
                   {mensajeError ||
                     "La solicitud seleccionada no está disponible."}
                 </p>
-                <button onClick={() => history.push("/funcionario/solicitudes")}>
-                  Volver a solicitudes
-                </button>
+                <button onClick={volverPaginaAnterior}>{textoVolver}</button>
               </section>
             </main>
           </div>
@@ -616,9 +632,9 @@ const DetalleSolicitudFuncionario: React.FC = () => {
 
           <main className="detalle-funcionario-main">
             <section className="detalle-funcionario-breadcrumb">
-              <button onClick={() => history.push("/funcionario/solicitudes")}>
+              <button onClick={volverPaginaAnterior}>
                 <IonIcon icon={homeOutline} />
-                Solicitudes
+                {textoOrigen}
               </button>
               <span>/</span>
               <p>Detalle de solicitud</p>
@@ -984,9 +1000,9 @@ const DetalleSolicitudFuncionario: React.FC = () => {
             </section>
 
             <section className="detalle-funcionario-bottom">
-              <button onClick={() => history.push("/funcionario/solicitudes")}>
+              <button onClick={volverPaginaAnterior}>
                 <IonIcon icon={arrowBackOutline} />
-                Volver a solicitudes
+                {textoVolver}
               </button>
             </section>
           </main>
