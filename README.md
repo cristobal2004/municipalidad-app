@@ -132,7 +132,11 @@ cd municipalidad-app
 
 ### Frontend
 
-Crear un archivo `.env` en la raíz del proyecto frontend con el siguiente contenido:
+Crear un archivo `.env` en la raíz del proyecto frontend 
+```bash
+code .env
+```
+con el siguiente contenido:
 
 ```env
 VITE_API_URL=http://localhost:3000/api
@@ -140,7 +144,13 @@ VITE_API_URL=http://localhost:3000/api
 
 ### Backend
 
-Crear un archivo `.env` dentro de la carpeta `municipalidad-backend` con el siguiente contenido:
+Crear un archivo `.env` dentro de la carpeta `municipalidad-backend` 
+
+```bash
+cd municipalidad-backend
+```
+
+con el siguiente contenido:
 
 ```env
 PORT=3000
@@ -148,7 +158,9 @@ DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=municipalidad_app
 DB_USER=postgres
-DB_PASSWORD=tu_password
+
+DB_PASSWORD=tu_password_sql Es importante colocar tu contraseña de postgres!!!!!
+
 JWT_SECRET=municipalidad_app
 ```
 
