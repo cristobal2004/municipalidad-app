@@ -50,6 +50,16 @@ const SolicitudesAsignadas: React.FC = () => {
   const [cargando, setCargando] = useState(false);
   const [mensajeError, setMensajeError] = useState("");
 
+  const [mostrarFiltros, setMostrarFiltros] = useState(false);
+  const [mostrarOrden, setMostrarOrden] = useState(false);
+  const [filtroEstado, setFiltroEstado] = useState("todos");
+  const [filtroPrioridad, setFiltroPrioridad] = useState("todas");
+  const [ordenCampo, setOrdenCampo] = useState("fecha");
+  const [ordenDireccion, setOrdenDireccion] = useState<"asc" | "desc">("desc");
+  const [solicitudesSeleccionadas, setSolicitudesSeleccionadas] = useState<
+    string[]
+  >([]);
+
   const registrosPorPagina = 5;
 
   const obtenerValor = (objeto: any, campo: string, respaldo: any = ""): any => {
@@ -212,6 +222,19 @@ const SolicitudesAsignadas: React.FC = () => {
     );
   };
 
+  const obtenerFechaOrden = (item: any) => {
+    const fecha =
+      obtenerValor(item, "fechaReporte") ||
+      obtenerValor(item, "fechaRecibo") ||
+      obtenerValor(item, "fechaIngreso") ||
+      obtenerValor(item, "fecha") ||
+      "";
+
+    const tiempo = new Date(fecha).getTime();
+
+    return Number.isNaN(tiempo) ? 0 : tiempo;
+  };
+
   const normalizarEstado = (estado: string) => {
     const texto = normalizarTexto(estado);
 
@@ -313,8 +336,69 @@ const SolicitudesAsignadas: React.FC = () => {
       });
     }
 
+    if (filtroEstado !== "todos") {
+      resultado = resultado.filter(
+        (solicitud) =>
+          normalizarEstado(obtenerEstado(solicitud)) === filtroEstado
+      );
+    }
+
+    if (filtroPrioridad !== "todas") {
+      resultado = resultado.filter(
+        (solicitud) =>
+          normalizarPrioridad(obtenerPrioridad(solicitud)) === filtroPrioridad
+      );
+    }
+
+    resultado.sort((a, b) => {
+      let valorA: string | number = "";
+      let valorB: string | number = "";
+
+      if (ordenCampo === "fecha") {
+        valorA = obtenerFechaOrden(a);
+        valorB = obtenerFechaOrden(b);
+      }
+
+      if (ordenCampo === "id") {
+        valorA = String(obtenerCodigo(a));
+        valorB = String(obtenerCodigo(b));
+      }
+
+      if (ordenCampo === "solicitante") {
+        valorA = normalizarTexto(obtenerSolicitante(a));
+        valorB = normalizarTexto(obtenerSolicitante(b));
+      }
+
+      if (ordenCampo === "estado") {
+        valorA = normalizarTexto(obtenerEstado(a));
+        valorB = normalizarTexto(obtenerEstado(b));
+      }
+
+      if (ordenCampo === "prioridad") {
+        valorA = normalizarTexto(obtenerPrioridad(a));
+        valorB = normalizarTexto(obtenerPrioridad(b));
+      }
+
+      let comparacion = 0;
+
+      if (typeof valorA === "number" && typeof valorB === "number") {
+        comparacion = valorA - valorB;
+      } else {
+        comparacion = String(valorA).localeCompare(String(valorB));
+      }
+
+      return ordenDireccion === "asc" ? comparacion : -comparacion;
+    });
+
     return resultado;
-  }, [solicitudes, busqueda]);
+  }, [
+    solicitudes,
+    busqueda,
+    filtroEstado,
+    filtroPrioridad,
+    ordenCampo,
+    ordenDireccion,
+  ]);
 
   const totalPaginas = Math.max(
     1,
@@ -328,7 +412,7 @@ const SolicitudesAsignadas: React.FC = () => {
 
   useEffect(() => {
     setPaginaActual(1);
-  }, [busqueda]);
+  }, [busqueda, filtroEstado, filtroPrioridad, ordenCampo, ordenDireccion]);
 
   const totalAsignadas = solicitudesFiltradas.length;
 
@@ -356,6 +440,286 @@ const SolicitudesAsignadas: React.FC = () => {
 
   const irPanel = () => {
     history.push("/funcionario/inicio");
+  };
+
+  const limpiarFiltros = () => {
+    setBusqueda("");
+    setFiltroEstado("todos");
+    setFiltroPrioridad("todas");
+    setPaginaActual(1);
+  };
+
+  const cambiarSeleccionSolicitud = (solicitud: any) => {
+    const codigo = String(obtenerCodigo(solicitud));
+
+    setSolicitudesSeleccionadas((prev) =>
+      prev.includes(codigo)
+        ? prev.filter((item) => item !== codigo)
+        : [...prev, codigo]
+    );
+  };
+
+  const seleccionarPaginaActual = (seleccionado: boolean) => {
+    const codigosPagina = solicitudesPagina.map((solicitud) =>
+      String(obtenerCodigo(solicitud))
+    );
+
+    if (seleccionado) {
+      setSolicitudesSeleccionadas((prev) =>
+        Array.from(new Set([...prev, ...codigosPagina]))
+      );
+    } else {
+      setSolicitudesSeleccionadas((prev) =>
+        prev.filter((codigo) => !codigosPagina.includes(codigo))
+      );
+    }
+  };
+
+  const obtenerSolicitudesParaExportar = () => {
+    if (solicitudesSeleccionadas.length === 0) {
+      return solicitudesFiltradas;
+    }
+
+    return solicitudesFiltradas.filter((solicitud) =>
+      solicitudesSeleccionadas.includes(String(obtenerCodigo(solicitud)))
+    );
+  };
+
+  const escaparCsv = (valor: any) => {
+    const texto = String(valor ?? "").replace(/"/g, '""');
+    return `"${texto}"`;
+  };
+
+  const escaparHtml = (valor: any) => {
+    return String(valor ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  };
+
+  const exportarCsv = () => {
+    const datos = obtenerSolicitudesParaExportar();
+
+    if (datos.length === 0) {
+      alert("No hay solicitudes para exportar.");
+      return;
+    }
+
+    const encabezados = [
+      "ID",
+      "Solicitante",
+      "RUT",
+      "Trámite",
+      "Estado",
+      "Prioridad",
+      "Fecha reporte",
+      "Observaciones",
+    ];
+
+    const filas = datos.map((solicitud) => [
+      obtenerCodigo(solicitud),
+      obtenerSolicitante(solicitud),
+      obtenerRut(solicitud),
+      obtenerTramite(solicitud),
+      obtenerEstado(solicitud),
+      obtenerPrioridad(solicitud),
+      obtenerFecha(solicitud),
+      obtenerObservacion(solicitud),
+    ]);
+
+    const contenidoCsv = [
+      encabezados.map(escaparCsv).join(";"),
+      ...filas.map((fila) => fila.map(escaparCsv).join(";")),
+    ].join("\n");
+
+    const blob = new Blob(["\ufeff" + contenidoCsv], {
+      type: "text/csv;charset=utf-8;",
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = `solicitudes_asignadas_${new Date()
+      .toISOString()
+      .slice(0, 10)}.csv`;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const exportarReportePdf = () => {
+    const datos = obtenerSolicitudesParaExportar();
+
+    if (datos.length === 0) {
+      alert("No hay solicitudes para exportar.");
+      return;
+    }
+
+    const filasHtml = datos
+      .map(
+        (solicitud) => `
+          <tr>
+            <td>${escaparHtml(obtenerCodigo(solicitud))}</td>
+            <td>${escaparHtml(obtenerSolicitante(solicitud))}</td>
+            <td>${escaparHtml(obtenerTramite(solicitud))}</td>
+            <td>${escaparHtml(obtenerEstado(solicitud))}</td>
+            <td>${escaparHtml(obtenerPrioridad(solicitud))}</td>
+            <td>${escaparHtml(obtenerFecha(solicitud))}</td>
+            <td>${escaparHtml(obtenerObservacion(solicitud))}</td>
+          </tr>
+        `
+      )
+      .join("");
+
+    const ventana = window.open("", "_blank");
+
+    if (!ventana) {
+      alert("El navegador bloqueó la ventana emergente del reporte.");
+      return;
+    }
+
+    ventana.document.write(`
+      <html>
+        <head>
+          <title>Reporte solicitudes asignadas</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              padding: 28px;
+              color: #111827;
+            }
+
+            h1 {
+              color: #0057b8;
+              margin-bottom: 4px;
+            }
+
+            .subtitulo {
+              color: #4b5563;
+              margin-bottom: 22px;
+            }
+
+            .kpis {
+              display: grid;
+              grid-template-columns: repeat(4, 1fr);
+              gap: 10px;
+              margin-bottom: 22px;
+            }
+
+            .kpi {
+              border: 1px solid #d9e1ea;
+              border-radius: 8px;
+              padding: 12px;
+            }
+
+            .kpi span {
+              display: block;
+              color: #4b5563;
+              font-size: 12px;
+            }
+
+            .kpi strong {
+              display: block;
+              color: #0057b8;
+              font-size: 22px;
+              margin-top: 4px;
+            }
+
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              font-size: 11px;
+            }
+
+            th {
+              background: #edf4ff;
+              color: #111827;
+              text-align: left;
+              padding: 8px;
+              border: 1px solid #d9e1ea;
+            }
+
+            td {
+              padding: 8px;
+              border: 1px solid #d9e1ea;
+              vertical-align: top;
+            }
+
+            @media print {
+              button {
+                display: none;
+              }
+            }
+          </style>
+        </head>
+
+        <body>
+          <h1>Reporte de solicitudes asignadas</h1>
+          <p class="subtitulo">
+            Funcionario: ${escaparHtml(usuarioActual.nombre || "Funcionario")} · 
+            Fecha: ${new Date().toLocaleDateString("es-CL")}
+          </p>
+
+          <section class="kpis">
+            <div class="kpi">
+              <span>Asignadas a mí</span>
+              <strong>${totalAsignadas}</strong>
+            </div>
+
+            <div class="kpi">
+              <span>En revisión</span>
+              <strong>${totalRevision}</strong>
+            </div>
+
+            <div class="kpi">
+              <span>Pendientes</span>
+              <strong>${totalPendientes}</strong>
+            </div>
+
+            <div class="kpi">
+              <span>Resueltas</span>
+              <strong>${totalResueltas}</strong>
+            </div>
+          </section>
+
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Solicitante</th>
+                <th>Trámite</th>
+                <th>Estado</th>
+                <th>Prioridad</th>
+                <th>Fecha</th>
+                <th>Observaciones</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              ${filasHtml}
+            </tbody>
+          </table>
+
+          <script>
+            window.onload = function() {
+              window.print();
+            };
+          </script>
+        </body>
+      </html>
+    `);
+
+    ventana.document.close();
+  };
+
+  const irAyuda = () => {
+    alert(
+      "Para soporte técnico, revisa el manual de usuario o contacta al administrador del sistema."
+    );
   };
 
   return (
@@ -476,17 +840,31 @@ const SolicitudesAsignadas: React.FC = () => {
             <section className="solicitudes-table-card">
               <div className="solicitudes-toolbar">
                 <div className="toolbar-actions">
-                  <button>
+                  <button
+                    type="button"
+                    className={mostrarFiltros ? "active" : ""}
+                    onClick={() => {
+                      setMostrarFiltros((prev) => !prev);
+                      setMostrarOrden(false);
+                    }}
+                  >
                     <IonIcon icon={filterOutline} />
                     Filtrar
                   </button>
 
-                  <button>
+                  <button
+                    type="button"
+                    className={mostrarOrden ? "active" : ""}
+                    onClick={() => {
+                      setMostrarOrden((prev) => !prev);
+                      setMostrarFiltros(false);
+                    }}
+                  >
                     <IonIcon icon={swapVerticalOutline} />
                     Ordenar
                   </button>
 
-                  <button>
+                  <button type="button" onClick={exportarCsv}>
                     <IonIcon icon={downloadOutline} />
                     Exportar
                   </button>
@@ -502,12 +880,103 @@ const SolicitudesAsignadas: React.FC = () => {
                 </div>
               </div>
 
+              {(mostrarFiltros || mostrarOrden) && (
+                <div className="toolbar-panel">
+                  {mostrarFiltros && (
+                    <div className="toolbar-panel-grid">
+                      <label>
+                        Estado
+                        <select
+                          value={filtroEstado}
+                          onChange={(event) =>
+                            setFiltroEstado(event.target.value)
+                          }
+                        >
+                          <option value="todos">Todos los estados</option>
+                          <option value="revision">En revisión</option>
+                          <option value="pendiente">Pendientes</option>
+                          <option value="aprobada">Aprobadas</option>
+                          <option value="rechazada">Rechazadas</option>
+                        </select>
+                      </label>
+
+                      <label>
+                        Prioridad
+                        <select
+                          value={filtroPrioridad}
+                          onChange={(event) =>
+                            setFiltroPrioridad(event.target.value)
+                          }
+                        >
+                          <option value="todas">Todas las prioridades</option>
+                          <option value="alta">Alta</option>
+                          <option value="media">Media</option>
+                          <option value="baja">Baja</option>
+                        </select>
+                      </label>
+
+                      <button type="button" onClick={limpiarFiltros}>
+                        Limpiar filtros
+                      </button>
+                    </div>
+                  )}
+
+                  {mostrarOrden && (
+                    <div className="toolbar-panel-grid">
+                      <label>
+                        Ordenar por
+                        <select
+                          value={ordenCampo}
+                          onChange={(event) =>
+                            setOrdenCampo(event.target.value)
+                          }
+                        >
+                          <option value="fecha">Fecha reporte</option>
+                          <option value="id">ID</option>
+                          <option value="solicitante">Solicitante</option>
+                          <option value="estado">Estado</option>
+                          <option value="prioridad">Prioridad</option>
+                        </select>
+                      </label>
+
+                      <label>
+                        Dirección
+                        <select
+                          value={ordenDireccion}
+                          onChange={(event) =>
+                            setOrdenDireccion(
+                              event.target.value as "asc" | "desc"
+                            )
+                          }
+                        >
+                          <option value="desc">Descendente</option>
+                          <option value="asc">Ascendente</option>
+                        </select>
+                      </label>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="solicitudes-table-scroll">
                 <table className="solicitudes-asignadas-table">
                   <thead>
                     <tr>
                       <th>
-                        <input type="checkbox" />
+                        <input
+                          type="checkbox"
+                          checked={
+                            solicitudesPagina.length > 0 &&
+                            solicitudesPagina.every((solicitud) =>
+                              solicitudesSeleccionadas.includes(
+                                String(obtenerCodigo(solicitud))
+                              )
+                            )
+                          }
+                          onChange={(event) =>
+                            seleccionarPaginaActual(event.target.checked)
+                          }
+                        />
                       </th>
                       <th>ID</th>
                       <th>Solicitante</th>
@@ -525,14 +994,23 @@ const SolicitudesAsignadas: React.FC = () => {
 
                   <tbody>
                     {solicitudesPagina.map((solicitud) => (
-                      <tr key={obtenerCodigo(solicitud)}>
+                      <tr key={String(obtenerCodigo(solicitud))}>
                         <td>
-                          <input type="checkbox" />
+                          <input
+                            type="checkbox"
+                            checked={solicitudesSeleccionadas.includes(
+                              String(obtenerCodigo(solicitud))
+                            )}
+                            onChange={() => cambiarSeleccionSolicitud(solicitud)}
+                          />
                         </td>
 
                         <td>
                           <strong>
-                            {obtenerCodigo(solicitud).replace("SOL-2026-", "")}
+                            {String(obtenerCodigo(solicitud)).replace(
+                              "SOL-2026-",
+                              ""
+                            )}
                           </strong>
                         </td>
 
@@ -637,7 +1115,10 @@ const SolicitudesAsignadas: React.FC = () => {
             <section className="solicitudes-resumen-row">
               <article className="resumen-operativo-card">
                 <div className="resumen-title">
-                  <IonIcon icon={barChartOutline} />
+                  <div className="resumen-icon-box">
+                    <IonIcon icon={barChartOutline} />
+                  </div>
+
                   <div>
                     <h3>Resumen operativo</h3>
                     <p>
@@ -680,7 +1161,9 @@ const SolicitudesAsignadas: React.FC = () => {
                 <p>
                   Consulta el manual de usuario o contacta al soporte técnico.
                 </p>
-                <button>Ir a ayuda</button>
+                <button type="button" onClick={irAyuda}>
+                  Ir a ayuda
+                </button>
               </article>
             </section>
 
@@ -690,7 +1173,11 @@ const SolicitudesAsignadas: React.FC = () => {
                 Volver al panel
               </button>
 
-              <button className="exportar-pdf-button">
+              <button
+                type="button"
+                className="exportar-pdf-button"
+                onClick={exportarReportePdf}
+              >
                 <IonIcon icon={downloadOutline} />
                 Exportar reporte PDF
               </button>
