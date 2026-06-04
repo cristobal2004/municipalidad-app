@@ -1,11 +1,4 @@
-
-DROP TABLE IF EXISTS agendamientos CASCADE;
-DROP TABLE IF EXISTS observaciones CASCADE;
-DROP TABLE IF EXISTS documentos CASCADE;
-DROP TABLE IF EXISTS solicitudes CASCADE;
-DROP TABLE IF EXISTS usuarios CASCADE;
-
-CREATE TABLE usuarios (
+CREATE TABLE IF NOT EXISTS usuarios (
   id SERIAL PRIMARY KEY,
   nombre VARCHAR(120) NOT NULL,
   rut VARCHAR(20) UNIQUE NOT NULL,
@@ -16,12 +9,10 @@ CREATE TABLE usuarios (
   comuna VARCHAR(80),
   tipo_usuario VARCHAR(50),
   area VARCHAR(100),
-  numero_empleado VARCHAR(30) UNIQUE,
-  cargo VARCHAR(100),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE solicitudes (
+CREATE TABLE IF NOT EXISTS solicitudes (
   id SERIAL PRIMARY KEY,
   codigo VARCHAR(30) UNIQUE NOT NULL,
   usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
@@ -35,19 +26,11 @@ CREATE TABLE solicitudes (
   pyme BOOLEAN DEFAULT false,
   estado VARCHAR(30) NOT NULL DEFAULT 'pendiente'
     CHECK (estado IN ('pendiente', 'en_revision', 'observada', 'aprobada', 'rechazada')),
-  correo_contacto VARCHAR(120),
-  telefono_contacto VARCHAR(30),
-  giro VARCHAR(150),
-  superficie VARCHAR(50),
-  observaciones_solicitante TEXT,
-  prioridad VARCHAR(30) DEFAULT 'media',
-  documentos_faltantes JSONB DEFAULT '[]'::jsonb,
-  fecha_limite_documentos DATE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE documentos (
+CREATE TABLE IF NOT EXISTS documentos (
   id SERIAL PRIMARY KEY,
   solicitud_id INTEGER NOT NULL REFERENCES solicitudes(id) ON DELETE CASCADE,
   nombre_archivo VARCHAR(200) NOT NULL,
@@ -55,14 +38,10 @@ CREATE TABLE documentos (
   ruta_archivo TEXT,
   estado_validacion VARCHAR(30) DEFAULT 'pendiente'
     CHECK (estado_validacion IN ('pendiente', 'aprobado', 'rechazado')),
-  tipo_archivo VARCHAR(100),
-  size_bytes INTEGER,
-  estado VARCHAR(30) DEFAULT 'recibido',
-  descripcion TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE observaciones (
+CREATE TABLE IF NOT EXISTS observaciones (
   id SERIAL PRIMARY KEY,
   solicitud_id INTEGER NOT NULL REFERENCES solicitudes(id) ON DELETE CASCADE,
   funcionario_id INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
@@ -72,13 +51,13 @@ CREATE TABLE observaciones (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE agendamientos (
+CREATE TABLE IF NOT EXISTS agendamientos (
   id SERIAL PRIMARY KEY,
   solicitud_id INTEGER NOT NULL REFERENCES solicitudes(id) ON DELETE CASCADE,
   usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
   funcionario_id INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
   fecha_hora TIMESTAMP NOT NULL,
-  estado VARCHAR(30) NOT NULL DEFAULT 'agendada'
-    CHECK (estado IN ('pendiente', 'agendada', 'confirmada', 'reagendada', 'cancelada', 'completada')),
+  estado VARCHAR(30) NOT NULL DEFAULT 'agendado'
+    CHECK (estado IN ('agendado', 'cancelado', 'realizado')),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
