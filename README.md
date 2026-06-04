@@ -125,7 +125,7 @@ Antes de ejecutar el proyecto se debe tener instalado:
 
 ```bash
 git clone https://github.com/cristobal2004/municipalidad-app.git
-cd GitHub/municipalidad-app
+cd municipalidad-app
 ```
 
 ## Configuración de variables de entorno
@@ -140,6 +140,7 @@ con el siguiente contenido:
 
 ```env
 VITE_API_URL=http://localhost:3000/api
+
 ```
 
 ### Backend
@@ -163,6 +164,7 @@ DB_USER=postgres
 DB_PASSWORD=tu_password_sql Es importante colocar tu contraseña de postgres!!!!!
 
 JWT_SECRET=municipalidad_app
+
 ```
 
 ## Base de datos
