@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict yazAXDENuzqjRar7inND7Pu2h6qHoiY0BrQfTaKWfhkbRvu9JzEqP47q0gwapBI
+\restrict EDKGaBkz0fyYld48AktlJ5ePQbSbAuZeL5zDhiB79obU9GSJrPv3PUmbsc3vyZw
 
 -- Dumped from database version 18.4
 -- Dumped by pg_dump version 18.4
@@ -67,7 +67,7 @@ CREATE TABLE public.agendamientos (
     fecha_hora timestamp without time zone NOT NULL,
     estado character varying(30) DEFAULT 'agendado'::character varying NOT NULL,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT agendamientos_estado_check CHECK (((estado)::text = ANY ((ARRAY['pendiente'::character varying, 'agendada'::character varying, 'confirmada'::character varying, 'reagendada'::character varying, 'cancelada'::character varying, 'completada'::character varying])::text[])))
+    CONSTRAINT agendamientos_estado_check CHECK (((estado)::text = ANY (ARRAY[('pendiente'::character varying)::text, ('agendada'::character varying)::text, ('confirmada'::character varying)::text, ('reagendada'::character varying)::text, ('cancelada'::character varying)::text, ('completada'::character varying)::text])))
 );
 
 
@@ -107,7 +107,7 @@ CREATE TABLE public.documentos (
     size_bytes integer,
     estado character varying(30) DEFAULT 'recibido'::character varying,
     descripcion text,
-    CONSTRAINT documentos_estado_validacion_check CHECK (((estado_validacion)::text = ANY ((ARRAY['pendiente'::character varying, 'aprobado'::character varying, 'rechazado'::character varying])::text[])))
+    CONSTRAINT documentos_estado_validacion_check CHECK (((estado_validacion)::text = ANY (ARRAY[('pendiente'::character varying)::text, ('aprobado'::character varying)::text, ('rechazado'::character varying)::text])))
 );
 
 
@@ -142,7 +142,7 @@ CREATE TABLE public.observaciones (
     mensaje text NOT NULL,
     estado_resultante character varying(30),
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT observaciones_estado_resultante_check CHECK (((estado_resultante)::text = ANY ((ARRAY['pendiente'::character varying, 'en_revision'::character varying, 'observada'::character varying, 'aprobada'::character varying, 'rechazada'::character varying])::text[])))
+    CONSTRAINT observaciones_estado_resultante_check CHECK (((estado_resultante)::text = ANY (ARRAY[('pendiente'::character varying)::text, ('en_revision'::character varying)::text, ('observada'::character varying)::text, ('aprobada'::character varying)::text, ('rechazada'::character varying)::text])))
 );
 
 
@@ -193,7 +193,7 @@ CREATE TABLE public.solicitudes (
     prioridad character varying(30) DEFAULT 'media'::character varying,
     documentos_faltantes jsonb DEFAULT '[]'::jsonb,
     fecha_limite_documentos date,
-    CONSTRAINT solicitudes_estado_check CHECK (((estado)::text = ANY ((ARRAY['pendiente'::character varying, 'en_revision'::character varying, 'observada'::character varying, 'aprobada'::character varying, 'rechazada'::character varying])::text[])))
+    CONSTRAINT solicitudes_estado_check CHECK (((estado)::text = ANY (ARRAY[('pendiente'::character varying)::text, ('en_revision'::character varying)::text, ('observada'::character varying)::text, ('aprobada'::character varying)::text, ('rechazada'::character varying)::text])))
 );
 
 
@@ -235,7 +235,7 @@ CREATE TABLE public.usuarios (
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     numero_empleado character varying(30),
     cargo character varying(100),
-    CONSTRAINT usuarios_rol_check CHECK (((rol)::text = ANY ((ARRAY['usuario'::character varying, 'funcionario'::character varying])::text[])))
+    CONSTRAINT usuarios_rol_check CHECK (((rol)::text = ANY (ARRAY[('usuario'::character varying)::text, ('funcionario'::character varying)::text])))
 );
 
 
@@ -342,6 +342,7 @@ COPY public.observaciones (id, solicitud_id, funcionario_id, mensaje, estado_res
 14	9	5	ta weno	observada	2026-06-01 17:47:00.137543
 15	9	5	ta weno	aprobada	2026-06-01 17:47:17.372983
 16	10	4	aprobao mi sangre dele corte nms	aprobada	2026-06-01 17:57:11.323233
+17	5	6	Estamos pendientes de los documentos solicitados 	observada	2026-06-03 22:35:22.592533
 \.
 
 
@@ -352,14 +353,14 @@ COPY public.observaciones (id, solicitud_id, funcionario_id, mensaje, estado_res
 COPY public.solicitudes (id, codigo, usuario_id, funcionario_id, tipo_tramite, razon_social, rut_empresa, direccion, tipo_patente, rol_avaluo, pyme, estado, created_at, updated_at, correo_contacto, telefono_contacto, giro, superficie, observaciones_solicitante, prioridad, documentos_faltantes, fecha_limite_documentos) FROM stdin;
 1	SOL-2026-0001	1	6	Patente comercial	Local de prueba EP2	76.123.456-7	Av. Litoral 450, Santo Domingo	Comercial Definitiva	123-45	f	pendiente	2026-06-01 12:04:16.351123	2026-06-01 12:04:16.351123	contacto@ejemplo.cl	+56 9 1234 5678	Venta de abarrotes y art�culos de primera necesidad	120 m�	Solicito patente comercial para iniciar actividades en el local indicado.	media	[]	\N
 2	SOL-2026-0002	1	6	Patente comercial	Almacen Donde Pepito	11.111.111-1	Olmue, La Ramayana	Comercial Definitiva	123-45	t	pendiente	2026-06-01 12:15:16.159651	2026-06-01 12:15:16.159651	usuario@test.cl	+569111111	venta de abarrote	10m2	Es un local familiar en el centro de la ciudad	media	[]	\N
-6	SOL-2026-0006	1	6	Patente comercial	111	11.111.111-1	1	Comercial Definitiva	1	t	pendiente	2026-06-01 15:06:00.458837	2026-06-01 15:06:00.458837	usuario@test.cl	1	11	1	\N	media	[]	\N
 7	SOL-2026-0007	1	6	Patente comercial	111	11.111.111-1	1	Comercial Definitiva	1	t	pendiente	2026-06-01 15:29:37.966742	2026-06-01 15:29:37.966742	usuario@test.cl	1	11	1	\N	media	[]	\N
 8	SOL-2026-0008	1	4	Patente comercial	1112	11.111.111-1	1	Comercial Definitiva	1	t	pendiente	2026-06-01 15:29:46.966446	2026-06-01 15:29:46.966446	usuario@test.cl	1	11	1	\N	media	[]	\N
 4	SOL-2026-0004	1	6	Patente comercial	tt	11.111.111-1	t	Comercial Definitiva	t	t	aprobada	2026-06-01 14:41:39.250285	2026-06-01 17:24:22.768696	usuario@test.cl	t	t	t	\N	media	[]	\N
 9	SOL-2026-0009	1	5	Patente comercial	11123	11.111.111-1	1	Comercial Definitiva	1	t	aprobada	2026-06-01 15:29:53.596551	2026-06-01 17:47:17.37196	usuario@test.cl	1	11	1	\N	media	[]	\N
 10	SOL-2026-0010	13	4	Patente comercial	Puticlub Donde Oscar	23.145.142-k	Las Tangas 2354	Comercial Definitiva	123-45	t	aprobada	2026-06-01 17:55:14.208796	2026-06-01 17:57:11.322324	rompecatre@gmail.com	+569 9164 8162	Disfruto personal	200 	papito hagame la mano no le cuesta nada insisto gracias	media	[]	\N
-5	SOL-2026-0005	1	6	Patente comercial	das	11.111.111-1	asda	Comercial Definitiva	asd	f	observada	2026-06-01 14:46:38.395362	2026-06-01 18:01:19.728243	usuario@test.cl	asd	asd	asd	\N	media	["Fotografía del local"]	2026-04-27
 3	SOL-2026-0003	1	6	Patente comercial	test	11.111.111-1	test1	Comercial Definitiva	44444	t	rechazada	2026-06-01 14:39:32.484011	2026-06-01 18:03:59.51846	usuario@test.cl	1231321231	test	10	test	media	[]	\N
+5	SOL-2026-0005	1	6	Patente comercial	das	11.111.111-1	asda	Comercial Definitiva	asd	f	observada	2026-06-01 14:46:38.395362	2026-06-03 22:35:22.59029	usuario@test.cl	asd	asd	asd	\N	media	["Fotografía del local", "Croquis del local", "Patente anterior", "Certificado de residencia"]	2026-07-04
+6	SOL-2026-0006	1	6	Patente comercial	111	11.111.111-1	1	Comercial Definitiva	1	t	aprobada	2026-06-01 15:06:00.458837	2026-06-03 22:38:01.758188	usuario@test.cl	1	11	1	\N	media	[]	\N
 \.
 
 
@@ -397,7 +398,7 @@ SELECT pg_catalog.setval('public.documentos_id_seq', 9, true);
 -- Name: observaciones_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.observaciones_id_seq', 16, true);
+SELECT pg_catalog.setval('public.observaciones_id_seq', 17, true);
 
 
 --
@@ -554,5 +555,5 @@ ALTER TABLE ONLY public.solicitudes
 -- PostgreSQL database dump complete
 --
 
-\unrestrict yazAXDENuzqjRar7inND7Pu2h6qHoiY0BrQfTaKWfhkbRvu9JzEqP47q0gwapBI
+\unrestrict EDKGaBkz0fyYld48AktlJ5ePQbSbAuZeL5zDhiB79obU9GSJrPv3PUmbsc3vyZw
 
