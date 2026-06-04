@@ -962,11 +962,6 @@ const ReportesMunicipales: React.FC = () => {
                       <IonIcon icon={documentTextOutline} />
                       Exportar CSV
                     </button>
-
-                    <button type="button" onClick={exportarPDFPendiente}>
-                      <IonIcon icon={downloadOutline} />
-                      PDF EP2
-                    </button>
                   </div>
                 </div>
               </article>
