@@ -450,10 +450,9 @@ const ReportesMunicipales: React.FC = () => {
 
       if (!fecha) return;
 
-      const key = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(
-        2,
-        "0"
-      )}`;
+      const key = `${fecha.getFullYear()}-${String(
+        fecha.getMonth() + 1
+      ).padStart(2, "0")}`;
 
       mapa.set(key, (mapa.get(key) || 0) + 1);
     });
@@ -521,7 +520,7 @@ const ReportesMunicipales: React.FC = () => {
       obtenerFechaActualizacion(solicitud),
     ]);
 
-    const escapar = (valor: string) => {
+    const escapar = (valor: any) => {
       const texto = String(valor || "");
       return `"${texto.replace(/"/g, '""')}"`;
     };
@@ -552,11 +551,366 @@ const ReportesMunicipales: React.FC = () => {
     }, 3000);
   };
 
-  const exportarPDFPendiente = () => {
-    setMensajeSistema("La exportación PDF quedará disponible en la EP2 con backend.");
+  const escaparHtml = (valor: any) => {
+    return String(valor ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  };
+
+  const exportarPDF = () => {
+    if (solicitudesFiltradas.length === 0) {
+      alert("No hay solicitudes para exportar.");
+      return;
+    }
+
+    const filasSolicitudes = solicitudesFiltradas
+      .map(
+        (solicitud) => `
+          <tr>
+            <td>${escaparHtml(obtenerId(solicitud))}</td>
+            <td>${escaparHtml(obtenerTramite(solicitud))}</td>
+            <td>${escaparHtml(obtenerEstado(solicitud))}</td>
+            <td>${escaparHtml(obtenerArea(solicitud))}</td>
+            <td>${escaparHtml(obtenerFecha(solicitud))}</td>
+            <td>${escaparHtml(obtenerFechaActualizacion(solicitud))}</td>
+          </tr>
+        `
+      )
+      .join("");
+
+    const filasAreas = desgloseAreas
+      .map((area) => {
+        const porcentaje =
+          area.total > 0 ? Math.round((area.resueltas / area.total) * 100) : 0;
+
+        return `
+          <tr>
+            <td>${escaparHtml(area.area)}</td>
+            <td>${area.total}</td>
+            <td>${area.revision}</td>
+            <td>${area.pendientes}</td>
+            <td>${area.resueltas}</td>
+            <td>${porcentaje}%</td>
+            <td>${escaparHtml(area.tiempoPromedio)}</td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    const filasMensuales =
+      datosMensuales.length > 0
+        ? datosMensuales
+            .map(
+              (item) => `
+                <tr>
+                  <td>${escaparHtml(item.mes)}</td>
+                  <td>${item.total}</td>
+                </tr>
+              `
+            )
+            .join("")
+        : `
+          <tr>
+            <td colspan="2">Sin datos mensuales disponibles.</td>
+          </tr>
+        `;
+
+    const ventana = window.open("", "_blank");
+
+    if (!ventana) {
+      alert("El navegador bloqueó la ventana emergente del reporte.");
+      return;
+    }
+
+    ventana.document.open();
+    ventana.document.write(`
+      <html>
+        <head>
+          <title>Reporte de solicitudes municipales</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              color: #111827;
+              padding: 28px;
+              background: #ffffff;
+            }
+
+            .header {
+              border-bottom: 4px solid #e32222;
+              padding-bottom: 14px;
+              margin-bottom: 24px;
+            }
+
+            .municipio {
+              color: #0057b8;
+              font-size: 14px;
+              font-weight: 700;
+              margin: 0;
+            }
+
+            h1 {
+              color: #0f172a;
+              font-size: 28px;
+              margin: 4px 0 6px;
+            }
+
+            .subtitulo {
+              color: #4b5563;
+              font-size: 13px;
+              margin: 0;
+            }
+
+            .meta {
+              margin-top: 10px;
+              color: #374151;
+              font-size: 12px;
+            }
+
+            .kpis {
+              display: grid;
+              grid-template-columns: repeat(4, 1fr);
+              gap: 12px;
+              margin: 22px 0;
+            }
+
+            .kpi {
+              border: 1px solid #d9e1ea;
+              border-radius: 8px;
+              padding: 12px;
+              background: #f8fbff;
+            }
+
+            .kpi span {
+              display: block;
+              color: #4b5563;
+              font-size: 11px;
+              font-weight: 700;
+              margin-bottom: 4px;
+            }
+
+            .kpi strong {
+              display: block;
+              color: #0057b8;
+              font-size: 24px;
+            }
+
+            .section {
+              margin-top: 24px;
+              page-break-inside: avoid;
+            }
+
+            h2 {
+              color: #0f172a;
+              font-size: 17px;
+              margin: 0 0 10px;
+            }
+
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              font-size: 11px;
+              margin-top: 8px;
+            }
+
+            th {
+              background: #edf4ff;
+              color: #111827;
+              text-align: left;
+              padding: 8px;
+              border: 1px solid #d9e1ea;
+            }
+
+            td {
+              padding: 8px;
+              border: 1px solid #d9e1ea;
+              vertical-align: top;
+            }
+
+            .resumen {
+              display: grid;
+              grid-template-columns: repeat(4, 1fr);
+              gap: 10px;
+              margin-top: 12px;
+            }
+
+            .resumen div {
+              border: 1px solid #d9e1ea;
+              border-radius: 8px;
+              padding: 10px;
+            }
+
+            .resumen span {
+              display: block;
+              color: #4b5563;
+              font-size: 11px;
+              margin-bottom: 4px;
+            }
+
+            .resumen strong {
+              color: #0057b8;
+              font-size: 16px;
+            }
+
+            .footer {
+              margin-top: 30px;
+              padding-top: 12px;
+              border-top: 1px solid #d9e1ea;
+              color: #6b7280;
+              font-size: 11px;
+            }
+
+            @media print {
+              body {
+                padding: 18px;
+              }
+
+              .section {
+                page-break-inside: avoid;
+              }
+            }
+          </style>
+        </head>
+
+        <body>
+          <div class="header">
+            <p class="municipio">Municipalidad de Santo Domingo</p>
+            <h1>Reporte de solicitudes</h1>
+            <p class="subtitulo">
+              Resumen estadístico y análisis de solicitudes ingresadas en el sistema municipal.
+            </p>
+            <p class="meta">
+              Funcionario: ${escaparHtml(usuarioActual.nombre || "Funcionario")} ·
+              Fecha de emisión: ${new Date().toLocaleDateString("es-CL")} ·
+              Hora: ${new Date().toLocaleTimeString("es-CL", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </p>
+          </div>
+
+          <section class="kpis">
+            <div class="kpi">
+              <span>Total solicitudes</span>
+              <strong>${totalSolicitudes}</strong>
+            </div>
+
+            <div class="kpi">
+              <span>En revisión</span>
+              <strong>${totalRevision}</strong>
+            </div>
+
+            <div class="kpi">
+              <span>Pendientes</span>
+              <strong>${totalPendientes}</strong>
+            </div>
+
+            <div class="kpi">
+              <span>Resueltas</span>
+              <strong>${totalResueltas}</strong>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2>Indicadores de gestión</h2>
+            <div class="resumen">
+              <div>
+                <span>Tiempo promedio de respuesta</span>
+                <strong>${tiempoPromedio === "N/D" ? "N/D" : `${tiempoPromedio} días`}</strong>
+              </div>
+
+              <div>
+                <span>Solicitudes filtradas</span>
+                <strong>${solicitudesPorDia}</strong>
+              </div>
+
+              <div>
+                <span>Tiempo máximo de respuesta</span>
+                <strong>${tiempoMaximo === "N/D" ? "N/D" : `${tiempoMaximo} días`}</strong>
+              </div>
+
+              <div>
+                <span>Cumplimiento estimado</span>
+                <strong>${cumplimientoSla}%</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2>Solicitudes por mes</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Mes</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filasMensuales}
+              </tbody>
+            </table>
+          </section>
+
+          <section class="section">
+            <h2>Desglose por área / departamento</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Área / Departamento</th>
+                  <th>Total</th>
+                  <th>En revisión</th>
+                  <th>Pendientes</th>
+                  <th>Resueltas</th>
+                  <th>% Resueltas</th>
+                  <th>Tiempo prom.</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filasAreas}
+              </tbody>
+            </table>
+          </section>
+
+          <section class="section">
+            <h2>Detalle de solicitudes filtradas</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Trámite</th>
+                  <th>Estado</th>
+                  <th>Área</th>
+                  <th>Fecha ingreso</th>
+                  <th>Última actualización</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filasSolicitudes}
+              </tbody>
+            </table>
+          </section>
+
+          <p class="footer">
+            © 2026 Municipalidad de Santo Domingo. Reporte generado desde el sistema municipal.
+          </p>
+        </body>
+      </html>
+    `);
+    ventana.document.close();
+
+    setTimeout(() => {
+      ventana.focus();
+      ventana.print();
+    }, 400);
+
+    setMensajeSistema(
+      "Reporte PDF generado. Usa la opción Guardar como PDF en la ventana de impresión."
+    );
+
     setTimeout(() => {
       setMensajeSistema("");
-    }, 3500);
+    }, 4000);
   };
 
   const cerrarSesion = () => {
@@ -844,7 +1198,10 @@ const ReportesMunicipales: React.FC = () => {
             <section className="gestion-indicators-card">
               <div className="reportes-section-title">
                 <h3>Indicadores de gestión</h3>
-                <p>Métricas calculadas desde las solicitudes actualmente filtradas.</p>
+                <p>
+                  Métricas calculadas desde las solicitudes actualmente
+                  filtradas.
+                </p>
               </div>
 
               <div className="gestion-indicators-grid">
@@ -853,7 +1210,9 @@ const ReportesMunicipales: React.FC = () => {
                   <div>
                     <span>Tiempo promedio de respuesta</span>
                     <strong>
-                      {tiempoPromedio === "N/D" ? "N/D" : `${tiempoPromedio} días`}
+                      {tiempoPromedio === "N/D"
+                        ? "N/D"
+                        : `${tiempoPromedio} días`}
                     </strong>
                     <p>Según fechas disponibles</p>
                   </div>
@@ -873,7 +1232,9 @@ const ReportesMunicipales: React.FC = () => {
                   <div>
                     <span>Tiempo máximo de respuesta</span>
                     <strong>
-                      {tiempoMaximo === "N/D" ? "N/D" : `${tiempoMaximo} días`}
+                      {tiempoMaximo === "N/D"
+                        ? "N/D"
+                        : `${tiempoMaximo} días`}
                     </strong>
                     <p>Según fechas disponibles</p>
                   </div>
@@ -953,14 +1314,19 @@ const ReportesMunicipales: React.FC = () => {
                 <div>
                   <h3>Exportar reporte</h3>
                   <p>
-                    Descarga los datos filtrados actualmente. CSV queda funcional
-                    en esta fase; PDF queda para EP2.
+                    Descarga los datos actualmente filtrados en formato CSV o
+                    genera un reporte imprimible en PDF.
                   </p>
 
                   <div className="export-actions">
                     <button type="button" onClick={exportarCSV}>
                       <IonIcon icon={documentTextOutline} />
                       Exportar CSV
+                    </button>
+
+                    <button type="button" onClick={exportarPDF}>
+                      <IonIcon icon={downloadOutline} />
+                      Exportar PDF
                     </button>
                   </div>
                 </div>
@@ -983,7 +1349,7 @@ const ReportesMunicipales: React.FC = () => {
 
                 <p>
                   <IonIcon icon={peopleOutline} />
-                  En EP2 se conectará con backend, base de datos y reportes reales.
+                  El reporte PDF se genera con los datos filtrados actualmente.
                 </p>
               </article>
             </section>
