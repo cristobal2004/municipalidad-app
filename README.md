@@ -125,7 +125,7 @@ Antes de ejecutar el proyecto se debe tener instalado:
 
 ```bash
 git clone https://github.com/cristobal2004/municipalidad-app.git
-cd municipalidad-app
+cd GitHub/municipalidad-app
 ```
 
 ## Configuración de variables de entorno
@@ -148,6 +148,7 @@ Crear un archivo `.env` dentro de la carpeta `municipalidad-backend`
 
 ```bash
 cd municipalidad-backend
+code .env
 ```
 
 con el siguiente contenido:
@@ -170,14 +171,13 @@ El proyecto utiliza PostgreSQL como base de datos relacional para almacenar la i
 
 Durante el desarrollo se trabajó con dos archivos SQL principales:
 
-```text
-municipalidad-backend/src/db/schema.sql
-database/municipalidad_db_con_datos.sql
-```
+- `municipalidad-backend/src/db/schema.sql`
+- `database/municipalidad_db_con_datos.sql`
+
 
 ### Crear base de datos
 
-Antes de importar los scripts, crear la base de datos:
+Antes de importar los scripts, crear la base de datos desde la ruta del proyecto:
 
 ```bash
 createdb -U postgres municipalidad_app
