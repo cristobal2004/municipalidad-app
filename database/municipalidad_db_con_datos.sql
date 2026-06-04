@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict EDKGaBkz0fyYld48AktlJ5ePQbSbAuZeL5zDhiB79obU9GSJrPv3PUmbsc3vyZw
+\restrict teAGDM93eUWde3ETVkTcOzWxltq3A5JOcI4GaL9b1THdCAmwhRBDYZxojVuNOsp
 
 -- Dumped from database version 18.4
 -- Dumped by pg_dump version 18.4
@@ -376,7 +376,7 @@ COPY public.usuarios (id, nombre, rut, correo, password_hash, rol, region, comun
 5	Pablo Aguilera	44.556.677-0	pablo.aguilera@santodomingo.cl	$2b$10$RY3yFBJcpPUZwqdob05EGO9U4eVzVpb0AjJXT5EBB56j/7qDIS3Fa	funcionario	Valparaíso	Santo Domingo	funcionario	Obras Municipales	2026-06-01 01:57:23.368278	44556677	Revisor Técnico
 6	Martina Ponce	99.887.766-0	martina.ponce@santodomingo.cl	$2b$10$1d1X.rT/J1YblPULe2UHnu8hBC4V8.astQ4GRSy7m0jSCF3yhJczG	funcionario	Valparaíso	Santo Domingo	funcionario	Patentes Comerciales	2026-06-01 01:57:23.414288	99887766	Encargada de Patentes
 12	Cristobal Rubilar	21.711.065-3	cristobalrubilar2004@gmail.com	$2b$10$jMDJFvPW6SOEJGMq8vmOdOsmeOxqlX1WyIXG6gO/1z36FW4WRqwma	usuario	Metropolitana	San Antonio	ciudadano	\N	2026-06-01 17:33:24.227207	\N	\N
-13	Oscar Ruiz	23.145.142-k	rompecatre@gmail.com	$2b$10$8hFshIY7cI/t3RHqdaasje3aj76tFDQFDf7FTxf.C5S5FPfcSipGS	usuario	Valparaíso	Santo Domingo	ciudadano	\N	2026-06-01 17:52:13.331369	\N	\N
+13	Oscar Ruiz	23.145.142-k	oscar@test.cl	$2b$10$8hFshIY7cI/t3RHqdaasje3aj76tFDQFDf7FTxf.C5S5FPfcSipGS	usuario	Valparaíso	Santo Domingo	ciudadano	\N	2026-06-01 17:52:13.331369	\N	\N
 \.
 
 
@@ -555,5 +555,5 @@ ALTER TABLE ONLY public.solicitudes
 -- PostgreSQL database dump complete
 --
 
-\unrestrict EDKGaBkz0fyYld48AktlJ5ePQbSbAuZeL5zDhiB79obU9GSJrPv3PUmbsc3vyZw
+\unrestrict teAGDM93eUWde3ETVkTcOzWxltq3A5JOcI4GaL9b1THdCAmwhRBDYZxojVuNOsp
 
