@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { IonContent, IonIcon, IonPage } from "@ionic/react";
 import {
   alertCircleOutline,
@@ -45,6 +45,7 @@ const STORAGE_ESTADO_NOTIFICACIONES = "notificaciones_usuario_estado";
 
 const InicioUsuario: React.FC = () => {
   const history = useHistory();
+  const contentRef = useRef<HTMLIonContentElement | null>(null);
 
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [usuarioActual, setUsuarioActual] = useState<UsuarioActual>({
@@ -53,6 +54,7 @@ const InicioUsuario: React.FC = () => {
   });
   const [cargando, setCargando] = useState(false);
   const [mensajeError, setMensajeError] = useState("");
+  const [mensajeSistema, setMensajeSistema] = useState("");
 
   const cargarDatos = async () => {
     try {
@@ -598,9 +600,28 @@ const InicioUsuario: React.FC = () => {
     history.push("/usuario/mis-tramites");
   };
 
+  const mostrarTramiteNoDisponible = (nombreTramite: string) => {
+    setMensajeSistema(
+      `El trámite "${nombreTramite}" estará disponible próximamente. Por ahora puedes realizar Patente comercial o revisar tus trámites existentes.`
+    );
+
+    setTimeout(() => {
+      contentRef.current?.scrollToTop(350);
+    }, 50);
+
+    setTimeout(() => {
+      setMensajeSistema("");
+    }, 3500);
+  };
+
   return (
     <IonPage>
-      <IonContent fullscreen scrollY className="inicio-usuario-content">
+      <IonContent
+        ref={contentRef}
+        fullscreen
+        scrollY
+        className="inicio-usuario-content"
+      >
         <div className="inicio-usuario-wrapper">
           <header className="inicio-header">
             <div className="inicio-brand">
@@ -624,9 +645,7 @@ const InicioUsuario: React.FC = () => {
               <div className="user-chip">
                 <IonIcon icon={personCircleOutline} />
                 <div>
-                  <strong>
-                    Bienvenido, {usuarioActual.nombre || "Usuario"}
-                  </strong>
+                  <strong>Bienvenido, {usuarioActual.nombre || "Usuario"}</strong>
                   <small>Usuario ciudadano</small>
                 </div>
               </div>
@@ -639,6 +658,13 @@ const InicioUsuario: React.FC = () => {
           </header>
 
           <main className="inicio-main">
+            {mensajeSistema && (
+              <section className="inicio-system-alert">
+                <IonIcon icon={alertCircleOutline} />
+                <span>{mensajeSistema}</span>
+              </section>
+            )}
+
             {cargando && (
               <section className="panel-card">
                 <h3>Cargando solicitudes...</h3>
@@ -668,9 +694,7 @@ const InicioUsuario: React.FC = () => {
 
                 <div className="hero-actions">
                   <button
-                    onClick={() =>
-                      history.push("/usuario/seleccionar-tramite")
-                    }
+                    onClick={() => history.push("/usuario/seleccionar-tramite")}
                   >
                     <IonIcon icon={documentTextOutline} />
                     Realizar trámite
@@ -756,9 +780,7 @@ const InicioUsuario: React.FC = () => {
                   <div className="panel-title-row">
                     <h3>Seguimiento rápido</h3>
 
-                    <button
-                      onClick={() => history.push("/usuario/mis-tramites")}
-                    >
+                    <button onClick={() => history.push("/usuario/mis-tramites")}>
                       Ver todos mis trámites{" "}
                       <IonIcon icon={arrowForwardOutline} />
                     </button>
@@ -845,7 +867,12 @@ const InicioUsuario: React.FC = () => {
                       </p>
                     </button>
 
-                    <button type="button">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        mostrarTramiteNoDisponible("Permiso de circulación")
+                      }
+                    >
                       <IonIcon icon={carOutline} />
                       <strong>Permiso de circulación</strong>
                       <span>Solicita o renueva tu permiso.</span>
@@ -854,7 +881,12 @@ const InicioUsuario: React.FC = () => {
                       </p>
                     </button>
 
-                    <button type="button">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        mostrarTramiteNoDisponible("Obras municipales")
+                      }
+                    >
                       <IonIcon icon={businessOutline} />
                       <strong>Obras municipales</strong>
                       <span>Consulta y solicitudes de obras.</span>
@@ -881,9 +913,7 @@ const InicioUsuario: React.FC = () => {
                   <div className="panel-title-row">
                     <h3>Notificaciones recientes</h3>
 
-                    <button
-                      onClick={() => history.push("/usuario/notificaciones")}
-                    >
+                    <button onClick={() => history.push("/usuario/notificaciones")}>
                       Ver todas <IonIcon icon={arrowForwardOutline} />
                     </button>
                   </div>
@@ -891,10 +921,7 @@ const InicioUsuario: React.FC = () => {
                   <div className="notification-list">
                     {notificacionesRecientes.length > 0 ? (
                       notificacionesRecientes.map((notificacion) => (
-                        <div
-                          className="notification-row"
-                          key={notificacion.id}
-                        >
+                        <div className="notification-row" key={notificacion.id}>
                           <span
                             className={`notification-dot ${obtenerColorNotificacion(
                               notificacion.tipo
@@ -902,9 +929,7 @@ const InicioUsuario: React.FC = () => {
                           ></span>
 
                           <IonIcon
-                            icon={obtenerIconoNotificacion(
-                              notificacion.tipo
-                            )}
+                            icon={obtenerIconoNotificacion(notificacion.tipo)}
                           />
 
                           <strong>{notificacion.titulo}</strong>
@@ -969,7 +994,11 @@ const InicioUsuario: React.FC = () => {
                     Próximas acciones
                   </h3>
 
-                  <button className="action-row" type="button" onClick={irASubirDocumentos}>
+                  <button
+                    className="action-row"
+                    type="button"
+                    onClick={irASubirDocumentos}
+                  >
                     <div className="action-icon orange">
                       <IonIcon icon={folderOpenOutline} />
                     </div>
@@ -985,7 +1014,13 @@ const InicioUsuario: React.FC = () => {
                     <IonIcon icon={arrowForwardOutline} />
                   </button>
 
-                  <button className="action-row" type="button">
+                  <button
+                    className="action-row"
+                    type="button"
+                    onClick={() =>
+                      mostrarTramiteNoDisponible("Citas programadas")
+                    }
+                  >
                     <div className="action-icon blue">
                       <IonIcon icon={calendarOutline} />
                     </div>

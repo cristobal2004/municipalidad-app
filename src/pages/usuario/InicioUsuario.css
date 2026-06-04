@@ -126,6 +126,25 @@
   padding: 22px 34px 28px;
 }
 
+.inicio-system-alert {
+  background: #fff7df;
+  border: 1px solid #f6c86b;
+  color: #8a5a00;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  font-size: 13px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inicio-system-alert ion-icon {
+  color: #d97706;
+  font-size: 18px;
+}
+
 .inicio-hero {
   min-height: 220px;
   border-radius: 16px;
