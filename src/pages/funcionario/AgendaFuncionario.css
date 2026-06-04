@@ -4,6 +4,12 @@
   border-bottom: 1px solid #e7edf5;
 }
 
+.agenda-back-button {
+  --color: #14345c;
+  --padding-start: 0;
+  --padding-end: 8px;
+}
+
 .agenda-funcionario-page {
   --background: #f4f7fb;
 }

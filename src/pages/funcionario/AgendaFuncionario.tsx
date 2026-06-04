@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-  IonBackButton,
   IonBadge,
   IonButton,
   IonButtons,
@@ -17,6 +16,7 @@ import {
   IonToolbar,
 } from "@ionic/react";
 import {
+  arrowBackOutline,
   calendarOutline,
   timeOutline,
   documentTextOutline,
@@ -277,7 +277,15 @@ const AgendaFuncionario: React.FC = () => {
       return;
     }
 
-    history.push(`/funcionario/solicitud/${encodeURIComponent(codigo)}`);
+    history.push(`/funcionario/solicitud/${encodeURIComponent(codigo)}`, {
+      volverA: "/funcionario/agenda",
+      textoVolver: "Volver a agenda",
+      textoOrigen: "Agenda",
+    });
+  };
+
+  const volverAlPanelFuncionario = () => {
+    history.push("/funcionario/inicio");
   };
 
   return (
@@ -285,7 +293,13 @@ const AgendaFuncionario: React.FC = () => {
       <IonHeader>
         <IonToolbar className="agenda-funcionario-toolbar">
           <IonButtons slot="start">
-            <IonBackButton defaultHref="/funcionario/inicio" />
+            <IonButton
+              fill="clear"
+              className="agenda-back-button"
+              onClick={volverAlPanelFuncionario}
+            >
+              <IonIcon icon={arrowBackOutline} slot="icon-only" />
+            </IonButton>
           </IonButtons>
 
           <IonTitle>Agenda funcionario</IonTitle>
