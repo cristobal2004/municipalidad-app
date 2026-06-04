@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict teAGDM93eUWde3ETVkTcOzWxltq3A5JOcI4GaL9b1THdCAmwhRBDYZxojVuNOsp
+\restrict 63dWB52JNqAZBpwaKLOQjrojbb9ji0u57eJbGju0RQHbJQnR1dNapuddk9ibv18
 
 -- Dumped from database version 18.4
 -- Dumped by pg_dump version 18.4
@@ -357,10 +357,10 @@ COPY public.solicitudes (id, codigo, usuario_id, funcionario_id, tipo_tramite, r
 8	SOL-2026-0008	1	4	Patente comercial	1112	11.111.111-1	1	Comercial Definitiva	1	t	pendiente	2026-06-01 15:29:46.966446	2026-06-01 15:29:46.966446	usuario@test.cl	1	11	1	\N	media	[]	\N
 4	SOL-2026-0004	1	6	Patente comercial	tt	11.111.111-1	t	Comercial Definitiva	t	t	aprobada	2026-06-01 14:41:39.250285	2026-06-01 17:24:22.768696	usuario@test.cl	t	t	t	\N	media	[]	\N
 9	SOL-2026-0009	1	5	Patente comercial	11123	11.111.111-1	1	Comercial Definitiva	1	t	aprobada	2026-06-01 15:29:53.596551	2026-06-01 17:47:17.37196	usuario@test.cl	1	11	1	\N	media	[]	\N
-10	SOL-2026-0010	13	4	Patente comercial	Puticlub Donde Oscar	23.145.142-k	Las Tangas 2354	Comercial Definitiva	123-45	t	aprobada	2026-06-01 17:55:14.208796	2026-06-01 17:57:11.322324	rompecatre@gmail.com	+569 9164 8162	Disfruto personal	200 	papito hagame la mano no le cuesta nada insisto gracias	media	[]	\N
 3	SOL-2026-0003	1	6	Patente comercial	test	11.111.111-1	test1	Comercial Definitiva	44444	t	rechazada	2026-06-01 14:39:32.484011	2026-06-01 18:03:59.51846	usuario@test.cl	1231321231	test	10	test	media	[]	\N
 5	SOL-2026-0005	1	6	Patente comercial	das	11.111.111-1	asda	Comercial Definitiva	asd	f	observada	2026-06-01 14:46:38.395362	2026-06-03 22:35:22.59029	usuario@test.cl	asd	asd	asd	\N	media	["Fotografía del local", "Croquis del local", "Patente anterior", "Certificado de residencia"]	2026-07-04
 6	SOL-2026-0006	1	6	Patente comercial	111	11.111.111-1	1	Comercial Definitiva	1	t	aprobada	2026-06-01 15:06:00.458837	2026-06-03 22:38:01.758188	usuario@test.cl	1	11	1	\N	media	[]	\N
+10	SOL-2026-0010	13	4	Patente comercial	Comercial Los Aromos SpA	76.543.210-9	Av. Litoral 1250	Comercial Definitiva	123-45	t	en_revision	2026-06-01 17:55:14.208796	2026-06-03 23:21:24.993788	contacto@losaromos.cl	+56 9 8765 4321	Venta de abarrotes y minimarket	120	Solicitud ingresada para revision de patente comercial definitiva.	media	[]	\N
 \.
 
 
@@ -376,7 +376,7 @@ COPY public.usuarios (id, nombre, rut, correo, password_hash, rol, region, comun
 5	Pablo Aguilera	44.556.677-0	pablo.aguilera@santodomingo.cl	$2b$10$RY3yFBJcpPUZwqdob05EGO9U4eVzVpb0AjJXT5EBB56j/7qDIS3Fa	funcionario	Valparaíso	Santo Domingo	funcionario	Obras Municipales	2026-06-01 01:57:23.368278	44556677	Revisor Técnico
 6	Martina Ponce	99.887.766-0	martina.ponce@santodomingo.cl	$2b$10$1d1X.rT/J1YblPULe2UHnu8hBC4V8.astQ4GRSy7m0jSCF3yhJczG	funcionario	Valparaíso	Santo Domingo	funcionario	Patentes Comerciales	2026-06-01 01:57:23.414288	99887766	Encargada de Patentes
 12	Cristobal Rubilar	21.711.065-3	cristobalrubilar2004@gmail.com	$2b$10$jMDJFvPW6SOEJGMq8vmOdOsmeOxqlX1WyIXG6gO/1z36FW4WRqwma	usuario	Metropolitana	San Antonio	ciudadano	\N	2026-06-01 17:33:24.227207	\N	\N
-13	Oscar Ruiz	23.145.142-k	oscar@test.cl	$2b$10$8hFshIY7cI/t3RHqdaasje3aj76tFDQFDf7FTxf.C5S5FPfcSipGS	usuario	Valparaíso	Santo Domingo	ciudadano	\N	2026-06-01 17:52:13.331369	\N	\N
+13	Representante Comercial Los Aromos	76.543.210-9	contacto@losaromos.cl	$2b$10$8hFshIY7cI/t3RHqdaasje3aj76tFDQFDf7FTxf.C5S5FPfcSipGS	usuario	Valparaíso	Santo Domingo	ciudadano	\N	2026-06-01 17:52:13.331369	\N	\N
 \.
 
 
@@ -555,5 +555,5 @@ ALTER TABLE ONLY public.solicitudes
 -- PostgreSQL database dump complete
 --
 
-\unrestrict teAGDM93eUWde3ETVkTcOzWxltq3A5JOcI4GaL9b1THdCAmwhRBDYZxojVuNOsp
+\unrestrict 63dWB52JNqAZBpwaKLOQjrojbb9ji0u57eJbGju0RQHbJQnR1dNapuddk9ibv18
 
