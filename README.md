@@ -432,6 +432,16 @@ database/municipalidad_db_con_datos.sql
 
 El archivo `schema.sql` corresponde al esquema limpio de la base de datos, mientras que `municipalidad_db_con_datos.sql` corresponde a una exportación con datos de prueba utilizados durante el desarrollo.
 
+
+### Diseño del modelo relacional
+
+El diseño del modelo relacional se encuentra documentado en:
+
+```text
+otros\Documentacion-modelo-relacional.md
+Este documento incluye el diagrama entidad-relación, descripción de tablas, relaciones, claves primarias, claves foráneas, restricciones UNIQUE, restricciones CHECK y reglas de integridad referencial utilizadas en PostgreSQL.
+```
+
 ---
 
 ### EP 2.3: Desarrollo de API REST
@@ -529,3 +539,7 @@ Entre las medidas implementadas se encuentran:
 - Manejo de errores con respuestas JSON.
 
 El backend no almacena contraseñas en texto plano, sino que guarda el hash generado mediante bcrypt.
+
+```text
+otros\Documentacion-endpoints.md
+```
