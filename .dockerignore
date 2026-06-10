@@ -1,0 +1,6 @@
+node_modules
+dist
+.git
+.npm-cache
+municipalidad-backend/node_modules
+municipalidad-backend/uploads

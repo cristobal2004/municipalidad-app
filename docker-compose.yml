@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: municipalidad-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: municipalidad_db_con_datos
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: PostgreOscar
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/municipalidad_db_con_datos.sql:/docker-entrypoint-initdb.d/01-init.sql
+
+  backend:
+    build:
+      context: ./municipalidad-backend
+    container_name: municipalidad-backend
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      PORT: 3000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: municipalidad_db_con_datos
+      DB_USER: postgres
+      DB_PASSWORD: PostgreOscar
+      JWT_SECRET: municipalidad_app
+    ports:
+      - "3000:3000"
+    volumes:
+      - backend_uploads:/app/uploads
+
+  frontend:
+    build:
+      context: .
+      args:
+        VITE_API_URL: http://localhost:3000/api
+    container_name: municipalidad-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+volumes:
+  postgres_data:
+  backend_uploads:
