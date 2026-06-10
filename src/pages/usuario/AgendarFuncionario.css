@@ -253,6 +253,29 @@
   margin: 0 auto;
 }
 
+.agendar-calendar-legend {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #991b1b;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.agendar-calendar-legend span {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  background: #fee2e2;
+  border: 1px solid #ef4444;
+  flex-shrink: 0;
+}
+
+.agendar-calendar-legend p {
+  margin: 0;
+}
+
 .agendar-selected-date {
   margin-top: 18px;
   display: flex;

@@ -26,6 +26,7 @@ import api from "../../services/api";
 import type { Solicitud } from "../../services/solicitudesService";
 import { authService } from "../../services/authService";
 import "./AgendarFuncionario.css";
+import { feriadosService, type Feriado } from "../../services/feriadosService";
 
 interface AgendamientoResponse {
   id: number;
@@ -39,6 +40,18 @@ interface AgendamientoResponse {
   funcionarioCargo?: string;
   tramite?: string;
 }
+
+const validarFechaAntesDeAgendar = async (fecha: string) => {
+  const resultado = await feriadosService.verificarFecha(fecha);
+
+  if (resultado.esFeriado) {
+    throw new Error(
+      `No se puede agendar en feriado: ${
+        resultado.feriado?.localName || "feriado legal"
+      }.`
+    );
+  }
+};
 
 const AgendarFuncionario: React.FC = () => {
   const history = useHistory();
@@ -62,6 +75,7 @@ const AgendarFuncionario: React.FC = () => {
   const [guardando, setGuardando] = useState(false);
   const [mensajeError, setMensajeError] = useState("");
   const [mensajeExito, setMensajeExito] = useState("");
+  const [feriados, setFeriados] = useState<Feriado[]>([]);
 
   const obtenerValor = (objeto: any, campo: string, respaldo = "") => {
     const valor = objeto?.[campo];
@@ -117,6 +131,41 @@ const AgendarFuncionario: React.FC = () => {
     });
   };
 
+  const obtenerFechaIso = (fechaIso: string) => {
+    return String(fechaIso || "").slice(0, 10);
+  };
+
+  const esDomingo = (fechaIso: string) => {
+    const fecha = obtenerFechaIso(fechaIso);
+
+    if (!fecha) {
+      return false;
+    }
+
+    return new Date(`${fecha}T12:00:00`).getDay() === 0;
+  };
+
+  const obtenerFeriado = (fechaIso: string) => {
+    const fecha = obtenerFechaIso(fechaIso);
+    return feriados.find((feriado) => feriado.date === fecha);
+  };
+
+  const fechaEstaDisponible = (fechaIso: string) => {
+    return !esDomingo(fechaIso) && !obtenerFeriado(fechaIso);
+  };
+
+  const resaltarFechaNoDisponible = (fechaIso: string) => {
+    if (esDomingo(fechaIso) || obtenerFeriado(fechaIso)) {
+      return {
+        textColor: "#991b1b",
+        backgroundColor: "#fee2e2",
+        border: "1px solid #ef4444",
+      };
+    }
+
+    return undefined;
+  };
+
   const solicitudActual = useMemo(() => {
     return solicitudes.find(
       (solicitud) => obtenerIdSolicitud(solicitud) === solicitudSeleccionada
@@ -128,6 +177,21 @@ const AgendarFuncionario: React.FC = () => {
     ahora.setMinutes(ahora.getMinutes() + 30);
     return ahora.toISOString();
   }, []);
+
+  const cargarFeriados = async () => {
+    try {
+      const anioActual = new Date().getFullYear();
+      const anioSiguiente = anioActual + 1;
+      const feriadosPorAnio = await Promise.all([
+        feriadosService.obtenerPorAnio(anioActual),
+        feriadosService.obtenerPorAnio(anioSiguiente),
+      ]);
+
+      setFeriados(feriadosPorAnio.flat());
+    } catch (error) {
+      console.error("Error al cargar feriados:", error);
+    }
+  };
 
   const cargarSolicitudes = async () => {
     try {
@@ -165,6 +229,7 @@ const AgendarFuncionario: React.FC = () => {
 
   useEffect(() => {
     cargarSolicitudes();
+    cargarFeriados();
   }, []);
 
   const registrarNotificacionAgendamiento = (
@@ -241,6 +306,15 @@ const AgendarFuncionario: React.FC = () => {
 
       setGuardando(true);
 
+      const fechaParaValidar = obtenerFechaIso(fechaHora);
+
+      if (esDomingo(fechaParaValidar)) {
+        setMensajeError("No se puede agendar atención municipal un domingo.");
+        return;
+      }
+
+      await validarFechaAntesDeAgendar(fechaParaValidar);
+
       const respuesta = await api.post(
         `/solicitudes/${solicitudSeleccionada}/agendamientos`,
         {
@@ -265,7 +339,7 @@ const AgendarFuncionario: React.FC = () => {
       const mensajeBackend =
         error.response?.data?.mensaje ||
         error.response?.data?.error ||
-        error.response?.data?.error ||
+        error.message ||
         "No se pudo crear el agendamiento.";
 
       setMensajeError(mensajeBackend);
@@ -441,17 +515,45 @@ const AgendarFuncionario: React.FC = () => {
                     presentation="date-time"
                     value={fechaHora}
                     min={fechaMinima}
+                    isDateEnabled={fechaEstaDisponible}
+                    highlightedDates={resaltarFechaNoDisponible}
                     onIonChange={(event) => {
                       const valor = event.detail.value;
+                      const nuevaFecha = Array.isArray(valor)
+                        ? valor[0] || ""
+                        : valor || "";
 
-                      if (Array.isArray(valor)) {
-                        setFechaHora(valor[0] || "");
+                      if (!nuevaFecha) {
+                        setFechaHora("");
                         return;
                       }
 
-                      setFechaHora(valor || "");
+                      const fechaIso = obtenerFechaIso(nuevaFecha);
+                      const feriado = obtenerFeriado(fechaIso);
+
+                      if (esDomingo(fechaIso)) {
+                        setMensajeError(
+                          "No se puede agendar atención municipal un domingo."
+                        );
+                        return;
+                      }
+
+                      if (feriado) {
+                        setMensajeError(
+                          `No se puede agendar en feriado: ${feriado.localName}.`
+                        );
+                        return;
+                      }
+
+                      setMensajeError("");
+                      setFechaHora(nuevaFecha);
                     }}
                   />
+                </div>
+
+                <div className="agendar-calendar-legend">
+                  <span></span>
+                  <p>Domingos y feriados no disponibles</p>
                 </div>
 
                 {fechaHora && (

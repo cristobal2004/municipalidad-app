@@ -1,6 +1,7 @@
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
+const feriadosRoutes = require("./routes/feriadosRoutes");
 require("dotenv").config();
 
 const pool = require("./db/connection");
@@ -58,5 +59,6 @@ app.get("/api/db-test", async (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/solicitudes", solicitudesRoutes);
+app.use("/api/feriados", feriadosRoutes);
 
 module.exports = app;
