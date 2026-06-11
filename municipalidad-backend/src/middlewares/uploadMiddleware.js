@@ -32,6 +32,12 @@ const fileFilter = (req, file, cb) => {
     "image/png",
     "image/jpg",
   ];
+  const extensionesPermitidas = [".pdf", ".jpg", ".jpeg", ".png"];
+  const extension = path.extname(file.originalname).toLowerCase();
+
+  if (!extensionesPermitidas.includes(extension)) {
+    return cb(new Error("Extensión de archivo no permitida."));
+  }
 
   if (tiposPermitidos.includes(file.mimetype)) {
     cb(null, true);

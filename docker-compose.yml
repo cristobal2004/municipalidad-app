@@ -48,3 +48,5 @@ services:
 volumes:
   postgres_data:
   backend_uploads:
+
+CORS_ORIGIN: http://localhost:8080
