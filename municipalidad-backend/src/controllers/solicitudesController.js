@@ -1,5 +1,31 @@
 const pool = require("../db/connection");
 
+const esIdNumerico = (valor) => {
+  return /^\d+$/.test(String(valor || ""));
+};
+
+const obtenerCondicionSolicitudPorIdOCodigo = (alias = "s", valor) => {
+  if (esIdNumerico(valor)) {
+    return {
+      condicion: `${alias}.id = $1`,
+      parametro: Number(valor),
+    };
+  }
+
+  return {
+    condicion: `${alias}.codigo = $1`,
+    parametro: valor,
+  };
+};
+
+const obtenerPaginacion = (req) => {
+  const page = Math.max(Number(req.query.page) || 1, 1);
+  const limit = Math.min(Math.max(Number(req.query.limit) || 10, 1), 50);
+  const offset = (page - 1) * limit;
+
+  return { page, limit, offset };
+};
+
 const obtenerCodigoSolicitud = async () => {
   const resultado = await pool.query(
     "SELECT COALESCE(MAX(id), 0) + 1 AS siguiente FROM solicitudes"
@@ -13,10 +39,14 @@ const obtenerCodigoSolicitud = async () => {
 const obtenerFuncionarioAsignado = async () => {
   const resultadoFuncionario = await pool.query(
     `
-    SELECT id
-    FROM usuarios
-    WHERE rol = 'funcionario'
-    ORDER BY RANDOM()
+    SELECT u.id
+    FROM usuarios u
+    LEFT JOIN solicitudes s
+      ON s.funcionario_id = u.id
+      AND s.estado IN ('pendiente', 'en_revision', 'observada')
+    WHERE u.rol = 'funcionario'
+    GROUP BY u.id
+    ORDER BY COUNT(s.id) ASC, u.id ASC
     LIMIT 1
     `
   );
@@ -27,7 +57,6 @@ const obtenerFuncionarioAsignado = async () => {
 
   return null;
 };
-
 const normalizarEstado = (estado) => {
   const valor = String(estado || "")
     .trim()
@@ -498,6 +527,8 @@ const crearSolicitud = async (req, res) => {
 
 const listarSolicitudes = async (req, res) => {
   try {
+    const { page, limit, offset } = obtenerPaginacion(req);
+
     let query = selectSolicitudesBase;
     const params = [];
 
@@ -511,12 +542,19 @@ const listarSolicitudes = async (req, res) => {
       params.push(req.usuario.id);
     }
 
-    query += " ORDER BY s.created_at DESC";
+    query += ` ORDER BY s.created_at DESC LIMIT $${params.length + 1} OFFSET $${
+      params.length + 2
+    }`;
+
+    params.push(limit, offset);
 
     const resultado = await pool.query(query, params);
 
     return res.json({
       ok: true,
+      page,
+      limit,
+      cantidad: resultado.rows.length,
       solicitudes: resultado.rows.map(formatearSolicitud),
     });
   } catch (error) {
@@ -531,17 +569,23 @@ const listarSolicitudes = async (req, res) => {
 
 const obtenerMisSolicitudes = async (req, res) => {
   try {
+    const { page, limit, offset } = obtenerPaginacion(req);
+
     const resultado = await pool.query(
       `
       ${selectSolicitudesBase}
       WHERE s.usuario_id = $1
       ORDER BY s.created_at DESC
+      LIMIT $2 OFFSET $3
       `,
-      [req.usuario.id]
+      [req.usuario.id, limit, offset]
     );
 
     return res.json({
       ok: true,
+      page,
+      limit,
+      cantidad: resultado.rows.length,
       solicitudes: resultado.rows.map(formatearSolicitud),
     });
   } catch (error) {
@@ -556,15 +600,15 @@ const obtenerMisSolicitudes = async (req, res) => {
 
 const obtenerSolicitudPorId = async (req, res) => {
   try {
-    const { id } = req.params;
+    const busqueda = obtenerCondicionSolicitudPorIdOCodigo("s", id);
 
     const resultado = await pool.query(
       `
       ${selectSolicitudesBase}
-      WHERE s.codigo = $1 OR s.id::text = $1
+      WHERE ${busqueda.condicion}
       LIMIT 1
       `,
-      [id]
+      [busqueda.parametro]
     );
 
     if (resultado.rows.length === 0) {
@@ -837,20 +881,15 @@ const crearAgendamientoSolicitud = async (req, res) => {
       });
     }
 
-    const solicitudResult = await pool.query(
+    const busqueda = obtenerCondicionSolicitudPorIdOCodigo("s", id);
+
+    const resultado = await pool.query(
       `
-      SELECT 
-        s.*,
-        f.nombre AS funcionario_nombre,
-        f.correo AS funcionario_correo,
-        f.area AS funcionario_area,
-        f.cargo AS funcionario_cargo
-      FROM solicitudes s
-      LEFT JOIN usuarios f ON f.id = s.funcionario_id
-      WHERE s.codigo = $1 OR s.id::text = $1
+      ${selectSolicitudesBase}
+      WHERE ${busqueda.condicion}
       LIMIT 1
       `,
-      [id]
+      [busqueda.parametro]
     );
 
     if (solicitudResult.rows.length === 0) {
