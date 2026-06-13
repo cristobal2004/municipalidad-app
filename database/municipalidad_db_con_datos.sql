@@ -10,7 +10,6 @@
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -64,7 +63,7 @@ CREATE TABLE public.agendamientos (
     solicitud_id integer NOT NULL,
     usuario_id integer NOT NULL,
     funcionario_id integer,
-    fecha_hora timestamp without time zone NOT NULL,
+    fecha_hora timestamp with time zone NOT NULL,
     estado character varying(30) DEFAULT 'agendado'::character varying NOT NULL,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT agendamientos_estado_check CHECK (((estado)::text = ANY (ARRAY[('pendiente'::character varying)::text, ('agendada'::character varying)::text, ('confirmada'::character varying)::text, ('reagendada'::character varying)::text, ('cancelada'::character varying)::text, ('completada'::character varying)::text])))
@@ -191,6 +190,8 @@ CREATE TABLE public.solicitudes (
     superficie character varying(50),
     observaciones_solicitante text,
     prioridad character varying(30) DEFAULT 'media'::character varying,
+    area_responsable character varying(100),
+    datos_tramite jsonb DEFAULT '{}'::jsonb NOT NULL,
     documentos_faltantes jsonb DEFAULT '[]'::jsonb,
     fecha_limite_documentos date,
     CONSTRAINT solicitudes_estado_check CHECK (((estado)::text = ANY (ARRAY[('pendiente'::character varying)::text, ('en_revision'::character varying)::text, ('observada'::character varying)::text, ('aprobada'::character varying)::text, ('rechazada'::character varying)::text])))
@@ -351,7 +352,7 @@ COPY public.observaciones (id, solicitud_id, funcionario_id, mensaje, estado_res
 --
 
 COPY public.solicitudes (id, codigo, usuario_id, funcionario_id, tipo_tramite, razon_social, rut_empresa, direccion, tipo_patente, rol_avaluo, pyme, estado, created_at, updated_at, correo_contacto, telefono_contacto, giro, superficie, observaciones_solicitante, prioridad, documentos_faltantes, fecha_limite_documentos) FROM stdin;
-1	SOL-2026-0001	1	6	Patente comercial	Local de prueba EP2	76.123.456-7	Av. Litoral 450, Santo Domingo	Comercial Definitiva	123-45	f	pendiente	2026-06-01 12:04:16.351123	2026-06-01 12:04:16.351123	contacto@ejemplo.cl	+56 9 1234 5678	Venta de abarrotes y art�culos de primera necesidad	120 m�	Solicito patente comercial para iniciar actividades en el local indicado.	media	[]	\N
+1	SOL-2026-0001	1	6	Patente comercial	Local de prueba EP2	76.123.456-7	Av. Litoral 450, Santo Domingo	Comercial Definitiva	123-45	f	pendiente	2026-06-01 12:04:16.351123	2026-06-01 12:04:16.351123	contacto@ejemplo.cl	+56 9 1234 5678	Venta de abarrotes y artículos de primera necesidad	120 m²	Solicito patente comercial para iniciar actividades en el local indicado.	media	[]	\N
 2	SOL-2026-0002	1	6	Patente comercial	Almacen Donde Pepito	11.111.111-1	Olmue, La Ramayana	Comercial Definitiva	123-45	t	pendiente	2026-06-01 12:15:16.159651	2026-06-01 12:15:16.159651	usuario@test.cl	+569111111	venta de abarrote	10m2	Es un local familiar en el centro de la ciudad	media	[]	\N
 7	SOL-2026-0007	1	6	Patente comercial	111	11.111.111-1	1	Comercial Definitiva	1	t	pendiente	2026-06-01 15:29:37.966742	2026-06-01 15:29:37.966742	usuario@test.cl	1	11	1	\N	media	[]	\N
 8	SOL-2026-0008	1	4	Patente comercial	1112	11.111.111-1	1	Comercial Definitiva	1	t	pendiente	2026-06-01 15:29:46.966446	2026-06-01 15:29:46.966446	usuario@test.cl	1	11	1	\N	media	[]	\N
@@ -369,13 +370,13 @@ COPY public.solicitudes (id, codigo, usuario_id, funcionario_id, tipo_tramite, r
 --
 
 COPY public.usuarios (id, nombre, rut, correo, password_hash, rol, region, comuna, tipo_usuario, area, created_at, numero_empleado, cargo) FROM stdin;
-1	Usuario Prueba	11.111.111-1	usuario@test.cl	$2b$10$i6ylASIzbkXwOTlyS2H17eP8z4ND8h8B9UhkUFMFk5jlEqbkW/ZTK	usuario	Valpara�so	Santo Domingo	ciudadano	\N	2026-06-01 01:52:16.475154	\N	\N
+1	Usuario Prueba	11.111.111-1	usuario@test.cl	$2b$10$i6ylASIzbkXwOTlyS2H17eP8z4ND8h8B9UhkUFMFk5jlEqbkW/ZTK	usuario	Valparaíso	Santo Domingo	ciudadano	\N	2026-06-01 01:52:16.475154	\N	\N
 2	Cristian Mejías	12.345.678-0	cristian.mejias@santodomingo.cl	$2b$10$7.o0/IqYJ/8zHhtTI9omDe3sfsy.75f8408N8XCgBoUg3xIpModr6	funcionario	Valparaíso	Santo Domingo	funcionario	Atención General	2026-06-01 01:57:23.226085	12345678	Funcionario Municipal
 3	Benjamin Gomez	87.654.321-0	benjamin.gomez@santodomingo.cl	$2b$10$kxcPLBt1Z.cQTyxvhDZKF.3WlAnm8UCuRMdi.gObC9tVFRB5LYg2K	funcionario	Valparaíso	Santo Domingo	funcionario	Servicio Ciudadano	2026-06-01 01:57:23.276333	87654321	Ejecutivo de Atención
 4	Oscar Ruiz	11.223.344-0	oscar.ruiz@santodomingo.cl	$2b$10$7wj30e5eOkU6xJDCz.S6p.RYXKwaZcw9JHBUyhHXb1ZIiNawLy77a	funcionario	Valparaíso	Santo Domingo	funcionario	Finanzas	2026-06-01 01:57:23.321425	11223344	Analista Municipal
 5	Pablo Aguilera	44.556.677-0	pablo.aguilera@santodomingo.cl	$2b$10$RY3yFBJcpPUZwqdob05EGO9U4eVzVpb0AjJXT5EBB56j/7qDIS3Fa	funcionario	Valparaíso	Santo Domingo	funcionario	Obras Municipales	2026-06-01 01:57:23.368278	44556677	Revisor Técnico
 6	Martina Ponce	99.887.766-0	martina.ponce@santodomingo.cl	$2b$10$1d1X.rT/J1YblPULe2UHnu8hBC4V8.astQ4GRSy7m0jSCF3yhJczG	funcionario	Valparaíso	Santo Domingo	funcionario	Patentes Comerciales	2026-06-01 01:57:23.414288	99887766	Encargada de Patentes
-12	Cristobal Rubilar	21.711.065-3	cristobalrubilar2004@gmail.com	$2b$10$jMDJFvPW6SOEJGMq8vmOdOsmeOxqlX1WyIXG6gO/1z36FW4WRqwma	usuario	Metropolitana	San Antonio	ciudadano	\N	2026-06-01 17:33:24.227207	\N	\N
+12	Usuario Demostración	22.222.222-2	usuario.demo@example.com	$2b$10$jMDJFvPW6SOEJGMq8vmOdOsmeOxqlX1WyIXG6gO/1z36FW4WRqwma	usuario	Valparaíso	Santo Domingo	ciudadano	\N	2026-06-01 17:33:24.227207	\N	\N
 13	Representante Comercial Los Aromos	76.543.210-9	contacto@losaromos.cl	$2b$10$8hFshIY7cI/t3RHqdaasje3aj76tFDQFDf7FTxf.C5S5FPfcSipGS	usuario	Valparaíso	Santo Domingo	ciudadano	\N	2026-06-01 17:52:13.331369	\N	\N
 \.
 
@@ -556,4 +557,3 @@ ALTER TABLE ONLY public.solicitudes
 --
 
 \unrestrict 63dWB52JNqAZBpwaKLOQjrojbb9ji0u57eJbGju0RQHbJQnR1dNapuddk9ibv18
-

@@ -32,3 +32,8 @@ yarn-error.log*
 # Optional eslint cache
 .eslintcache
 
+# archivos generados o cargados durante la ejecución
+index.zip
+/municipalidad-backend/uploads/*
+!/municipalidad-backend/uploads/.gitkeep
+

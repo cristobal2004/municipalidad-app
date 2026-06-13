@@ -1,6 +1,6 @@
 {
-  "short_name": "Ionic App",
-  "name": "My Ionic App",
+  "short_name": "Municipalidad SD",
+  "name": "Oficina Virtual Municipalidad de Santo Domingo",
   "icons": [
     {
       "src": "assets/icon/favicon.png",
@@ -14,8 +14,8 @@
       "purpose": "maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
-  "theme_color": "#ffffff",
+  "theme_color": "#0b4f6c",
   "background_color": "#ffffff"
 }

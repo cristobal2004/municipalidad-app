@@ -27,4 +27,18 @@ export default tseslint.config(
       'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     },
   },
+  {
+    files: [
+      'src/features/**/presentation/screens/**/*.{ts,tsx}',
+      'src/features/auth/data/local/funcionariosService.ts',
+      'src/features/auth/data/local/usuariosService.ts',
+      'src/features/solicitudes/data/local/solicitudesLocalService.ts',
+      'src/core/presentation/components/ProtectedRoute.tsx',
+    ],
+    rules: {
+      // Módulos heredados: se mantiene visible la deuda de hooks mientras
+      // los modelos de dominio reemplazan gradualmente los tipos dinámicos.
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
 )

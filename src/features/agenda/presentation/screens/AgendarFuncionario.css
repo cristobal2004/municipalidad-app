@@ -1,0 +1,555 @@
+.agendar-content {
+  --background: #f4f7fb;
+  color: #172033;
+}
+
+.agendar-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.agendar-header {
+  width: 100%;
+  background: #ffffff;
+  border-bottom: 4px solid #d71920;
+  padding: 18px 7%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.agendar-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.agendar-brand img {
+  width: 54px;
+  height: auto;
+  object-fit: contain;
+}
+
+.agendar-brand h1 {
+  margin: 0;
+  color: #005daa;
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.agendar-brand p {
+  margin: 3px 0 0;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.agendar-back-top {
+  border: 1px solid #d7e3f5;
+  background: #ffffff;
+  color: #005daa;
+  border-radius: 12px;
+  padding: 11px 16px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.agendar-back-top:hover {
+  background: #eef6ff;
+  border-color: #005daa;
+}
+
+.agendar-main {
+  width: min(1180px, 92%);
+  margin: 28px auto;
+  flex: 1;
+}
+
+.agendar-hero {
+  background: linear-gradient(135deg, #003f7d 0%, #0065b3 55%, #0b83d8 100%);
+  color: #ffffff;
+  border-radius: 26px;
+  padding: 34px;
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  box-shadow: 0 22px 44px rgba(0, 93, 170, 0.22);
+  margin-bottom: 24px;
+  overflow: hidden;
+  position: relative;
+}
+
+.agendar-hero::after {
+  content: "";
+  position: absolute;
+  width: 240px;
+  height: 240px;
+  right: -70px;
+  top: -70px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.agendar-chip {
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  border-radius: 999px;
+  padding: 9px 14px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+
+.agendar-hero h2 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 950;
+  letter-spacing: -0.04em;
+}
+
+.agendar-hero p {
+  margin: 14px 0 0;
+  max-width: 680px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+.agendar-hero-icon {
+  width: 92px;
+  height: 92px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.16);
+  display: grid;
+  place-items: center;
+  font-size: 2.8rem;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.agendar-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+  align-items: start;
+}
+
+.agendar-card {
+  background: #ffffff;
+  border: 1px solid #dce6f4;
+  border-radius: 22px;
+  padding: 24px;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
+}
+
+.agendar-section-title {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.agendar-section-title > div:first-child {
+  width: 48px;
+  height: 48px;
+  background: #eef6ff;
+  color: #005daa;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  font-size: 1.45rem;
+  flex-shrink: 0;
+}
+
+.agendar-section-title h3 {
+  margin: 0;
+  color: #005daa;
+  font-size: 1.28rem;
+  font-weight: 950;
+}
+
+.agendar-section-title p {
+  margin: 5px 0 0;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.agendar-label {
+  display: block;
+  color: #334155;
+  font-weight: 850;
+  margin-bottom: 8px;
+}
+
+.agendar-select {
+  width: 100%;
+  border: 1px solid #dbe7f6;
+  border-radius: 14px;
+  padding: 4px 12px;
+  background: #f8fbff;
+  color: #172033;
+  margin-bottom: 18px;
+}
+
+.agendar-summary {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.agendar-summary-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f8fbff;
+  border: 1px solid #e3edf9;
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.agendar-summary-row ion-icon {
+  width: 38px;
+  height: 38px;
+  padding: 9px;
+  border-radius: 12px;
+  background: #eef6ff;
+  color: #005daa;
+  flex-shrink: 0;
+}
+
+.agendar-summary-row span {
+  display: block;
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.agendar-summary-row strong {
+  display: block;
+  color: #172033;
+  margin-top: 3px;
+  font-weight: 900;
+}
+
+.agendar-datetime-box {
+  border: 1px solid #dbe7f6;
+  border-radius: 20px;
+  padding: 16px;
+  background: #f8fbff;
+  overflow: hidden;
+}
+
+.agendar-datetime-box ion-datetime {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.agendar-calendar-legend {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #991b1b;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.agendar-calendar-legend span {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  background: #fee2e2;
+  border: 1px solid #ef4444;
+  flex-shrink: 0;
+}
+
+.agendar-calendar-legend p {
+  margin: 0;
+}
+
+.agendar-slots-section {
+  margin-top: 18px;
+  border-top: 1px solid #e3edf9;
+  padding-top: 18px;
+}
+
+.agendar-slots-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.agendar-slots-title strong {
+  color: #172033;
+}
+
+.agendar-slots-title span {
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.agendar-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.agendar-slots-grid button {
+  border: 1px solid #b9d4ef;
+  background: #f8fbff;
+  color: #005daa;
+  border-radius: 12px;
+  padding: 11px 8px;
+  cursor: pointer;
+}
+
+.agendar-slots-grid button strong,
+.agendar-slots-grid button span {
+  display: block;
+}
+
+.agendar-slots-grid button span {
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 0.72rem;
+}
+
+.agendar-slots-grid button.selected {
+  background: #005daa;
+  color: #ffffff;
+  border-color: #005daa;
+}
+
+.agendar-slots-grid button.selected span {
+  color: #dbeafe;
+}
+
+.agendar-slots-grid button:disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  border-color: #e2e8f0;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.agendar-slots-loading,
+.agendar-no-slots {
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #64748b;
+  text-align: center;
+}
+
+.agendar-selected-date {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #ecfdf3;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  border-radius: 16px;
+  padding: 14px 16px;
+}
+
+.agendar-selected-date ion-icon {
+  font-size: 1.5rem;
+}
+
+.agendar-selected-date span {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.agendar-selected-date strong {
+  display: block;
+  margin-top: 3px;
+  font-weight: 950;
+}
+
+.agendar-loading,
+.agendar-empty {
+  min-height: 160px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: #64748b;
+}
+
+.agendar-empty ion-icon {
+  font-size: 2.5rem;
+  color: #d97706;
+  margin-bottom: 10px;
+}
+
+.agendar-empty strong {
+  color: #172033;
+  font-size: 1rem;
+}
+
+.agendar-empty p {
+  margin: 6px 0 0;
+  max-width: 420px;
+  line-height: 1.5;
+}
+
+.agendar-message {
+  margin-top: 20px;
+  border-radius: 16px;
+  padding: 15px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 800;
+}
+
+.agendar-message-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+
+.agendar-message-success {
+  background: #ecfdf3;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.agendar-message ion-icon {
+  font-size: 1.45rem;
+  flex-shrink: 0;
+}
+
+.agendar-message p {
+  margin: 0;
+}
+
+.agendar-info-card {
+  margin-top: 20px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 18px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  color: #1e3a8a;
+}
+
+.agendar-info-card ion-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.agendar-info-card strong {
+  display: block;
+  font-weight: 950;
+  margin-bottom: 3px;
+}
+
+.agendar-info-card p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.agendar-actions {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr;
+  gap: 14px;
+}
+
+.agendar-primary {
+  --background: #005daa;
+  --background-hover: #004b8c;
+  --border-radius: 14px;
+  height: 52px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+}
+
+.agendar-secondary {
+  --border-radius: 14px;
+  height: 52px;
+  font-weight: 900;
+  --color: #005daa;
+  --border-color: #005daa;
+}
+
+.agendar-footer {
+  margin-top: auto;
+  background: #005daa;
+  color: #ffffff;
+  padding: 18px 7%;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .agendar-header,
+  .agendar-footer {
+    padding-left: 5%;
+    padding-right: 5%;
+  }
+
+  .agendar-hero {
+    flex-direction: column;
+  }
+
+  .agendar-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .agendar-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .agendar-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .agendar-brand h1 {
+    font-size: 1.1rem;
+  }
+
+  .agendar-main {
+    width: 94%;
+    margin-top: 18px;
+  }
+
+  .agendar-hero,
+  .agendar-card {
+    border-radius: 18px;
+    padding: 20px;
+  }
+
+  .agendar-footer {
+    flex-direction: column;
+  }
+
+  .agendar-slots-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

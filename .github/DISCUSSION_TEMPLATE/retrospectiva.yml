@@ -1,0 +1,22 @@
+title: "Retrospectiva de la entrega"
+labels:
+  - retrospectiva
+body:
+  - type: textarea
+    id: logros
+    attributes:
+      label: Logros
+    validations:
+      required: true
+  - type: textarea
+    id: dificultades
+    attributes:
+      label: Dificultades y decisiones
+    validations:
+      required: true
+  - type: textarea
+    id: mejoras
+    attributes:
+      label: Mejoras futuras
+    validations:
+      required: true

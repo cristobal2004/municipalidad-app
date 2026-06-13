@@ -2,13 +2,20 @@
 // allows you to do things like:
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
-import '@testing-library/jest-dom/extend-expect';
+import "@testing-library/jest-dom";
 
 // Mock matchmedia
-window.matchMedia = window.matchMedia || function() {
+window.matchMedia = window.matchMedia || function () {
   return {
-      matches: false,
-      addListener: function() {},
-      removeListener: function() {}
+    matches: false,
+    media: "",
+    onchange: null,
+    addListener: function () {},
+    removeListener: function () {},
+    addEventListener: function () {},
+    removeEventListener: function () {},
+    dispatchEvent: function () {
+      return false;
+    },
   };
 };

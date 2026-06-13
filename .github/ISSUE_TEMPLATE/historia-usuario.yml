@@ -1,0 +1,33 @@
+name: Historia de usuario
+description: Registrar una funcionalidad vinculada a la rubrica.
+title: "[HU] "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: historia
+    attributes:
+      label: Historia
+      description: Como, quiero, para.
+    validations:
+      required: true
+  - type: textarea
+    id: criterios
+    attributes:
+      label: Criterios de aceptacion
+      description: Condiciones observables para considerar el trabajo terminado.
+    validations:
+      required: true
+  - type: dropdown
+    id: requisito
+    attributes:
+      label: Requisito
+      options:
+        - EF1 Funcionalidad
+        - EF2 UI/UX y rendimiento
+        - EF3 Seguridad
+        - EF4 Consultas
+        - EF5 Servicio externo
+        - EF6 Docker
+    validations:
+      required: true

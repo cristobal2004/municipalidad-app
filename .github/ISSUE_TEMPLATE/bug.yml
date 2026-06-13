@@ -1,0 +1,25 @@
+name: Error
+description: Informar un comportamiento incorrecto o una regresion.
+title: "[BUG] "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: descripcion
+    attributes:
+      label: Descripcion
+      description: Explica que ocurre y que deberia ocurrir.
+    validations:
+      required: true
+  - type: textarea
+    id: pasos
+    attributes:
+      label: Pasos para reproducir
+      placeholder: "1. Abrir...\n2. Ingresar...\n3. Observar..."
+    validations:
+      required: true
+  - type: textarea
+    id: evidencia
+    attributes:
+      label: Evidencia y entorno
+      description: Capturas, consola, navegador, sistema operativo y version.

@@ -4,14 +4,24 @@ services:
     container_name: municipalidad-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: municipalidad_db_con_datos
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: PostgreOscar
+      POSTGRES_DB: ${POSTGRES_DB:-municipalidad_app}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Debes definir POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/municipalidad_db_con_datos.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./database/municipalidad_db_con_datos.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./database/02_indexes.sql:/docker-entrypoint-initdb.d/02-indexes.sql:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-municipalidad_app}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   backend:
     build:
@@ -19,34 +29,54 @@ services:
     container_name: municipalidad-backend
     restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
+      NODE_ENV: production
       PORT: 3000
       DB_HOST: db
       DB_PORT: 5432
-      DB_NAME: municipalidad_db_con_datos
-      DB_USER: postgres
-      DB_PASSWORD: PostgreOscar
-      JWT_SECRET: municipalidad_app
+      DB_NAME: ${POSTGRES_DB:-municipalidad_app}
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?Debes definir POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?Debes definir JWT_SECRET}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8080}
+      EMAIL_ENABLED: ${EMAIL_ENABLED:-false}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_SECURE: ${SMTP_SECURE:-true}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-Municipalidad de Santo Domingo}
+      SMTP_REPLY_TO: ${SMTP_REPLY_TO:-atencionciudadana@santodomingo.cl}
     ports:
-      - "3000:3000"
+      - "${BACKEND_PORT:-3000}:3000"
     volumes:
-      - backend_uploads:/app/uploads
+      - ./municipalidad-backend/uploads:/app/uploads
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   frontend:
     build:
       context: .
       args:
-        VITE_API_URL: http://localhost:3000/api
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000/api}
     container_name: municipalidad-frontend
     restart: unless-stopped
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     ports:
-      - "8080:80"
+      - "${FRONTEND_PORT:-8080}:80"
 
 volumes:
   postgres_data:
-  backend_uploads:
-
-CORS_ORIGIN: http://localhost:8080
