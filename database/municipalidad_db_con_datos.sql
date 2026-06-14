@@ -370,7 +370,7 @@ COPY public.solicitudes (id, codigo, usuario_id, funcionario_id, tipo_tramite, r
 --
 
 COPY public.usuarios (id, nombre, rut, correo, password_hash, rol, region, comuna, tipo_usuario, area, created_at, numero_empleado, cargo) FROM stdin;
-1	Usuario Prueba	11.111.111-1	usuario@test.cl	$2b$10$i6ylASIzbkXwOTlyS2H17eP8z4ND8h8B9UhkUFMFk5jlEqbkW/ZTK	usuario	Valparaíso	Santo Domingo	ciudadano	\N	2026-06-01 01:52:16.475154	\N	\N
+1	Usuario Prueba	11.111.111-1	usuario@test.cl	$2b$10$s3D5cffKzg1uvoCFTvVU/OOGaT7QHckyz17f0.ym4mtf0pF4zCCwi	usuario	Valparaíso	Santo Domingo	ciudadano	\N	2026-06-01 01:52:16.475154	\N	\N
 2	Cristian Mejías	12.345.678-0	cristian.mejias@santodomingo.cl	$2b$10$7.o0/IqYJ/8zHhtTI9omDe3sfsy.75f8408N8XCgBoUg3xIpModr6	funcionario	Valparaíso	Santo Domingo	funcionario	Atención General	2026-06-01 01:57:23.226085	12345678	Funcionario Municipal
 3	Benjamin Gomez	87.654.321-0	benjamin.gomez@santodomingo.cl	$2b$10$kxcPLBt1Z.cQTyxvhDZKF.3WlAnm8UCuRMdi.gObC9tVFRB5LYg2K	funcionario	Valparaíso	Santo Domingo	funcionario	Servicio Ciudadano	2026-06-01 01:57:23.276333	87654321	Ejecutivo de Atención
 4	Oscar Ruiz	11.223.344-0	oscar.ruiz@santodomingo.cl	$2b$10$7wj30e5eOkU6xJDCz.S6p.RYXKwaZcw9JHBUyhHXb1ZIiNawLy77a	funcionario	Valparaíso	Santo Domingo	funcionario	Finanzas	2026-06-01 01:57:23.321425	11223344	Analista Municipal
