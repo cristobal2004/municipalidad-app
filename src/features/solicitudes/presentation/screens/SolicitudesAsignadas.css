@@ -294,7 +294,8 @@
   font-weight: 900;
 }
 
-.toolbar-panel-grid select {
+.toolbar-panel-grid select,
+.toolbar-panel-grid input {
   min-width: 190px;
   height: 38px;
   border: 1px solid #d9e1ea;
@@ -788,6 +789,7 @@
   }
 
   .toolbar-panel-grid select,
+  .toolbar-panel-grid input,
   .toolbar-panel-grid button {
     width: 100%;
   }

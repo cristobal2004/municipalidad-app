@@ -5,6 +5,7 @@ const {
   obtenerCondicionSolicitudPorIdOCodigo,
   obtenerFuncionarioAsignado,
   obtenerPaginacion,
+  registrarHistorialSolicitud,
   reservarIdentidadSolicitud,
 } = require("../src/features/solicitudes/data/solicitudesRepository");
 
@@ -59,4 +60,35 @@ test("reserva codigos mediante la secuencia para evitar colisiones", async () =>
 
   assert.equal(identity.id, 27);
   assert.match(identity.codigo, /^SOL-\d{4}-0027$/);
+});
+
+test("registra un evento estructurado en el historial de la solicitud", async () => {
+  const database = {
+    query: async (sql, params) => {
+      assert.match(sql, /INSERT INTO historial_solicitudes/);
+      assert.equal(params[0], 27);
+      assert.equal(params[3], "cambio_estado");
+      assert.deepEqual(JSON.parse(params[6]), {
+        estadoAnterior: "pendiente",
+        estadoNuevo: "aprobada",
+      });
+      return { rows: [] };
+    },
+  };
+
+  await registrarHistorialSolicitud(
+    {
+      solicitudId: 27,
+      actorId: 4,
+      actorRol: "funcionario",
+      accion: "cambio_estado",
+      titulo: "Solicitud aprobada",
+      descripcion: "La solicitud finalizó correctamente.",
+      cambios: {
+        estadoAnterior: "pendiente",
+        estadoNuevo: "aprobada",
+      },
+    },
+    database,
+  );
 });

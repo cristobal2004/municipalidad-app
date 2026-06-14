@@ -251,6 +251,8 @@ const InicioUsuario: React.FC = () => {
   const normalizarEstado = (estado: string) => {
     const estadoLower = normalizarTexto(estado);
 
+    if (estadoLower.includes("cerrad")) return "cerrada";
+    if (estadoLower.includes("derivad")) return "derivada";
     if (estadoLower.includes("aprob")) return "aprobada";
     if (estadoLower.includes("rechaz")) return "rechazada";
 
@@ -433,7 +435,11 @@ const InicioUsuario: React.FC = () => {
 
   const solicitudesActivas = solicitudes.filter((solicitud) => {
     const estado = normalizarEstado(obtenerEstado(solicitud));
-    return estado === "ingresada" || estado === "en_revision";
+    return (
+      estado === "ingresada" ||
+      estado === "en_revision" ||
+      estado === "derivada"
+    );
   });
 
   const pendientesDocumentos = solicitudes.filter(
@@ -458,6 +464,7 @@ const InicioUsuario: React.FC = () => {
   const obtenerClaseEstado = (estado: string) => {
     const estadoNormalizado = normalizarEstado(estado);
 
+    if (estadoNormalizado === "cerrada") return "estado-mini estado-aprobado";
     if (estadoNormalizado === "aprobada") return "estado-mini estado-aprobado";
     if (estadoNormalizado === "pendiente_documentos") {
       return "estado-mini estado-falta";
@@ -469,6 +476,8 @@ const InicioUsuario: React.FC = () => {
   function obtenerTextoEstado(estado: string) {
     const estadoNormalizado = normalizarEstado(estado);
 
+    if (estadoNormalizado === "cerrada") return "Cerrada";
+    if (estadoNormalizado === "derivada") return "Derivada";
     if (estadoNormalizado === "aprobada") return "Aprobada";
     if (estadoNormalizado === "rechazada") return "Rechazada";
     if (estadoNormalizado === "pendiente_documentos") {
@@ -482,12 +491,21 @@ const InicioUsuario: React.FC = () => {
   const obtenerEtapaActual = (estado: string) => {
     const estadoNormalizado = normalizarEstado(estado);
 
-    if (estadoNormalizado === "aprobada" || estadoNormalizado === "rechazada") {
+    if (
+      estadoNormalizado === "aprobada" ||
+      estadoNormalizado === "rechazada" ||
+      estadoNormalizado === "cerrada"
+    ) {
       return 4;
     }
 
     if (estadoNormalizado === "pendiente_documentos") return 3;
-    if (estadoNormalizado === "en_revision") return 2;
+    if (
+      estadoNormalizado === "en_revision" ||
+      estadoNormalizado === "derivada"
+    ) {
+      return 2;
+    }
 
     return 1;
   };

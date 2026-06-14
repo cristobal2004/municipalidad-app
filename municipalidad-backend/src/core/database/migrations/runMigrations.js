@@ -6,6 +6,30 @@ const runMigrations = async () => {
       ADD COLUMN IF NOT EXISTS area_responsable VARCHAR(100),
       ADD COLUMN IF NOT EXISTS datos_tramite JSONB NOT NULL DEFAULT '{}'::jsonb;
 
+    ALTER TABLE solicitudes
+      DROP CONSTRAINT IF EXISTS solicitudes_estado_check;
+
+    ALTER TABLE solicitudes
+      ADD CONSTRAINT solicitudes_estado_check
+      CHECK (
+        estado IN (
+          'pendiente', 'en_revision', 'observada', 'derivada',
+          'aprobada', 'rechazada', 'cerrada'
+        )
+      );
+
+    ALTER TABLE observaciones
+      DROP CONSTRAINT IF EXISTS observaciones_estado_resultante_check;
+
+    ALTER TABLE observaciones
+      ADD CONSTRAINT observaciones_estado_resultante_check
+      CHECK (
+        estado_resultante IS NULL OR estado_resultante IN (
+          'pendiente', 'en_revision', 'observada', 'derivada',
+          'aprobada', 'rechazada', 'cerrada'
+        )
+      );
+
     UPDATE solicitudes
     SET area_responsable = CASE
       WHEN lower(tipo_tramite) LIKE '%circulacion%' THEN 'Finanzas'

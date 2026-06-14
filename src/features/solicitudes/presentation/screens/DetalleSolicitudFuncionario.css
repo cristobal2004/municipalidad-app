@@ -370,6 +370,46 @@
   cursor: pointer;
 }
 
+.documento-validacion {
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase;
+}
+
+.documento-validacion.aprobado {
+  color: #15803d;
+}
+
+.documento-validacion.rechazado {
+  color: #b91c1c;
+}
+
+.documento-validacion.pendiente {
+  color: #a16207;
+}
+
+.documento-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.detalle-documento-row button.aprobar-documento {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.detalle-documento-row button.rechazar-documento {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.detalle-documento-row button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
 .detalle-funcionario-panel {
   display: flex;
   flex-direction: column;
@@ -448,6 +488,38 @@
 
 .derivar-button {
   background: #0057b8;
+}
+
+.derivacion-box {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid #bfd5ee;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.derivacion-box label {
+  margin-bottom: 10px;
+}
+
+.derivacion-box .derivar-button {
+  width: 100%;
+  min-height: 42px;
+  border: none;
+  border-radius: 7px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  cursor: pointer;
+}
+
+.derivacion-box .derivar-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
 }
 
 .guardar-button {

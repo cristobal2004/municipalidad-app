@@ -14,6 +14,8 @@ const normalizarEstado = (estado) => {
     documentos_pendientes: "observada",
     aprobado: "aprobada",
     rechazado: "rechazada",
+    derivado: "derivada",
+    cerrado: "cerrada",
   };
 
   const normalized = aliases[valor] || valor;
@@ -21,8 +23,10 @@ const normalizarEstado = (estado) => {
     "pendiente",
     "en_revision",
     "observada",
+    "derivada",
     "aprobada",
     "rechazada",
+    "cerrada",
   ];
 
   return allowedStates.includes(normalized) ? normalized : "pendiente";
@@ -33,8 +37,10 @@ const convertirEstadoFrontend = (estado) => {
     pendiente: "Ingresada",
     en_revision: "En revisión",
     observada: "Pendiente de documentos",
+    derivada: "Derivada",
     aprobada: "Aprobada",
     rechazada: "Rechazada",
+    cerrada: "Cerrada",
   };
 
   return estados[estado] || "Ingresada";

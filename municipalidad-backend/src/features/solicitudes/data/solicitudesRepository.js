@@ -160,7 +160,7 @@ const obtenerFuncionarioAsignado = async (area, database = pool) => {
     FROM usuarios u
     LEFT JOIN solicitudes s
       ON s.funcionario_id = u.id
-      AND s.estado IN ('pendiente', 'en_revision', 'observada')
+      AND s.estado IN ('pendiente', 'en_revision', 'observada', 'derivada')
     WHERE u.rol = 'funcionario'
       AND (
         lower(COALESCE(u.area, '')) = lower(COALESCE($1, ''))

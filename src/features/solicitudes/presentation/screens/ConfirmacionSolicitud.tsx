@@ -20,8 +20,6 @@ import {
 } from "ionicons/icons";
 
 import { useLatestCallback } from "../../../../core/presentation/hooks/useLatestCallback";
-import type { Solicitud } from "../../domain/entities/Solicitud";
-import { solicitudesService } from "../../data/local/solicitudesLocalService";
 import { authService } from "../../../auth/composition/authService";
 import "./ConfirmacionSolicitud.css";
 
@@ -32,129 +30,19 @@ interface UsuarioActual {
   rol?: string;
 }
 
-interface FuncionarioMunicipal {
-  id: string;
-  nombre: string;
-  numeroEmpleado: string;
-  password: string;
-  area: string;
-  cargo: string;
-}
-
-const funcionariosDisponibles: FuncionarioMunicipal[] = [
-  {
-    id: "FUN-001",
-    nombre: "Cristian Mejías",
-    numeroEmpleado: "12345678",
-    password: "admin123",
-    area: "Atención General",
-    cargo: "Funcionario Municipal",
-  },
-  {
-    id: "FUN-002",
-    nombre: "Benjamin Gomez",
-    numeroEmpleado: "87654321",
-    password: "funcionario123",
-    area: "Servicio Ciudadano",
-    cargo: "Ejecutivo de Atención",
-  },
-  {
-    id: "FUN-003",
-    nombre: "Oscar Ruiz",
-    numeroEmpleado: "11223344",
-    password: "finanzas123",
-    area: "Finanzas",
-    cargo: "Analista Municipal",
-  },
-  {
-    id: "FUN-004",
-    nombre: "Pablo Aguilera",
-    numeroEmpleado: "44556677",
-    password: "obras123",
-    area: "Obras Municipales",
-    cargo: "Revisor Técnico",
-  },
-  {
-    id: "FUN-005",
-    nombre: "Martina Ponce",
-    numeroEmpleado: "99887766",
-    password: "patentes123",
-    area: "Patentes Comerciales",
-    cargo: "Encargada de Patentes",
-  },
-];
-
-const solicitudDemo = {
-  id: "SOL-2026-0001",
-  codigo: "SOL-2026-0001",
-  tramite: "Patente Comercial",
-  estado: "Ingresada",
-  area: "Patentes Comerciales",
-  encargado: "Martina Ponce",
-  funcionario: "Martina Ponce",
-  asignadoA: "Martina Ponce",
-  funcionarioAsignado: "Martina Ponce",
-  fechaIngreso: "18/04/2026 10:24",
-};
-
 const ConfirmacionSolicitud: React.FC = () => {
   const history = useHistory();
 
   const [usuarioActual, setUsuarioActual] = useState<UsuarioActual>({
     nombre: "Usuario",
-    correo: "usuario@email.com",
+    correo: "",
     rol: "usuario",
   });
 
-  const [solicitud, setSolicitud] = useState<any>(solicitudDemo);
+  const [solicitud, setSolicitud] = useState<any>(null);
 
   const obtenerValor = (objeto: any, campo: string, respaldo = "") => {
     return objeto?.[campo] || respaldo;
-  };
-
-  const normalizarTexto = (texto: string) => {
-    return String(texto || "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .trim();
-  };
-
-  const funcionarioExiste = (nombre: string) => {
-    return funcionariosDisponibles.some(
-      (funcionario) =>
-        normalizarTexto(funcionario.nombre) === normalizarTexto(nombre)
-    );
-  };
-
-  const obtenerFuncionarioPorNombre = (nombre: string) => {
-    return funcionariosDisponibles.find(
-      (funcionario) =>
-        normalizarTexto(funcionario.nombre) === normalizarTexto(nombre)
-    );
-  };
-
-  const obtenerFuncionarioPorArea = (area: string, idSolicitud = "") => {
-    const areaNormalizada = normalizarTexto(area);
-
-    const funcionarioArea = funcionariosDisponibles.find((funcionario) => {
-      const areaFuncionario = normalizarTexto(funcionario.area);
-
-      return (
-        areaNormalizada.includes(areaFuncionario) ||
-        areaFuncionario.includes(areaNormalizada)
-      );
-    });
-
-    if (funcionarioArea) return funcionarioArea;
-
-    const numero =
-      idSolicitud
-        .split("")
-        .reduce((acc, char) => acc + char.charCodeAt(0), 0) %
-      funcionariosDisponibles.length;
-
-    return funcionariosDisponibles[numero] || funcionariosDisponibles[0];
   };
 
   const obtenerUsuarioActual = (): UsuarioActual => {
@@ -206,7 +94,7 @@ const ConfirmacionSolicitud: React.FC = () => {
 
     return {
       nombre: "Usuario",
-      correo: "usuario@email.com",
+      correo: "",
       rol: "usuario",
     };
   };
@@ -225,7 +113,7 @@ const ConfirmacionSolicitud: React.FC = () => {
       obtenerValor(item, "codigo") ||
       obtenerValor(item, "id") ||
       obtenerValor(item, "solicitudId") ||
-      "SOL-2026-0001"
+      "SIN-ID"
     );
   };
 
@@ -234,7 +122,7 @@ const ConfirmacionSolicitud: React.FC = () => {
       obtenerValor(item, "tramite") ||
       obtenerValor(item, "tipoTramite") ||
       obtenerValor(item, "tipoPatente") ||
-      "Patente Comercial"
+      "Trámite municipal"
     );
   };
 
@@ -247,7 +135,7 @@ const ConfirmacionSolicitud: React.FC = () => {
       obtenerValor(item, "area") ||
       obtenerValor(item, "departamento") ||
       obtenerValor(item, "areaResponsable") ||
-      "Atención General"
+      "Área por asignar"
     );
   };
 
@@ -259,23 +147,7 @@ const ConfirmacionSolicitud: React.FC = () => {
       obtenerValor(item, "funcionarioAsignado") ||
       "";
 
-    if (encargadoGuardado && funcionarioExiste(encargadoGuardado)) {
-      return encargadoGuardado;
-    }
-
-    const areaSolicitud = obtenerArea(item);
-    const idSolicitud = obtenerIdSolicitud(item);
-
-    return obtenerFuncionarioPorArea(areaSolicitud, idSolicitud).nombre;
-  };
-
-  const obtenerFuncionarioAsignado = (item: any) => {
-    const encargado = obtenerEncargadoValido(item);
-
-    return (
-      obtenerFuncionarioPorNombre(encargado) ||
-      obtenerFuncionarioPorArea(obtenerArea(item), obtenerIdSolicitud(item))
-    );
+    return encargadoGuardado || "Funcionario por asignar";
   };
 
   const obtenerFecha = (item: any) => {
@@ -283,7 +155,7 @@ const ConfirmacionSolicitud: React.FC = () => {
       obtenerValor(item, "fechaIngreso") ||
       obtenerValor(item, "fecha") ||
       obtenerValor(item, "createdAt") ||
-      "18/04/2026 10:24"
+      "Sin fecha"
     );
   };
 
@@ -292,27 +164,12 @@ const ConfirmacionSolicitud: React.FC = () => {
       usuario.correo ||
       usuario.email ||
       localStorage.getItem("correo_usuario") ||
-      "usuario@email.com"
+      "No informado"
     );
   };
 
   const corregirSolicitudConFuncionarioValido = (solicitudActual: any) => {
-    const funcionarioAsignado = obtenerFuncionarioAsignado(solicitudActual);
-
-    return {
-      ...solicitudActual,
-      area:
-        obtenerArea(solicitudActual) ||
-        funcionarioAsignado.area ||
-        "Atención General",
-      encargado: funcionarioAsignado.nombre,
-      funcionario: funcionarioAsignado.nombre,
-      asignadoA: funcionarioAsignado.nombre,
-      funcionarioAsignado: funcionarioAsignado.nombre,
-      funcionarioId: funcionarioAsignado.id,
-      cargoFuncionario: funcionarioAsignado.cargo,
-      numeroEmpleadoFuncionario: funcionarioAsignado.numeroEmpleado,
-    };
+    return solicitudActual;
   };
 
   const guardarSolicitudCorregida = (solicitudCorregida: any) => {
@@ -399,22 +256,14 @@ const ConfirmacionSolicitud: React.FC = () => {
       localStorage.getItem("solicitudIdConfirmada") ||
       "";
 
-    let solicitudes: Solicitud[] = [];
+    let solicitudes: any[] = [];
 
     try {
-      solicitudes = solicitudesService.obtenerSolicitudes();
+      const raw = localStorage.getItem("solicitudes");
+      const parseadas = raw ? JSON.parse(raw) : [];
+      solicitudes = Array.isArray(parseadas) ? parseadas : [];
     } catch {
       solicitudes = [];
-    }
-
-    if (!Array.isArray(solicitudes) || solicitudes.length === 0) {
-      try {
-        const raw = localStorage.getItem("solicitudes");
-        const parseadas = raw ? JSON.parse(raw) : [];
-        solicitudes = Array.isArray(parseadas) ? parseadas : [];
-      } catch {
-        solicitudes = [];
-      }
     }
 
     if (solicitudes.length > 0) {
@@ -435,7 +284,7 @@ const ConfirmacionSolicitud: React.FC = () => {
       return corregirSolicitudConFuncionarioValido(solicitudes[0]);
     }
 
-    return corregirSolicitudConFuncionarioValido(solicitudDemo);
+    return null;
   };
 
   const crearNotificacionUsuario = (
@@ -485,8 +334,15 @@ const ConfirmacionSolicitud: React.FC = () => {
   const inicializarConfirmacion = useLatestCallback(() => {
     const usuario = obtenerUsuarioActual();
     const solicitudActual = obtenerUltimaSolicitud();
-    const solicitudCorregida =
-      corregirSolicitudConFuncionarioValido(solicitudActual);
+
+    if (!solicitudActual) {
+      history.replace("/usuario/mis-tramites");
+      return;
+    }
+
+    const solicitudCorregida = corregirSolicitudConFuncionarioValido(
+      solicitudActual,
+    );
 
     setUsuarioActual(usuario);
     setSolicitud(solicitudCorregida);
@@ -517,6 +373,20 @@ const ConfirmacionSolicitud: React.FC = () => {
   const crearOtroTramite = () => {
     history.push("/usuario/seleccionar-tramite");
   };
+
+  if (!solicitud) {
+    return (
+      <IonPage>
+        <IonContent fullscreen className="confirmacion-content">
+          <main className="confirmacion-main">
+            <section className="confirmacion-hero">
+              <h2>Cargando confirmación...</h2>
+            </section>
+          </main>
+        </IonContent>
+      </IonPage>
+    );
+  }
 
   return (
     <IonPage>

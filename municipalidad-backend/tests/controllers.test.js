@@ -20,7 +20,10 @@ const {
 } = require("../src/features/auth/presentation/http/authController");
 const {
   crearAgendamientoSolicitud,
+  descargarDocumentoSolicitud,
+  obtenerDatosReporte,
   obtenerSolicitudPorId,
+  validarDocumentoSolicitud,
 } = require("../src/features/solicitudes/presentation/http/solicitudesController");
 
 const crearRespuesta = () => {
@@ -185,4 +188,142 @@ test("crea un agendamiento sin referencias a variables inexistentes", async () =
   assert.equal(res.statusCode, 201);
   assert.equal(res.body.ok, true);
   assert.equal(res.body.agendamiento.id, 30);
+});
+
+test("impide que otro ciudadano descargue documentos ajenos", async () => {
+  ejecutarQuery = async (sql) => {
+    assert.match(sql, /FROM documentos d/);
+
+    return {
+      rows: [
+        {
+          id: 4,
+          solicitud_id: solicitudDb.id,
+          nombre_archivo: "antecedente.pdf",
+          tipo_archivo: "application/pdf",
+          ruta_archivo: "/uploads/documentos/antecedente.pdf",
+          estado_validacion: "pendiente",
+          codigo: solicitudDb.codigo,
+          usuario_id: solicitudDb.usuario_id,
+          funcionario_id: solicitudDb.funcionario_id,
+        },
+      ],
+    };
+  };
+
+  const req = {
+    params: {
+      id: solicitudDb.codigo,
+      documentoId: "4",
+    },
+    usuario: {
+      id: 99,
+      rol: "usuario",
+    },
+  };
+  const res = crearRespuesta();
+
+  await descargarDocumentoSolicitud(req, res);
+
+  assert.equal(res.statusCode, 403);
+  assert.match(res.body.mensaje, /permiso/i);
+});
+
+test("solo funcionarios pueden consultar el reporte municipal", async () => {
+  const req = {
+    usuario: {
+      id: 1,
+      rol: "usuario",
+    },
+  };
+  const res = crearRespuesta();
+
+  await obtenerDatosReporte(req, res);
+
+  assert.equal(res.statusCode, 403);
+  assert.match(res.body.mensaje, /funcionarios/i);
+});
+
+test("el funcionario asignado puede aprobar un documento y deja historial", async () => {
+  const consultas = [];
+
+  ejecutarQuery = async (sql) => {
+    consultas.push(sql);
+
+    if (sql.includes("FROM documentos d")) {
+      return {
+        rows: [
+          {
+            id: 4,
+            solicitud_id: solicitudDb.id,
+            nombre_archivo: "antecedente.pdf",
+            tipo_archivo: "application/pdf",
+            ruta_archivo: "/uploads/documentos/antecedente.pdf",
+            estado_validacion: "pendiente",
+            codigo: solicitudDb.codigo,
+            usuario_id: solicitudDb.usuario_id,
+            funcionario_id: solicitudDb.funcionario_id,
+          },
+        ],
+      };
+    }
+
+    if (
+      sql.includes("SELECT") &&
+      sql.includes("s.area_responsable") &&
+      !sql.includes("json_agg")
+    ) {
+      return {
+        rows: [
+          {
+            ...solicitudDb,
+            area_responsable: "Finanzas",
+          },
+        ],
+      };
+    }
+
+    if (sql.includes("json_agg")) {
+      return {
+        rows: [
+          {
+            ...solicitudDb,
+            documentos: [],
+            historial: [],
+          },
+        ],
+      };
+    }
+
+    return { rows: [] };
+  };
+
+  const req = {
+    params: {
+      id: solicitudDb.codigo,
+      documentoId: "4",
+    },
+    body: {
+      estado: "aprobado",
+      descripcion: "Antecedente revisado.",
+    },
+    usuario: {
+      id: solicitudDb.funcionario_id,
+      rol: "funcionario",
+    },
+  };
+  const res = crearRespuesta();
+
+  await validarDocumentoSolicitud(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.ok, true);
+  assert.ok(
+    consultas.some((sql) => sql.includes("UPDATE documentos")),
+    "Debe actualizar el estado del documento.",
+  );
+  assert.ok(
+    consultas.some((sql) => sql.includes("INSERT INTO historial_solicitudes")),
+    "Debe registrar el cambio en el historial.",
+  );
 });

@@ -161,7 +161,13 @@ const InicioFuncionario: React.FC = () => {
   const normalizarEstado = (estado: string) => {
     const texto = normalizarTexto(estado);
 
-    if (texto.includes("aprob") || texto.includes("resuelt")) return "resuelta";
+    if (
+      texto.includes("aprob") ||
+      texto.includes("resuelt") ||
+      texto.includes("cerrad")
+    ) {
+      return "resuelta";
+    }
     if (texto.includes("rechaz")) return "resuelta";
 
     if (

@@ -17,9 +17,8 @@ import {
   timeOutline,
 } from "ionicons/icons";
 
+import api from "../../../../core/data/http/apiClient";
 import { useLatestCallback } from "../../../../core/presentation/hooks/useLatestCallback";
-import type { Solicitud } from "../../../solicitudes/domain/entities/Solicitud";
-import { solicitudesService } from "../../../solicitudes/data/local/solicitudesLocalService";
 import { authService } from "../../../auth/composition/authService";
 import "./NotificacionesFuncionario.css";
 
@@ -182,16 +181,6 @@ const NotificacionesFuncionario: React.FC = () => {
     return obtenerValor(solicitud, "estado", "En revisión");
   };
 
-  const obtenerEncargado = (solicitud: any) => {
-    return (
-      obtenerValor(solicitud, "encargado") ||
-      obtenerValor(solicitud, "funcionario") ||
-      obtenerValor(solicitud, "asignadoA") ||
-      obtenerValor(solicitud, "funcionarioAsignado") ||
-      ""
-    );
-  };
-
   const obtenerFecha = (solicitud: any) => {
     return (
       obtenerValor(solicitud, "ultimaActualizacion") ||
@@ -215,36 +204,11 @@ const NotificacionesFuncionario: React.FC = () => {
     return "revision";
   };
 
-  const obtenerSolicitudesAsignadas = (usuario: UsuarioActual) => {
-    let solicitudesServicio: Solicitud[] = [];
-
-    try {
-      solicitudesServicio = solicitudesService.obtenerSolicitudes();
-    } catch {
-      solicitudesServicio = [];
-    }
-
-    const nombreFuncionario = normalizarTexto(usuario.nombre || "Funcionario");
-
-    const solicitudesBase =
-      Array.isArray(solicitudesServicio) && solicitudesServicio.length > 0
-        ? solicitudesServicio
-        : [];
-
-    return solicitudesBase.filter((solicitud: any) => {
-      const encargado = normalizarTexto(obtenerEncargado(solicitud));
-
-      if (!encargado) return true;
-
-      return encargado.includes(nombreFuncionario);
-    });
-  };
-
-  const crearNotificacionesDemo = (
-    usuario: UsuarioActual
+  const crearNotificacionesDesdeSolicitudes = (
+    usuario: UsuarioActual,
+    solicitudesAsignadas: any[],
   ): NotificacionFuncionario[] => {
     const nombreFuncionario = usuario.nombre || "Funcionario";
-    const solicitudesAsignadas = obtenerSolicitudesAsignadas(usuario);
 
     if (solicitudesAsignadas.length > 0) {
       return solicitudesAsignadas.slice(0, 4).map((solicitud: any, index) => {
@@ -278,57 +242,10 @@ const NotificacionesFuncionario: React.FC = () => {
       });
     }
 
-    return [
-      {
-        id: `NF-${normalizarTexto(nombreFuncionario)}-001`,
-        titulo: "Nueva solicitud asignada",
-        mensaje: "Se asignó una nueva solicitud a tu bandeja de gestión.",
-        fecha: "18/04/2026 10:24",
-        leida: false,
-        tipo: "asignacion",
-        solicitudId: "SOL-2026-0001",
-        accionTexto: "Ver solicitud",
-        funcionario: nombreFuncionario,
-      },
-      {
-        id: `NF-${normalizarTexto(nombreFuncionario)}-002`,
-        titulo: "Documentos recibidos",
-        mensaje:
-          "El ciudadano adjuntó documentación pendiente para una solicitud asignada a ti.",
-        fecha: "18/04/2026 09:45",
-        leida: false,
-        tipo: "documento",
-        solicitudId: "SOL-2026-0002",
-        accionTexto: "Revisar documentos",
-        funcionario: nombreFuncionario,
-      },
-      {
-        id: `NF-${normalizarTexto(nombreFuncionario)}-003`,
-        titulo: "Solicitud pendiente por revisar",
-        mensaje:
-          "Una solicitud asignada a ti lleva varios días sin actualización.",
-        fecha: "17/04/2026 16:10",
-        leida: true,
-        tipo: "alerta",
-        solicitudId: "SOL-2026-0003",
-        accionTexto: "Ver seguimiento",
-        funcionario: nombreFuncionario,
-      },
-      {
-        id: `NF-${normalizarTexto(nombreFuncionario)}-004`,
-        titulo: "Cita agendada",
-        mensaje: "Se registró una cita ciudadana asociada a una solicitud tuya.",
-        fecha: "17/04/2026 11:30",
-        leida: true,
-        tipo: "cita",
-        solicitudId: "SOL-2026-0001",
-        accionTexto: "Ver cita",
-        funcionario: nombreFuncionario,
-      },
-    ];
+    return [];
   };
 
-  const cargarDatos = () => {
+  const cargarDatos = async () => {
     const usuario = obtenerUsuarioDesdeLocalStorage();
 
     localStorage.setItem(
@@ -362,19 +279,42 @@ const NotificacionesFuncionario: React.FC = () => {
         String(notificacion.funcionario).trim() !== ""
     );
 
-    const existenParaFuncionarioActual = notificacionesValidas.some(
-      (notificacion) =>
-        normalizarTexto(notificacion.funcionario || "") === nombreFuncionario
-    );
+    let solicitudesAsignadas: any[] = [];
 
-    let notificacionesFinales = [...notificacionesValidas];
-
-    if (!existenParaFuncionarioActual) {
-      notificacionesFinales = [
-        ...notificacionesValidas,
-        ...crearNotificacionesDemo(usuario),
-      ];
+    try {
+      const response = await api.get("/solicitudes", {
+        params: { page: 1, limit: 50 },
+      });
+      solicitudesAsignadas = Array.isArray(response.data?.solicitudes)
+        ? response.data.solicitudes
+        : [];
+    } catch {
+      solicitudesAsignadas = [];
     }
+
+    const generadas = crearNotificacionesDesdeSolicitudes(
+      usuario,
+      solicitudesAsignadas,
+    );
+    const estadoLectura = new Map(
+      notificacionesValidas.map((notificacion) => [
+        notificacion.id,
+        notificacion.leida,
+      ]),
+    );
+    const idsGenerados = new Set(
+      generadas.map((notificacion) => notificacion.id),
+    );
+    const conservadas = notificacionesValidas.filter(
+      (notificacion) => !idsGenerados.has(notificacion.id),
+    );
+    const notificacionesFinales = [
+      ...conservadas,
+      ...generadas.map((notificacion) => ({
+        ...notificacion,
+        leida: estadoLectura.get(notificacion.id) ?? notificacion.leida,
+      })),
+    ];
 
     localStorage.setItem(
       "notificaciones_funcionario",
@@ -392,10 +332,10 @@ const NotificacionesFuncionario: React.FC = () => {
   const cargarDatosEstable = useLatestCallback(cargarDatos);
 
   useEffect(() => {
-    cargarDatosEstable();
+    void cargarDatosEstable();
 
     const escucharCambios = () => {
-      cargarDatosEstable();
+      void cargarDatosEstable();
     };
 
     window.addEventListener("storage", escucharCambios);

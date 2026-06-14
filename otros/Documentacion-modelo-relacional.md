@@ -84,6 +84,18 @@ erDiagram
         timestamp created_at
     }
 
+    HISTORIAL_SOLICITUDES {
+        int id PK
+        int solicitud_id FK
+        int actor_id FK
+        varchar actor_rol
+        varchar accion
+        varchar titulo
+        text descripcion
+        jsonb cambios
+        timestamp created_at
+    }
+
     USUARIOS ||--o{ SOLICITUDES : "crea"
     USUARIOS ||--o{ SOLICITUDES : "atiende como funcionario"
     SOLICITUDES ||--o{ DOCUMENTOS : "tiene"
@@ -92,6 +104,8 @@ erDiagram
     SOLICITUDES ||--o{ AGENDAMIENTOS : "agenda"
     USUARIOS ||--o{ AGENDAMIENTOS : "solicita"
     USUARIOS ||--o{ AGENDAMIENTOS : "atiende como funcionario"
+    SOLICITUDES ||--o{ HISTORIAL_SOLICITUDES : "registra eventos"
+    USUARIOS ||--o{ HISTORIAL_SOLICITUDES : "actua"
 ```
 
 ## Entidades principales
@@ -168,6 +182,19 @@ Campos relevantes:
 - `funcionario_id`: funcionario asignado.
 - `fecha_hora`: fecha y hora de atención.
 - `estado`: estado del agendamiento.
+
+### historial_solicitudes
+
+Tabla de auditoría que conserva los eventos relevantes sin reconstruirlos desde
+el estado actual.
+
+Campos relevantes:
+
+- `solicitud_id`: solicitud afectada.
+- `actor_id` y `actor_rol`: persona o sistema que ejecutó la acción.
+- `accion`: creación, cambio de estado, documentos o derivación.
+- `titulo` y `descripcion`: explicación visible del evento.
+- `cambios`: valores anteriores y nuevos almacenados como JSONB.
 
 ## Relaciones del modelo
 

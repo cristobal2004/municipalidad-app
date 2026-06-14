@@ -46,6 +46,7 @@ municipalidad-backend/src/
 `-- features/
     |-- auth/
     |-- solicitudes/
+    |-- notificaciones/
     `-- feriados/
 ```
 
@@ -72,5 +73,10 @@ flowchart LR
 - La asignacion de funcionarios equilibra solicitudes activas.
 - Los codigos usan la secuencia de PostgreSQL y no `MAX(id)+1`.
 - Indices parciales impiden citas activas duplicadas.
+- Los documentos se descargan mediante un controlador autenticado y nunca por
+  una carpeta pública.
+- Cada cambio relevante genera un evento persistente de auditoría.
+- Docker usa Mailpit para demostrar la entrega SMTP sin depender de cuentas
+  personales.
 - Las pantallas se cargan bajo demanda.
 - El build moderno evita duplicar toda la aplicacion para ES5.

@@ -35,7 +35,7 @@ CREATE TABLE solicitudes (
   rol_avaluo VARCHAR(80),
   pyme BOOLEAN DEFAULT false,
   estado VARCHAR(30) NOT NULL DEFAULT 'pendiente'
-    CHECK (estado IN ('pendiente', 'en_revision', 'observada', 'aprobada', 'rechazada')),
+    CHECK (estado IN ('pendiente', 'en_revision', 'observada', 'derivada', 'aprobada', 'rechazada', 'cerrada')),
   correo_contacto VARCHAR(120),
   telefono_contacto VARCHAR(30),
   giro VARCHAR(150),
@@ -71,7 +71,7 @@ CREATE TABLE observaciones (
   funcionario_id INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
   mensaje TEXT NOT NULL,
   estado_resultante VARCHAR(30)
-    CHECK (estado_resultante IN ('pendiente', 'en_revision', 'observada', 'aprobada', 'rechazada')),
+    CHECK (estado_resultante IN ('pendiente', 'en_revision', 'observada', 'derivada', 'aprobada', 'rechazada', 'cerrada')),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -11,6 +11,8 @@ const {
 
 test("normaliza estados equivalentes y usa un estado seguro por defecto", () => {
   assert.equal(normalizarEstado("aprobado"), "aprobada");
+  assert.equal(normalizarEstado("derivado"), "derivada");
+  assert.equal(normalizarEstado("cerrado"), "cerrada");
   assert.equal(normalizarEstado("pendiente_de_documentos"), "observada");
   assert.equal(normalizarEstado("estado-desconocido"), "pendiente");
 });

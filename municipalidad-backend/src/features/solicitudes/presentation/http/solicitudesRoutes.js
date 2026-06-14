@@ -3,11 +3,15 @@ const router = express.Router();
 
 const {
   listarSolicitudes,
+  obtenerDatosReporte,
   obtenerMisSolicitudes,
   obtenerSolicitudPorId,
   actualizarSolicitud,
   eliminarSolicitud,
   subirDocumentosSolicitud,
+  descargarDocumentoSolicitud,
+  validarDocumentoSolicitud,
+  derivarSolicitud,
   crearAgendamientoSolicitud,
   obtenerMisAgendamientos,
   obtenerAgendamientosSolicitud,
@@ -58,6 +62,12 @@ router.post("/", subirDocumentos, crearSolicitud);
 router.get("/", listarSolicitudes);
 
 /*
+  Datos consolidados para reportes municipales
+  GET /api/solicitudes/reportes/datos
+*/
+router.get("/reportes/datos", obtenerDatosReporte);
+
+/*
   Listar mis solicitudes como usuario ciudadano
   GET /api/solicitudes/mis-solicitudes
 */
@@ -74,6 +84,30 @@ router.get("/mis-agendamientos", obtenerMisAgendamientos);
   POST /api/solicitudes/:id/documentos
 */
 router.post("/:id/documentos", subirDocumentos, subirDocumentosSolicitud);
+
+/*
+  Descargar un documento con control de acceso
+  GET /api/solicitudes/:id/documentos/:documentoId/archivo
+*/
+router.get(
+  "/:id/documentos/:documentoId/archivo",
+  descargarDocumentoSolicitud,
+);
+
+/*
+  Aprobar, rechazar o dejar pendiente un documento
+  PATCH /api/solicitudes/:id/documentos/:documentoId
+*/
+router.patch(
+  "/:id/documentos/:documentoId",
+  validarDocumentoSolicitud,
+);
+
+/*
+  Derivar una solicitud a otra área y funcionario
+  PATCH /api/solicitudes/:id/derivar
+*/
+router.patch("/:id/derivar", derivarSolicitud);
 
 /*
   Crear agendamiento para una solicitud

@@ -31,10 +31,11 @@ la Municipalidad de Santo Domingo.
 
 - Inicio de sesión con rol municipal.
 - Bandeja de solicitudes asignadas.
-- Revisión de antecedentes y documentos.
+- Descarga protegida y validación individual de documentos.
 - Cambio de estado, observaciones y solicitud de documentos faltantes.
+- Derivación a otra área con reasignación automática por carga.
 - Agenda de atenciones.
-- Reportes y exportación de información.
+- Reportes reales, motivos frecuentes de rechazo y exportación CSV/PDF.
 
 ## Tecnologías
 
@@ -101,9 +102,10 @@ Copy-Item .env.example .env
 
 2. Cambiar `POSTGRES_PASSWORD` y `JWT_SECRET` por valores seguros.
 
-3. Para activar correos reales, completar las variables SMTP y establecer
-   `EMAIL_ENABLED=true`. Con Gmail se debe usar una clave de aplicación, no la
-   contraseña normal de la cuenta.
+3. Docker activa Mailpit como servidor SMTP local. Los mensajes se entregan de
+   verdad al buzón de pruebas, sin enviarse a direcciones externas. Para
+   producción se reemplazan las variables SMTP por las credenciales
+   institucionales.
 
 4. Construir y levantar los servicios:
 
@@ -116,6 +118,7 @@ Servicios disponibles:
 - Frontend: `http://localhost:8080`
 - Backend: `http://localhost:3000`
 - Salud de API: `http://localhost:3000/api/health`
+- Buzón de correos Mailpit: `http://localhost:8025`
 - PostgreSQL: `localhost:5432`
 
 Docker Compose espera a que PostgreSQL y la API estén saludables antes de
@@ -218,9 +221,13 @@ ser creadas mediante un proceso administrativo o seed controlado.
 | `PATCH` | `/api/solicitudes/:id` | Actualizar gestión municipal |
 | `DELETE` | `/api/solicitudes/:id` | Eliminar solicitud autorizada |
 | `POST` | `/api/solicitudes/:id/documentos` | Adjuntar pendientes |
+| `GET` | `/api/solicitudes/:id/documentos/:documentoId/archivo` | Descargar documento autorizado |
+| `PATCH` | `/api/solicitudes/:id/documentos/:documentoId` | Validar documento asignado |
+| `PATCH` | `/api/solicitudes/:id/derivar` | Derivar a otra área municipal |
 | `POST` | `/api/solicitudes/:id/agendamientos` | Crear o reagendar cita |
 | `GET` | `/api/solicitudes/:id/disponibilidad?fecha=YYYY-MM-DD` | Horas libres del funcionario |
 | `GET` | `/api/solicitudes/mis-agendamientos` | Consultar agenda |
+| `GET` | `/api/solicitudes/reportes/datos` | Datos reales para reportes de funcionarios |
 
 ### Servicio externo
 
@@ -245,6 +252,9 @@ dependencia del proveedor.
 - Helmet y ocultamiento de `X-Powered-By`.
 - Límites de solicitudes generales y de autenticación.
 - Límite de 10 MB y tipos permitidos en documentos.
+- Archivos sin publicación estática: la descarga exige JWT y pertenencia o
+  asignación de la solicitud.
+- Historial persistente de creación, cambios, documentos y derivaciones.
 - Errores internos sin detalles técnicos en respuestas de producción.
 - Secretos excluidos de Git y Docker.
 
@@ -273,7 +283,8 @@ npm run build
 ```
 
 `test.e2e` usa el servidor de desarrollo en `http://localhost:5173`.
-`test.e2e:docker` valida la aplicacion levantada en `http://localhost:8080`.
+`test.e2e:docker` valida la aplicación, PostgreSQL, la API real y la entrega de
+correo a Mailpit con los contenedores levantados.
 
 Backend:
 
@@ -282,13 +293,16 @@ cd municipalidad-backend
 npm test
 ```
 
-Estado verificado al 13 de junio de 2026:
+La suite definida al 13 de junio de 2026 contiene:
 
-- ESLint: 0 errores y 0 advertencias.
-- Frontend: 10 pruebas unitarias.
-- Backend: 31 pruebas automáticas.
-- Build de producción: correcto y sin advertencias de tamaño.
-- Cypress: 7 escenarios preparados para portada, acceso y responsividad.
+- 10 pruebas unitarias de frontend.
+- 35 pruebas automáticas de backend.
+- 7 escenarios Cypress de interfaz.
+- 1 escenario Cypress de integración real con API, PostgreSQL y Mailpit.
+- CI con lint, pruebas, build y despliegue completo mediante Docker Compose.
+
+El resultado del ciclo ejecutado para la publicación debe revisarse en la
+pestaña Actions del Pull Request.
 
 La colección y las capturas de Postman están en
 `otros/EP2-Postman-Pruebas/`.
