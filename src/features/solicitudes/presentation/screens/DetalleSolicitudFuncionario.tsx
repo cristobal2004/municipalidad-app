@@ -7,6 +7,7 @@ import {
   businessOutline,
   calendarOutline,
   checkmarkCircleOutline,
+  closeCircleOutline,
   cloudDownloadOutline,
   documentAttachOutline,
   documentTextOutline,
@@ -21,7 +22,6 @@ import {
 } from "ionicons/icons";
 
 import api from "../../../../core/data/http/apiClient";
-import { environment } from "../../../../core/config/environment";
 import { useLatestCallback } from "../../../../core/presentation/hooks/useLatestCallback";
 import { authService } from "../../../auth/composition/authService";
 import DatosTramite from "../components/DatosTramite";
@@ -100,6 +100,10 @@ const DetalleSolicitudFuncionario: React.FC = () => {
   const [mensajeSistema, setMensajeSistema] = useState("");
   const [cargando, setCargando] = useState(false);
   const [mensajeError, setMensajeError] = useState("");
+  const [areaDerivacion, setAreaDerivacion] = useState("Atención General");
+  const [documentoActualizando, setDocumentoActualizando] = useState<
+    number | string | null
+  >(null);
 
   const obtenerValor = (objeto: any, campo: string, respaldo: any = ""): any => {
     const valor = objeto?.[campo];
@@ -213,6 +217,8 @@ const DetalleSolicitudFuncionario: React.FC = () => {
   const obtenerEstadoGestion = (item: any) => {
     const estado = normalizarTexto(obtenerEstado(item));
 
+    if (estado.includes("cerrad")) return "Cerrada";
+    if (estado.includes("derivad")) return "Derivada";
     if (estado.includes("aprob")) return "Aprobada";
     if (estado.includes("rechaz")) return "Rechazada";
 
@@ -238,6 +244,8 @@ const DetalleSolicitudFuncionario: React.FC = () => {
   const convertirEstadoParaBackend = (estado: string) => {
     const texto = normalizarTexto(estado);
 
+    if (texto.includes("cerrad")) return "cerrada";
+    if (texto.includes("derivad")) return "derivada";
     if (texto.includes("aprob")) return "aprobada";
     if (texto.includes("rechaz")) return "rechazada";
 
@@ -307,6 +315,8 @@ const DetalleSolicitudFuncionario: React.FC = () => {
   const claseEstado = (estado: string) => {
     const texto = normalizarTexto(estado);
 
+    if (texto.includes("cerrad")) return "estado-detalle aprobado";
+    if (texto.includes("derivad")) return "estado-detalle revision";
     if (texto.includes("aprob")) return "estado-detalle aprobado";
     if (texto.includes("rechaz")) return "estado-detalle rechazado";
     if (texto.includes("pendiente") || texto.includes("document")) {
@@ -345,19 +355,8 @@ const DetalleSolicitudFuncionario: React.FC = () => {
     return [];
   }, [solicitud]);
 
-  const obtenerUrlDocumento = (documento: DocumentoAdjunto) => {
-    const url =
-      documento.url || documento.rutaArchivo || documento.ruta_archivo || "";
-
-    if (!url) return "";
-
-    if (url.startsWith("http")) {
-      return url;
-    }
-
-    const normalizedUrl = url.startsWith("/") ? url : `/${url}`;
-    return `${environment.backendUrl}${normalizedUrl}`;
-  };
+  const obtenerUrlDocumento = (documento: DocumentoAdjunto) =>
+    documento.url || documento.rutaArchivo || documento.ruta_archivo || "";
 
   const obtenerNombreDocumento = (documento: DocumentoAdjunto) => {
     return documento.nombre || documento.nombre_archivo || "Documento adjunto";
@@ -393,7 +392,7 @@ const DetalleSolicitudFuncionario: React.FC = () => {
     return `${(size / (1024 * 1024)).toFixed(2)} MB`;
   };
 
-  const abrirDocumento = (documento: DocumentoAdjunto) => {
+  const abrirDocumento = async (documento: DocumentoAdjunto) => {
     const urlDocumento = obtenerUrlDocumento(documento);
 
     if (!urlDocumento) {
@@ -401,7 +400,62 @@ const DetalleSolicitudFuncionario: React.FC = () => {
       return;
     }
 
-    window.open(urlDocumento, "_blank", "noopener,noreferrer");
+    try {
+      const response = await api.get(urlDocumento, {
+        responseType: "blob",
+      });
+      const blobUrl = URL.createObjectURL(response.data);
+      const enlace = document.createElement("a");
+
+      enlace.href = blobUrl;
+      enlace.target = "_blank";
+      enlace.rel = "noopener noreferrer";
+      enlace.click();
+      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+    } catch (error: any) {
+      setMensajeSistema(
+        error.response?.data?.mensaje ||
+          "No se pudo abrir el documento protegido.",
+      );
+    }
+  };
+
+  const validarDocumento = async (
+    documento: DocumentoAdjunto,
+    estado: "aprobado" | "rechazado",
+  ) => {
+    if (!solicitud || documento.id === undefined) return;
+
+    try {
+      setDocumentoActualizando(documento.id);
+      setMensajeSistema("");
+
+      const response = await api.patch(
+        `/solicitudes/${obtenerId(solicitud)}/documentos/${documento.id}`,
+        {
+          estado,
+          descripcion:
+            estado === "aprobado"
+              ? "Documento revisado y aprobado por el funcionario."
+              : "Documento rechazado. Debe ser corregido o reemplazado.",
+        },
+      );
+
+      setSolicitud(response.data?.solicitud || solicitud);
+      setMensajeSistema(
+        estado === "aprobado"
+          ? "Documento aprobado correctamente."
+          : "Documento rechazado correctamente.",
+      );
+      window.dispatchEvent(new Event("solicitudesActualizadas"));
+    } catch (error: any) {
+      setMensajeSistema(
+        error.response?.data?.mensaje ||
+          "No se pudo actualizar el documento.",
+      );
+    } finally {
+      setDocumentoActualizando(null);
+    }
   };
 
   const cargarSolicitud = async () => {
@@ -484,30 +538,15 @@ const DetalleSolicitudFuncionario: React.FC = () => {
 
       const estadoBackend = convertirEstadoParaBackend(estadoSeleccionado);
 
-      let respuesta;
-
-      try {
-        respuesta = await api.put(`/solicitudes/${obtenerId(solicitud)}`, {
+      const respuesta = await api.patch(
+        `/solicitudes/${obtenerId(solicitud)}`,
+        {
           estado: estadoBackend,
           observacion,
           documentosFaltantes: documentosSeleccionados,
           fechaLimiteDocumentos: fechaLimite,
-        });
-      } catch (errorPut: any) {
-        if (
-          errorPut.response?.status === 404 ||
-          errorPut.response?.status === 405
-        ) {
-          respuesta = await api.patch(`/solicitudes/${obtenerId(solicitud)}`, {
-            estado: estadoBackend,
-            observacion,
-            documentosFaltantes: documentosSeleccionados,
-            fechaLimiteDocumentos: fechaLimite,
-          });
-        } else {
-          throw errorPut;
-        }
-      }
+        },
+      );
 
       const solicitudActualizada =
         respuesta?.data?.solicitud || respuesta?.data || solicitud;
@@ -555,9 +594,31 @@ const DetalleSolicitudFuncionario: React.FC = () => {
     setMostrarDocumentos((prev) => !prev);
   };
 
-  const derivarSolicitud = () => {
-    setEstadoSeleccionado("En revisión");
-    setMostrarDocumentos(false);
+  const derivarSolicitud = async () => {
+    if (!solicitud) return;
+
+    try {
+      setCargando(true);
+      setMensajeSistema("");
+
+      const response = await api.patch(
+        `/solicitudes/${obtenerId(solicitud)}/derivar`,
+        { area: areaDerivacion },
+      );
+
+      setSolicitud(response.data?.solicitud || solicitud);
+      setEstadoSeleccionado("Derivada");
+      setMostrarDocumentos(false);
+      setMensajeSistema(`Solicitud derivada a ${areaDerivacion}.`);
+      window.dispatchEvent(new Event("solicitudesActualizadas"));
+    } catch (error: any) {
+      setMensajeSistema(
+        error.response?.data?.mensaje ||
+          "No se pudo derivar la solicitud.",
+      );
+    } finally {
+      setCargando(false);
+    }
   };
 
   const cerrarSesion = () => {
@@ -845,6 +906,9 @@ const DetalleSolicitudFuncionario: React.FC = () => {
                       const fechaDocumento = formatearFecha(
                         documento.createdAt || ""
                       );
+                      const estadoDocumento = String(
+                        documento.estado || "pendiente",
+                      ).toLowerCase();
 
                       return (
                         <div
@@ -870,14 +934,47 @@ const DetalleSolicitudFuncionario: React.FC = () => {
                                 ? fechaDocumento
                                 : "Documento recibido"}
                             </span>
-
-                            <button
-                              type="button"
-                              onClick={() => abrirDocumento(documento)}
-                              title="Abrir documento"
+                            <span
+                              className={`documento-validacion ${estadoDocumento}`}
                             >
-                              <IonIcon icon={cloudDownloadOutline} />
-                            </button>
+                              {estadoDocumento === "aprobado"
+                                ? "Aprobado"
+                                : estadoDocumento === "rechazado"
+                                  ? "Rechazado"
+                                  : "Pendiente de revisión"}
+                            </span>
+
+                            <div className="documento-acciones">
+                              <button
+                                type="button"
+                                onClick={() => abrirDocumento(documento)}
+                                title="Abrir documento"
+                              >
+                                <IonIcon icon={cloudDownloadOutline} />
+                              </button>
+                              <button
+                                type="button"
+                                className="aprobar-documento"
+                                onClick={() =>
+                                  validarDocumento(documento, "aprobado")
+                                }
+                                disabled={documentoActualizando === documento.id}
+                                title="Aprobar documento"
+                              >
+                                <IonIcon icon={checkmarkCircleOutline} />
+                              </button>
+                              <button
+                                type="button"
+                                className="rechazar-documento"
+                                onClick={() =>
+                                  validarDocumento(documento, "rechazado")
+                                }
+                                disabled={documentoActualizando === documento.id}
+                                title="Rechazar documento"
+                              >
+                                <IonIcon icon={closeCircleOutline} />
+                              </button>
+                            </div>
                           </div>
                         </div>
                       );
@@ -911,9 +1008,11 @@ const DetalleSolicitudFuncionario: React.FC = () => {
                       }
                     >
                       <option>En revisión</option>
+                      <option>Derivada</option>
                       <option>Pendiente de documentos</option>
                       <option>Aprobada</option>
                       <option>Rechazada</option>
+                      <option>Cerrada</option>
                     </select>
                   </label>
 
@@ -980,10 +1079,32 @@ const DetalleSolicitudFuncionario: React.FC = () => {
                     Rechazar solicitud
                   </button>
 
-                  <button className="derivar-button" onClick={derivarSolicitud}>
-                    <IonIcon icon={swapHorizontalOutline} />
-                    Mantener en revisión
-                  </button>
+                  <div className="derivacion-box">
+                    <label>
+                      Derivar a otra área
+                      <select
+                        value={areaDerivacion}
+                        onChange={(event) =>
+                          setAreaDerivacion(event.target.value)
+                        }
+                      >
+                        <option>Atención General</option>
+                        <option>Servicio Ciudadano</option>
+                        <option>Finanzas</option>
+                        <option>Obras Municipales</option>
+                        <option>Patentes Comerciales</option>
+                      </select>
+                    </label>
+
+                    <button
+                      className="derivar-button"
+                      onClick={derivarSolicitud}
+                      disabled={cargando}
+                    >
+                      <IonIcon icon={swapHorizontalOutline} />
+                      Derivar solicitud
+                    </button>
+                  </div>
 
                   <button className="guardar-button" onClick={guardarCambios}>
                     <IonIcon icon={saveOutline} />

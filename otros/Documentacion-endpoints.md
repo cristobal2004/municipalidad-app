@@ -61,6 +61,17 @@ Authorization → Bearer Token
 | 09 | `GET` | `/api/solicitudes/mis-solicitudes` | Sí | Lista las solicitudes del usuario autenticado | `200 OK` |
 | 10 | `PATCH` | `/api/solicitudes/:id` | Sí | Verifica restricciones de permisos por rol | `403 Forbidden` |
 | 11 | `DELETE` | `/api/solicitudes/:id` | Sí | Elimina una solicitud propia de prueba | `200 OK` |
+| 12 | `GET` | `/api/solicitudes/:id/documentos/:documentoId/archivo` | Sí | Descarga protegida del documento | `200 OK` |
+| 13 | `PATCH` | `/api/solicitudes/:id/documentos/:documentoId` | Sí, funcionario asignado | Aprueba o rechaza un documento | `200 OK` |
+| 14 | `PATCH` | `/api/solicitudes/:id/derivar` | Sí, funcionario asignado | Deriva y reasigna por área | `200 OK` |
+| 15 | `GET` | `/api/solicitudes/reportes/datos` | Sí, funcionario | Obtiene hasta 500 solicitudes reales | `200 OK` |
+| 16 | `GET` | `/api/solicitudes/:id/disponibilidad?fecha=YYYY-MM-DD` | Sí | Consulta horas libres entre 09:00 y 17:00 | `200 OK` |
+| 17 | `POST` | `/api/solicitudes/:id/agendamientos` | Sí, ciudadano propietario | Reserva o reagenda una hora disponible | `200/201` |
+
+Los documentos no están expuestos mediante una carpeta pública. El endpoint de
+descarga verifica que el ciudadano sea propietario o que el funcionario tenga
+la solicitud asignada. La validación y la derivación generan eventos en
+`historial_solicitudes`.
 
 ---
 

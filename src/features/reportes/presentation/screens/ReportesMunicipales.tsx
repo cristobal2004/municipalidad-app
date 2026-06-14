@@ -18,9 +18,8 @@ import {
   timeOutline,
 } from "ionicons/icons";
 
+import api from "../../../../core/data/http/apiClient";
 import { useLatestCallback } from "../../../../core/presentation/hooks/useLatestCallback";
-import type { Solicitud } from "../../../solicitudes/domain/entities/Solicitud";
-import { solicitudesService } from "../../../solicitudes/data/local/solicitudesLocalService";
 import { authService } from "../../../auth/composition/authService";
 import "./ReportesMunicipales.css";
 
@@ -46,33 +45,6 @@ interface MesReporte {
   total: number;
 }
 
-const solicitudesDemo = [
-  {
-    id: "SOL-2026-0001",
-    tramite: "Comercial Definitiva",
-    estado: "Pendiente de documentos",
-    area: "Atención General",
-    fechaIngreso: "18/04/2026",
-    ultimaActualizacion: "18/04/2026",
-  },
-  {
-    id: "SOL-2026-0002",
-    tramite: "Permiso de circulación",
-    estado: "En revisión",
-    area: "Serv. Ciudadano",
-    fechaIngreso: "16/04/2026",
-    ultimaActualizacion: "18/04/2026",
-  },
-  {
-    id: "SOL-2026-0003",
-    tramite: "Patente Profesional",
-    estado: "Aprobada",
-    area: "Finanzas",
-    fechaIngreso: "10/04/2026",
-    ultimaActualizacion: "18/04/2026",
-  },
-];
-
 const ReportesMunicipales: React.FC = () => {
   const history = useHistory();
 
@@ -86,6 +58,8 @@ const ReportesMunicipales: React.FC = () => {
   const [estadoFiltro, setEstadoFiltro] = useState("Todos");
   const [areaFiltro, setAreaFiltro] = useState("Todas");
   const [tipoFiltro, setTipoFiltro] = useState("Todos");
+  const [fechaDesde, setFechaDesde] = useState("");
+  const [fechaHasta, setFechaHasta] = useState("");
   const [ultimaActualizacion, setUltimaActualizacion] =
     useState("hace unos segundos");
   const [mensajeSistema, setMensajeSistema] = useState("");
@@ -189,6 +163,7 @@ const ReportesMunicipales: React.FC = () => {
   const obtenerArea = (solicitud: any) => {
     return (
       obtenerValor(solicitud, "area") ||
+      obtenerValor(solicitud, "areaResponsable") ||
       obtenerValor(solicitud, "departamento") ||
       "Atención General"
     );
@@ -222,10 +197,24 @@ const ReportesMunicipales: React.FC = () => {
     );
   };
 
+  const obtenerMotivoRechazo = (solicitud: any) => {
+    const comentario =
+      obtenerValor(solicitud, "comentarioFuncionario") ||
+      obtenerValor(solicitud, "observacionFuncionario");
+
+    return String(comentario || "Sin motivo registrado").trim();
+  };
+
   const normalizarEstado = (estado: string) => {
     const texto = normalizarTexto(estado);
 
-    if (texto.includes("aprob") || texto.includes("resuelt")) return "resuelta";
+    if (
+      texto.includes("aprob") ||
+      texto.includes("resuelt") ||
+      texto.includes("cerrad")
+    ) {
+      return "resuelta";
+    }
     if (texto.includes("rechaz")) return "resuelta";
 
     if (texto.includes("pendiente") || texto.includes("document")) {
@@ -291,38 +280,38 @@ const ReportesMunicipales: React.FC = () => {
     return dias;
   };
 
-  const cargarDatos = () => {
+  const cargarDatos = async () => {
     const usuario = obtenerUsuarioDesdeLocalStorage();
     setUsuarioActual(usuario);
 
-    let solicitudesServicio: Solicitud[] = [];
-
     try {
-      solicitudesServicio = solicitudesService.obtenerSolicitudes();
-    } catch {
-      solicitudesServicio = [];
+      const response = await api.get("/solicitudes/reportes/datos");
+      const solicitudesApi = response.data?.solicitudes;
+
+      setSolicitudes(Array.isArray(solicitudesApi) ? solicitudesApi : []);
+      setMensajeSistema("");
+    } catch (error: any) {
+      setSolicitudes([]);
+      setMensajeSistema(
+        error.response?.data?.mensaje ||
+          "No fue posible cargar los datos reales del reporte.",
+      );
     }
 
-    const solicitudesBase =
-      Array.isArray(solicitudesServicio) && solicitudesServicio.length > 0
-        ? solicitudesServicio
-        : solicitudesDemo;
-
-    setSolicitudes(solicitudesBase);
     setUltimaActualizacion("hace unos segundos");
   };
 
   const cargarDatosEstable = useLatestCallback(cargarDatos);
 
   useEffect(() => {
-    cargarDatosEstable();
+    void cargarDatosEstable();
 
     const intervalo = window.setInterval(() => {
-      cargarDatosEstable();
-    }, 3000);
+      void cargarDatosEstable();
+    }, 30000);
 
     const escucharCambios = () => {
-      cargarDatosEstable();
+      void cargarDatosEstable();
     };
 
     window.addEventListener("storage", escucharCambios);
@@ -338,19 +327,38 @@ const ReportesMunicipales: React.FC = () => {
   }, [cargarDatosEstable]);
 
   const solicitudesFiltradas = solicitudes.filter((solicitud) => {
-      const estado = obtenerEstado(solicitud);
-      const area = obtenerArea(solicitud);
-      const tramite = obtenerTramite(solicitud);
+    const estado = obtenerEstado(solicitud);
+    const area = obtenerArea(solicitud);
+    const tramite = obtenerTramite(solicitud);
+    const estadoActual = normalizarTexto(estado);
+    const estadoBuscado = normalizarTexto(estadoFiltro);
+    const fechaSolicitud = parsearFecha(obtenerFecha(solicitud));
 
-      const cumpleEstado =
-        estadoFiltro === "Todos" ||
+    let cumpleEstado = estadoFiltro === "Todos";
+
+    if (!cumpleEstado && estadoBuscado.includes("aprob")) {
+      cumpleEstado = estadoActual.includes("aprob");
+    } else if (!cumpleEstado && estadoBuscado.includes("rechaz")) {
+      cumpleEstado = estadoActual.includes("rechaz");
+    } else if (!cumpleEstado && estadoBuscado.includes("derivad")) {
+      cumpleEstado = estadoActual.includes("derivad");
+    } else if (!cumpleEstado && estadoBuscado.includes("cerrad")) {
+      cumpleEstado = estadoActual.includes("cerrad");
+    } else if (!cumpleEstado) {
+      cumpleEstado =
         normalizarEstado(estado) === normalizarEstado(estadoFiltro);
+    }
 
-      const cumpleArea = areaFiltro === "Todas" || area === areaFiltro;
+    const cumpleArea = areaFiltro === "Todas" || area === areaFiltro;
 
-      const cumpleTipo = tipoFiltro === "Todos" || tramite === tipoFiltro;
+    const cumpleTipo = tipoFiltro === "Todos" || tramite === tipoFiltro;
+    const inicio = fechaDesde ? new Date(`${fechaDesde}T00:00:00`) : null;
+    const fin = fechaHasta ? new Date(`${fechaHasta}T23:59:59.999`) : null;
+    const cumpleFecha =
+      (!inicio || (fechaSolicitud && fechaSolicitud >= inicio)) &&
+      (!fin || (fechaSolicitud && fechaSolicitud <= fin));
 
-      return cumpleEstado && cumpleArea && cumpleTipo;
+    return cumpleEstado && cumpleArea && cumpleTipo && cumpleFecha;
   });
 
   const totalSolicitudes = solicitudesFiltradas.length;
@@ -366,6 +374,29 @@ const ReportesMunicipales: React.FC = () => {
   const totalResueltas = solicitudesFiltradas.filter(
     (solicitud) => normalizarEstado(obtenerEstado(solicitud)) === "resuelta"
   ).length;
+
+  const motivosRechazo = (() => {
+    const conteo = new Map<string, { motivo: string; total: number }>();
+
+    solicitudesFiltradas
+      .filter((solicitud) =>
+        normalizarTexto(obtenerEstado(solicitud)).includes("rechaz"),
+      )
+      .forEach((solicitud) => {
+        const motivo = obtenerMotivoRechazo(solicitud);
+        const clave = normalizarTexto(motivo);
+        const actual = conteo.get(clave);
+
+        conteo.set(clave, {
+          motivo: actual?.motivo || motivo,
+          total: (actual?.total || 0) + 1,
+        });
+      });
+
+    return Array.from(conteo.values())
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 5);
+  })();
 
   const porcentajeRevision =
     totalSolicitudes > 0
@@ -502,6 +533,8 @@ const ReportesMunicipales: React.FC = () => {
     setEstadoFiltro("Todos");
     setAreaFiltro("Todas");
     setTipoFiltro("Todos");
+    setFechaDesde("");
+    setFechaHasta("");
   };
 
   const exportarCSV = () => {
@@ -512,6 +545,7 @@ const ReportesMunicipales: React.FC = () => {
       "Área",
       "Fecha ingreso",
       "Última actualización",
+      "Motivo de rechazo",
     ];
 
     const filas = solicitudesFiltradas.map((solicitud) => [
@@ -521,6 +555,9 @@ const ReportesMunicipales: React.FC = () => {
       obtenerArea(solicitud),
       obtenerFecha(solicitud),
       obtenerFechaActualizacion(solicitud),
+      normalizarTexto(obtenerEstado(solicitud)).includes("rechaz")
+        ? obtenerMotivoRechazo(solicitud)
+        : "",
     ]);
 
     const escapar = (valor: any) => {
@@ -601,6 +638,24 @@ const ReportesMunicipales: React.FC = () => {
         `;
       })
       .join("");
+
+    const filasMotivos =
+      motivosRechazo.length > 0
+        ? motivosRechazo
+            .map(
+              (item) => `
+                <tr>
+                  <td>${escaparHtml(item.motivo)}</td>
+                  <td>${item.total}</td>
+                </tr>
+              `,
+            )
+            .join("")
+        : `
+          <tr>
+            <td colspan="2">Sin solicitudes rechazadas en el filtro actual.</td>
+          </tr>
+        `;
 
     const filasMensuales =
       datosMensuales.length > 0
@@ -876,6 +931,21 @@ const ReportesMunicipales: React.FC = () => {
           </section>
 
           <section class="section">
+            <h2>Motivos frecuentes de rechazo</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Motivo</th>
+                  <th>Cantidad</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filasMotivos}
+              </tbody>
+            </table>
+          </section>
+
+          <section class="section">
             <h2>Detalle de solicitudes filtradas</h2>
             <table>
               <thead>
@@ -1007,8 +1077,23 @@ const ReportesMunicipales: React.FC = () => {
 
               <div className="reportes-filtros-grid">
                 <label>
-                  Rango de fechas
-                  <input type="text" value="01/04/2026 - 18/04/2026" readOnly />
+                  Desde
+                  <input
+                    type="date"
+                    value={fechaDesde}
+                    max={fechaHasta || undefined}
+                    onChange={(event) => setFechaDesde(event.target.value)}
+                  />
+                </label>
+
+                <label>
+                  Hasta
+                  <input
+                    type="date"
+                    value={fechaHasta}
+                    min={fechaDesde || undefined}
+                    onChange={(event) => setFechaHasta(event.target.value)}
+                  />
                 </label>
 
                 <label>
@@ -1019,9 +1104,11 @@ const ReportesMunicipales: React.FC = () => {
                   >
                     <option>Todos</option>
                     <option>En revisión</option>
+                    <option>Derivada</option>
                     <option>Pendiente de documentos</option>
                     <option>Aprobada</option>
                     <option>Rechazada</option>
+                    <option>Cerrada</option>
                   </select>
                 </label>
 
@@ -1303,6 +1390,40 @@ const ReportesMunicipales: React.FC = () => {
                         </tr>
                       );
                     })}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section className="reportes-table-card">
+              <div className="reportes-card-header">
+                <h3>Motivos frecuentes de rechazo</h3>
+                <IonIcon icon={informationCircleOutline} />
+              </div>
+
+              <div className="reportes-table-scroll">
+                <table className="reportes-table">
+                  <thead>
+                    <tr>
+                      <th>Motivo registrado</th>
+                      <th>Cantidad</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {motivosRechazo.length > 0 ? (
+                      motivosRechazo.map((item) => (
+                        <tr key={normalizarTexto(item.motivo)}>
+                          <td>{item.motivo}</td>
+                          <td>{item.total}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={2}>
+                          Sin solicitudes rechazadas en el filtro actual.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>

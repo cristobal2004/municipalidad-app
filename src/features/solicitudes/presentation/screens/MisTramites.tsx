@@ -34,9 +34,11 @@ type EstadoFiltro =
   | "todos"
   | "ingresada"
   | "en_revision"
+  | "derivada"
   | "pendiente_documentos"
   | "aprobada"
-  | "rechazada";
+  | "rechazada"
+  | "cerrada";
 
 type OrdenFiltro =
   | "recientes"
@@ -202,6 +204,8 @@ const MisTramites: React.FC = () => {
   const normalizarEstado = (estado: string) => {
     const estadoLower = estado.toLowerCase();
 
+    if (estadoLower.includes("cerrad")) return "cerrada";
+    if (estadoLower.includes("derivad")) return "derivada";
     if (estadoLower.includes("aprob")) return "aprobada";
     if (estadoLower.includes("rechaz")) return "rechazada";
     if (
@@ -225,6 +229,8 @@ const MisTramites: React.FC = () => {
   const textoEstado = (estado: string) => {
     const estadoNormalizado = normalizarEstado(estado);
 
+    if (estadoNormalizado === "cerrada") return "Cerrada";
+    if (estadoNormalizado === "derivada") return "Derivada";
     if (estadoNormalizado === "aprobada") return "Aprobada";
     if (estadoNormalizado === "rechazada") return "Rechazada";
     if (estadoNormalizado === "pendiente_documentos")
@@ -236,6 +242,10 @@ const MisTramites: React.FC = () => {
   const claseEstado = (estado: string) => {
     const estadoNormalizado = normalizarEstado(estado);
 
+    if (estadoNormalizado === "cerrada")
+      return "badge-estado estado-aprobada";
+    if (estadoNormalizado === "derivada")
+      return "badge-estado estado-revision";
     if (estadoNormalizado === "aprobada")
       return "badge-estado estado-aprobada";
     if (estadoNormalizado === "rechazada")
@@ -583,11 +593,13 @@ const MisTramites: React.FC = () => {
                       <option value="todos">Todos los estados</option>
                       <option value="ingresada">Ingresada</option>
                       <option value="en_revision">En revisión</option>
+                      <option value="derivada">Derivada</option>
                       <option value="pendiente_documentos">
                         Pendiente documentos
                       </option>
                       <option value="aprobada">Aprobada</option>
                       <option value="rechazada">Rechazada</option>
+                      <option value="cerrada">Cerrada</option>
                     </select>
                   </div>
                 )}

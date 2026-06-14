@@ -4,12 +4,7 @@ const { environment } = require("../../../core/config/environment");
 let transporter;
 
 const isConfigured = () =>
-  environment.email.enabled &&
-  Boolean(
-    environment.email.host &&
-      environment.email.user &&
-      environment.email.password,
-  );
+  environment.email.enabled && Boolean(environment.email.host);
 
 const getTransporter = () => {
   if (!isConfigured()) {
@@ -17,15 +12,20 @@ const getTransporter = () => {
   }
 
   if (!transporter) {
-    transporter = nodemailer.createTransport({
+    const transportOptions = {
       host: environment.email.host,
       port: environment.email.port,
       secure: environment.email.secure,
-      auth: {
+    };
+
+    if (environment.email.user && environment.email.password) {
+      transportOptions.auth = {
         user: environment.email.user,
         pass: environment.email.password,
-      },
-    });
+      };
+    }
+
+    transporter = nodemailer.createTransport(transportOptions);
   }
 
   return transporter;

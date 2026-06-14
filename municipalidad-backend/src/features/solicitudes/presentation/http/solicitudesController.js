@@ -552,6 +552,22 @@ const subirDocumentosSolicitud = async (req, res) => {
       ["en_revision", solicitudActual.id]
     );
 
+    await registrarHistorialSolicitud({
+      solicitudId: solicitudActual.id,
+      actorId: req.usuario.id,
+      actorRol: req.usuario.rol,
+      accion: "documentos",
+      titulo: "Documentos adicionales recibidos",
+      descripcion: `El ciudadano adjuntó ${documentosDesdeArchivos.length} documento(s) solicitado(s).`,
+      cambios: {
+        estadoAnterior: solicitudActual.estado,
+        estadoNuevo: "en_revision",
+        documentosAdjuntos: documentosDesdeArchivos.map(
+          (documento) => documento.nombre,
+        ),
+      },
+    });
+
     const solicitudCompleta = await obtenerSolicitudCompletaPorCodigo(
       resultado.rows[0].codigo
     );
@@ -567,6 +583,291 @@ const subirDocumentosSolicitud = async (req, res) => {
     return res.status(500).json({
       ok: false,
       mensaje: "Error interno al subir documentos.",
+    });
+  }
+};
+
+const descargarDocumentoSolicitud = async (req, res) => {
+  try {
+    if (!/^\d+$/.test(String(req.params.documentoId || ""))) {
+      return res.status(400).json({
+        ok: false,
+        mensaje: "El identificador del documento no es válido.",
+      });
+    }
+
+    const documento = await obtenerDocumentoSolicitud(
+      req.params.id,
+      req.params.documentoId,
+    );
+
+    if (!documento) {
+      return res.status(404).json({
+        ok: false,
+        mensaje: "Documento no encontrado.",
+      });
+    }
+
+    const autorizado =
+      (req.usuario.rol === "usuario" &&
+        documento.usuario_id === req.usuario.id) ||
+      (req.usuario.rol === "funcionario" &&
+        documento.funcionario_id === req.usuario.id);
+
+    if (!autorizado) {
+      return res.status(403).json({
+        ok: false,
+        mensaje: "No tienes permiso para descargar este documento.",
+      });
+    }
+
+    const rutaGuardada = String(documento.ruta_archivo || "");
+    const rutaRelativa = rutaGuardada
+      .replace(/^[/\\]?uploads[/\\]/i, "")
+      .replace(/^[/\\]+/, "");
+    const rutaAbsoluta = path.resolve(uploadsRoot, rutaRelativa);
+
+    if (
+      !rutaRelativa ||
+      !rutaAbsoluta.startsWith(`${uploadsRoot}${path.sep}`) ||
+      !fs.existsSync(rutaAbsoluta)
+    ) {
+      return res.status(404).json({
+        ok: false,
+        mensaje: "El archivo físico no está disponible.",
+      });
+    }
+
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename*=UTF-8''${encodeURIComponent(documento.nombre_archivo)}`,
+    );
+    res.type(
+      documento.tipo_archivo ||
+        documento.tipo_documento ||
+        "application/octet-stream",
+    );
+    return res.sendFile(rutaAbsoluta);
+  } catch (error) {
+    console.error("Error al descargar documento:", error);
+
+    return res.status(500).json({
+      ok: false,
+      mensaje: "Error interno al descargar el documento.",
+    });
+  }
+};
+
+const validarDocumentoSolicitud = async (req, res) => {
+  try {
+    if (req.usuario.rol !== "funcionario") {
+      return res.status(403).json({
+        ok: false,
+        mensaje: "Solo funcionarios pueden validar documentos.",
+      });
+    }
+
+    if (!/^\d+$/.test(String(req.params.documentoId || ""))) {
+      return res.status(400).json({
+        ok: false,
+        mensaje: "El identificador del documento no es válido.",
+      });
+    }
+
+    const solicitudActual = await obtenerSolicitudResumenPorIdOCodigo(
+      req.params.id,
+    );
+
+    if (!solicitudActual) {
+      return res.status(404).json({
+        ok: false,
+        mensaje: "Solicitud no encontrada.",
+      });
+    }
+
+    if (solicitudActual.funcionario_id !== req.usuario.id) {
+      return res.status(403).json({
+        ok: false,
+        mensaje: "La solicitud no está asignada a tu usuario.",
+      });
+    }
+
+    const estado = String(req.body.estado || "").trim().toLowerCase();
+
+    if (!["pendiente", "aprobado", "rechazado"].includes(estado)) {
+      return res.status(400).json({
+        ok: false,
+        mensaje: "El estado del documento no es válido.",
+      });
+    }
+
+    const documento = await obtenerDocumentoSolicitud(
+      req.params.id,
+      req.params.documentoId,
+    );
+
+    if (!documento) {
+      return res.status(404).json({
+        ok: false,
+        mensaje: "Documento no encontrado.",
+      });
+    }
+
+    const descripcion = String(req.body.descripcion || "").trim();
+    await pool.query(
+      `
+      UPDATE documentos
+      SET estado_validacion = $1,
+          descripcion = CASE
+            WHEN $2 = '' THEN descripcion
+            ELSE $2
+          END
+      WHERE id = $3
+        AND solicitud_id = $4
+      `,
+      [estado, descripcion, documento.id, solicitudActual.id],
+    );
+
+    await registrarHistorialSolicitud({
+      solicitudId: solicitudActual.id,
+      actorId: req.usuario.id,
+      actorRol: req.usuario.rol,
+      accion: "documentos",
+      titulo:
+        estado === "aprobado"
+          ? "Documento aprobado"
+          : estado === "rechazado"
+            ? "Documento rechazado"
+            : "Documento pendiente de revisión",
+      descripcion:
+        descripcion ||
+        `El documento ${documento.nombre_archivo} quedó en estado ${estado}.`,
+      cambios: {
+        documentoId: documento.id,
+        documento: documento.nombre_archivo,
+        estadoAnterior: documento.estado_validacion,
+        estadoNuevo: estado,
+      },
+    });
+
+    const solicitudCompleta = await obtenerSolicitudCompletaPorCodigo(
+      solicitudActual.codigo,
+    );
+    const solicitudFormateada = formatearSolicitud(solicitudCompleta);
+    const correo = await enviarCorreoSeguro({
+      to: solicitudFormateada.correoContacto,
+      ...solicitudActualizadaTemplate(solicitudFormateada),
+    });
+
+    return res.json({
+      ok: true,
+      mensaje: "Documento actualizado correctamente.",
+      correoEnviado: correo.sent,
+      solicitud: solicitudFormateada,
+    });
+  } catch (error) {
+    console.error("Error al validar documento:", error);
+
+    return res.status(500).json({
+      ok: false,
+      mensaje: "Error interno al validar el documento.",
+    });
+  }
+};
+
+const derivarSolicitud = async (req, res) => {
+  try {
+    if (req.usuario.rol !== "funcionario") {
+      return res.status(403).json({
+        ok: false,
+        mensaje: "Solo funcionarios pueden derivar solicitudes.",
+      });
+    }
+
+    const solicitudActual = await obtenerSolicitudResumenPorIdOCodigo(
+      req.params.id,
+    );
+
+    if (!solicitudActual) {
+      return res.status(404).json({
+        ok: false,
+        mensaje: "Solicitud no encontrada.",
+      });
+    }
+
+    if (solicitudActual.funcionario_id !== req.usuario.id) {
+      return res.status(403).json({
+        ok: false,
+        mensaje: "La solicitud no está asignada a tu usuario.",
+      });
+    }
+
+    const area = String(req.body.area || "").trim();
+
+    if (!areasMunicipales.includes(area)) {
+      return res.status(400).json({
+        ok: false,
+        mensaje: "Debes seleccionar un área municipal válida.",
+      });
+    }
+
+    const funcionarioId = await obtenerFuncionarioAsignado(area);
+
+    if (!funcionarioId) {
+      return res.status(409).json({
+        ok: false,
+        mensaje: "No existe un funcionario disponible para el área seleccionada.",
+      });
+    }
+
+    await pool.query(
+      `
+      UPDATE solicitudes
+      SET funcionario_id = $1,
+          area_responsable = $2,
+          estado = 'derivada',
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $3
+      `,
+      [funcionarioId, area, solicitudActual.id],
+    );
+
+    await registrarHistorialSolicitud({
+      solicitudId: solicitudActual.id,
+      actorId: req.usuario.id,
+      actorRol: req.usuario.rol,
+      accion: "derivacion",
+      titulo: "Solicitud derivada",
+      descripcion: `La solicitud fue derivada al área ${area}.`,
+      cambios: {
+        areaAnterior: solicitudActual.area_responsable,
+        areaNueva: area,
+        funcionarioAnterior: solicitudActual.funcionario_id,
+        funcionarioNuevo: funcionarioId,
+      },
+    });
+
+    const solicitudCompleta = await obtenerSolicitudCompletaPorCodigo(
+      solicitudActual.codigo,
+    );
+    const solicitudFormateada = formatearSolicitud(solicitudCompleta);
+    const correo = await enviarCorreoSeguro({
+      to: solicitudFormateada.correoContacto,
+      ...solicitudActualizadaTemplate(solicitudFormateada),
+    });
+
+    return res.json({
+      ok: true,
+      mensaje: "Solicitud derivada correctamente.",
+      correoEnviado: correo.sent,
+      solicitud: solicitudFormateada,
+    });
+  } catch (error) {
+    console.error("Error al derivar solicitud:", error);
+
+    return res.status(500).json({
+      ok: false,
+      mensaje: "Error interno al derivar la solicitud.",
     });
   }
 };
@@ -959,10 +1260,14 @@ const eliminarSolicitud = async (req, res) => {
 module.exports = {
   crearSolicitud,
   listarSolicitudes,
+  obtenerDatosReporte,
   obtenerMisSolicitudes,
   obtenerSolicitudPorId,
   actualizarSolicitud,
   subirDocumentosSolicitud,
+  descargarDocumentoSolicitud,
+  validarDocumentoSolicitud,
+  derivarSolicitud,
   crearAgendamientoSolicitud,
   obtenerMisAgendamientos,
   obtenerAgendamientosSolicitud,

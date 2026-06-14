@@ -25,7 +25,6 @@ import {
 } from "ionicons/icons";
 
 import api from "../../../../core/data/http/apiClient";
-import { environment } from "../../../../core/config/environment";
 import { useLatestCallback } from "../../../../core/presentation/hooks/useLatestCallback";
 import type { Solicitud } from "../../domain/entities/Solicitud";
 import { authService } from "../../../auth/composition/authService";
@@ -69,8 +68,10 @@ interface EventoHistorial {
     | "ingresada"
     | "revision"
     | "pendiente"
+    | "derivada"
     | "aprobada"
     | "rechazada"
+    | "cerrada"
     | "comentario";
 }
 
@@ -291,6 +292,8 @@ const DetalleSolicitudUsuario: React.FC = () => {
   const normalizarEstado = (estado: string) => {
     const texto = String(estado || "").toLowerCase();
 
+    if (texto.includes("cerrad")) return "cerrada";
+    if (texto.includes("derivad")) return "derivada";
     if (texto.includes("aprob")) return "aprobada";
     if (texto.includes("rechaz")) return "rechazada";
 
@@ -316,6 +319,8 @@ const DetalleSolicitudUsuario: React.FC = () => {
   const textoEstado = (estado: string) => {
     const estadoNormalizado = normalizarEstado(estado);
 
+    if (estadoNormalizado === "cerrada") return "Cerrada";
+    if (estadoNormalizado === "derivada") return "Derivada";
     if (estadoNormalizado === "aprobada") return "Aprobada";
     if (estadoNormalizado === "rechazada") return "Rechazada";
 
@@ -331,6 +336,8 @@ const DetalleSolicitudUsuario: React.FC = () => {
   const claseEstado = (estado: string) => {
     const estadoNormalizado = normalizarEstado(estado);
 
+    if (estadoNormalizado === "cerrada") return "status-badge status-approved";
+    if (estadoNormalizado === "derivada") return "status-badge status-review";
     if (estadoNormalizado === "aprobada") return "status-badge status-approved";
     if (estadoNormalizado === "rechazada") return "status-badge status-rejected";
 
@@ -348,6 +355,8 @@ const DetalleSolicitudUsuario: React.FC = () => {
   const obtenerEtapaActual = (estado: string) => {
     const estadoNormalizado = normalizarEstado(estado);
 
+    if (estadoNormalizado === "cerrada") return 5;
+    if (estadoNormalizado === "derivada") return 2;
     if (estadoNormalizado === "aprobada") return 5;
     if (estadoNormalizado === "rechazada") return 5;
     if (estadoNormalizado === "pendiente_documentos") return 3;
@@ -356,21 +365,35 @@ const DetalleSolicitudUsuario: React.FC = () => {
     return 1;
   };
 
-  const obtenerUrlDocumento = (documento: DocumentoAdjunto) => {
-    const url =
-      documento.url || documento.rutaArchivo || documento.ruta_archivo || "";
+  const obtenerUrlDocumento = (documento: DocumentoAdjunto) =>
+    documento.url || documento.rutaArchivo || documento.ruta_archivo || "";
 
-    if (!url) return "";
+  const abrirDocumento = async (documento: DocumentoAdjunto) => {
+    const urlDocumento = obtenerUrlDocumento(documento);
 
-    if (url.startsWith("http")) {
-      return url;
+    if (!urlDocumento) {
+      setMensajeAccion("Este documento no tiene una ruta válida.");
+      return;
     }
 
-    if (url.startsWith("/")) {
-      return `${environment.backendUrl}${url}`;
-    }
+    try {
+      const response = await api.get(urlDocumento, {
+        responseType: "blob",
+      });
+      const blobUrl = URL.createObjectURL(response.data);
+      const enlace = document.createElement("a");
 
-    return `${environment.backendUrl}/${url}`;
+      enlace.href = blobUrl;
+      enlace.target = "_blank";
+      enlace.rel = "noopener noreferrer";
+      enlace.click();
+      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+    } catch (error: any) {
+      setMensajeAccion(
+        error.response?.data?.mensaje ||
+          "No se pudo abrir el documento protegido.",
+      );
+    }
   };
 
   const obtenerNombreDocumento = (documento: DocumentoAdjunto) => {
@@ -588,19 +611,31 @@ const DetalleSolicitudUsuario: React.FC = () => {
     const historialGuardado = obtenerValor(solicitud, "historial");
 
     if (Array.isArray(historialGuardado) && historialGuardado.length > 0) {
-      return historialGuardado.map((evento: any) => ({
-        fecha: evento.fecha || "Sin fecha",
-        titulo: evento.titulo || "Actualización",
-        descripcion: evento.descripcion || "La solicitud fue actualizada.",
-        tipo:
-          evento.tipo === "documentos"
-            ? "pendiente"
-            : evento.tipo === "estado"
-            ? "revision"
-            : evento.tipo === "comentario"
-            ? "comentario"
-            : evento.tipo || "revision",
-      }));
+      return historialGuardado.map((evento: any) => {
+        const estadoNuevo = String(evento.cambios?.estadoNuevo || "");
+        let tipo: EventoHistorial["tipo"] = "revision";
+
+        if (evento.tipo === "creacion") tipo = "ingresada";
+        if (evento.tipo === "documentos") tipo = "pendiente";
+        if (evento.tipo === "derivacion") tipo = "derivada";
+        if (evento.tipo === "comentario") tipo = "comentario";
+        if (evento.tipo === "estado" && estadoNuevo === "cerrada") {
+          tipo = "cerrada";
+        }
+        if (evento.tipo === "estado" && estadoNuevo === "aprobada") {
+          tipo = "aprobada";
+        }
+        if (evento.tipo === "estado" && estadoNuevo === "rechazada") {
+          tipo = "rechazada";
+        }
+
+        return {
+          fecha: evento.fecha || "Sin fecha",
+          titulo: evento.titulo || "Actualización",
+          descripcion: evento.descripcion || "La solicitud fue actualizada.",
+          tipo,
+        };
+      });
     }
 
     const estadoActual = normalizarEstado(obtenerEstado(solicitud));
@@ -620,6 +655,7 @@ const DetalleSolicitudUsuario: React.FC = () => {
 
     if (
       estadoActual === "en_revision" ||
+      estadoActual === "derivada" ||
       estadoActual === "pendiente_documentos" ||
       estadoActual === "aprobada" ||
       estadoActual === "rechazada"
@@ -668,12 +704,31 @@ const DetalleSolicitudUsuario: React.FC = () => {
       });
     }
 
+    if (estadoActual === "derivada") {
+      eventos.unshift({
+        fecha: ultimaActualizacion,
+        titulo: "Solicitud derivada",
+        descripcion:
+          "La solicitud fue enviada a otra área o funcionario responsable.",
+        tipo: "derivada",
+      });
+    }
+
     if (estadoActual === "rechazada") {
       eventos.unshift({
         fecha: ultimaActualizacion,
         titulo: "Solicitud rechazada",
         descripcion: "Tu solicitud fue rechazada. Revisa las observaciones.",
         tipo: "rechazada",
+      });
+    }
+
+    if (estadoActual === "cerrada") {
+      eventos.unshift({
+        fecha: ultimaActualizacion,
+        titulo: "Solicitud cerrada",
+        descripcion: "La gestión municipal fue cerrada por el funcionario.",
+        tipo: "cerrada",
       });
     }
 
@@ -1267,14 +1322,13 @@ Documentos faltantes: ${
                             </p>
 
                             {urlDocumento && (
-                              <a
-                                href={urlDocumento}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                              <button
+                                type="button"
                                 className="text-link-button"
+                                onClick={() => abrirDocumento(documento)}
                               >
                                 Abrir documento
-                              </a>
+                              </button>
                             )}
                           </div>
                         </div>

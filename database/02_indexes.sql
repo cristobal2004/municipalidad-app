@@ -1,3 +1,27 @@
+ALTER TABLE solicitudes
+  DROP CONSTRAINT IF EXISTS solicitudes_estado_check;
+
+ALTER TABLE solicitudes
+  ADD CONSTRAINT solicitudes_estado_check
+  CHECK (
+    estado IN (
+      'pendiente', 'en_revision', 'observada', 'derivada',
+      'aprobada', 'rechazada', 'cerrada'
+    )
+  );
+
+ALTER TABLE observaciones
+  DROP CONSTRAINT IF EXISTS observaciones_estado_resultante_check;
+
+ALTER TABLE observaciones
+  ADD CONSTRAINT observaciones_estado_resultante_check
+  CHECK (
+    estado_resultante IS NULL OR estado_resultante IN (
+      'pendiente', 'en_revision', 'observada', 'derivada',
+      'aprobada', 'rechazada', 'cerrada'
+    )
+  );
+
 CREATE INDEX IF NOT EXISTS idx_solicitudes_usuario_created_at
   ON solicitudes (usuario_id, created_at DESC);
 

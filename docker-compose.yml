@@ -1,4 +1,11 @@
 services:
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: municipalidad-mailpit
+    restart: unless-stopped
+    ports:
+      - "${MAILPIT_WEB_PORT:-8025}:8025"
+
   db:
     image: postgres:16-alpine
     container_name: municipalidad-db
@@ -31,6 +38,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      mailpit:
+        condition: service_started
     environment:
       NODE_ENV: production
       PORT: 3000
@@ -41,13 +50,13 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD:?Debes definir POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET:?Debes definir JWT_SECRET}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8080}
-      EMAIL_ENABLED: ${EMAIL_ENABLED:-false}
-      SMTP_HOST: ${SMTP_HOST:-}
-      SMTP_PORT: ${SMTP_PORT:-465}
-      SMTP_SECURE: ${SMTP_SECURE:-true}
+      EMAIL_ENABLED: ${EMAIL_ENABLED:-true}
+      SMTP_HOST: ${SMTP_HOST:-mailpit}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
-      SMTP_FROM: ${SMTP_FROM:-Municipalidad de Santo Domingo}
+      SMTP_FROM: ${SMTP_FROM:-Municipalidad de Santo Domingo <no-responder@santodomingo.cl>}
       SMTP_REPLY_TO: ${SMTP_REPLY_TO:-atencionciudadana@santodomingo.cl}
     ports:
       - "${BACKEND_PORT:-3000}:3000"

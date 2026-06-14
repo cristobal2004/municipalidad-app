@@ -55,6 +55,10 @@ const SolicitudesAsignadas: React.FC = () => {
   const [mostrarOrden, setMostrarOrden] = useState(false);
   const [filtroEstado, setFiltroEstado] = useState("todos");
   const [filtroPrioridad, setFiltroPrioridad] = useState("todas");
+  const [filtroArea, setFiltroArea] = useState("todas");
+  const [filtroTramite, setFiltroTramite] = useState("todos");
+  const [fechaDesde, setFechaDesde] = useState("");
+  const [fechaHasta, setFechaHasta] = useState("");
   const [ordenCampo, setOrdenCampo] = useState("fecha");
   const [ordenDireccion, setOrdenDireccion] = useState<"asc" | "desc">("desc");
   const [solicitudesSeleccionadas, setSolicitudesSeleccionadas] = useState<
@@ -183,6 +187,15 @@ const SolicitudesAsignadas: React.FC = () => {
     );
   };
 
+  const obtenerArea = (item: any) => {
+    return (
+      obtenerValor(item, "areaResponsable") ||
+      obtenerValor(item, "area") ||
+      obtenerValor(item, "departamento") ||
+      "Área municipal"
+    );
+  };
+
   const obtenerDetalleTramite = (item: any) => {
     return (
       obtenerValor(item, "detalle") ||
@@ -239,7 +252,13 @@ const SolicitudesAsignadas: React.FC = () => {
   const normalizarEstado = (estado: string) => {
     const texto = normalizarTexto(estado);
 
-    if (texto.includes("aprob") || texto.includes("resuelt")) return "aprobada";
+    if (
+      texto.includes("aprob") ||
+      texto.includes("resuelt") ||
+      texto.includes("cerrad")
+    ) {
+      return "aprobada";
+    }
     if (texto.includes("rechaz")) return "rechazada";
 
     if (
@@ -353,6 +372,34 @@ const SolicitudesAsignadas: React.FC = () => {
       );
     }
 
+    if (filtroArea !== "todas") {
+      resultado = resultado.filter(
+        (solicitud) => obtenerArea(solicitud) === filtroArea,
+      );
+    }
+
+    if (filtroTramite !== "todos") {
+      resultado = resultado.filter(
+        (solicitud) => obtenerTramite(solicitud) === filtroTramite,
+      );
+    }
+
+    if (fechaDesde || fechaHasta) {
+      const inicio = fechaDesde ? new Date(`${fechaDesde}T00:00:00`) : null;
+      const fin = fechaHasta ? new Date(`${fechaHasta}T23:59:59.999`) : null;
+
+      resultado = resultado.filter((solicitud) => {
+        const fechaSolicitud = new Date(obtenerFechaOrden(solicitud));
+
+        if (Number.isNaN(fechaSolicitud.getTime())) return false;
+
+        return (
+          (!inicio || fechaSolicitud >= inicio) &&
+          (!fin || fechaSolicitud <= fin)
+        );
+      });
+    }
+
     resultado.sort((a, b) => {
       let valorA: string | number = "";
       let valorB: string | number = "";
@@ -442,8 +489,19 @@ const SolicitudesAsignadas: React.FC = () => {
     setBusqueda("");
     setFiltroEstado("todos");
     setFiltroPrioridad("todas");
+    setFiltroArea("todas");
+    setFiltroTramite("todos");
+    setFechaDesde("");
+    setFechaHasta("");
     setPaginaActual(1);
   };
+
+  const areasDisponibles = Array.from(
+    new Set(solicitudes.map((solicitud) => obtenerArea(solicitud))),
+  );
+  const tramitesDisponibles = Array.from(
+    new Set(solicitudes.map((solicitud) => obtenerTramite(solicitud))),
+  );
 
   const cambiarSeleccionSolicitud = (solicitud: any) => {
     const codigo = String(obtenerCodigo(solicitud));
@@ -909,6 +967,58 @@ const SolicitudesAsignadas: React.FC = () => {
                           <option value="media">Media</option>
                           <option value="baja">Baja</option>
                         </select>
+                      </label>
+
+                      <label>
+                        Área
+                        <select
+                          value={filtroArea}
+                          onChange={(event) => setFiltroArea(event.target.value)}
+                        >
+                          <option value="todas">Todas las áreas</option>
+                          {areasDisponibles.map((area) => (
+                            <option value={area} key={area}>
+                              {area}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+
+                      <label>
+                        Tipo de trámite
+                        <select
+                          value={filtroTramite}
+                          onChange={(event) =>
+                            setFiltroTramite(event.target.value)
+                          }
+                        >
+                          <option value="todos">Todos los trámites</option>
+                          {tramitesDisponibles.map((tramite) => (
+                            <option value={tramite} key={tramite}>
+                              {tramite}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+
+                      <label>
+                        Desde
+                        <input
+                          type="date"
+                          value={fechaDesde}
+                          max={fechaHasta || undefined}
+                          onChange={(event) => setFechaDesde(event.target.value)}
+                        />
+                      </label>
+
+                      <label>
+                        Hasta
+                        <input
+                          type="date"
+                          value={fechaHasta}
+                          min={fechaDesde || undefined}
+                          onChange={(event) => setFechaHasta(event.target.value)}
+                        />
                       </label>
 
                       <button type="button" onClick={limpiarFiltros}>
